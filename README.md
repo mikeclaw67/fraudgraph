@@ -1,8 +1,10 @@
 # FraudGraph
 
-**Open-source fraud detection platform** — deterministic rules, ML anomaly scoring, and graph analytics for government fraud investigation. Same patterns as Palantir Foundry, no vendor lock-in.
+**Open-source fraud detection platform** — deterministic rules, ML anomaly scoring, and graph analytics for government fraud investigation. Architecturally equivalent to a Palantir AIP Tier 3 Agentic Application, built open and composable.
 
-> Ontology-based entity resolution across 50K+ loan records. Six detection rules, Isolation Forest ML, Louvain community detection, and a LangGraph investigation agent — all composable, all testable, all open.
+> Ontology-based entity resolution across 50K+ loan records. Six detection rules, Isolation Forest ML, Louvain community detection, and a LangGraph investigation agent (8 tools, WebSocket streaming) — the same design as Palantir AIP Agent Studio Tier 3: an agent embedded in an operator application with live Ontology context. All open, all inspectable.
+
+> FraudGraph shows what comes out of an AIP Bootcamp for SBA fraud detection — the target state an agency investigator would have after Palantir's 3-5 day onboarding. Built on authentic Foundry Ontology patterns (Borrower → Business → BankAccount/Address, Escalate/Close/Reassign action types). No vendor lock-in.
 
 <!-- ![FraudGraph Screenshot](docs/screenshot.png) -->
 

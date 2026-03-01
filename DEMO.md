@@ -40,7 +40,7 @@ curl -s http://localhost:8000/health | python3 -m json.tool
 
 ## Step 1: The Platform (30 seconds)
 
-> **Talking point**: "FraudGraph is a Palantir-class fraud detection platform. It uses the same architectural patterns as Palantir Foundry — ontology-based entity resolution, deterministic rules, ML anomaly detection, and graph analytics — but built as an open, composable system."
+> **Talking point**: "FraudGraph is a Palantir AIP Tier 3 Agentic Application for SBA fraud detection. Tier 3 is Palantir's highest-value commercial tier: an investigation agent embedded in an operator application, reading and writing live Ontology state. This is exactly what comes out of a Palantir AIP Bootcamp — the product an SBA investigator would have after 3-5 days of Palantir onboarding. We built it open, so you can see every line of the agent logic."
 
 Open the Swagger docs in your browser:
 
