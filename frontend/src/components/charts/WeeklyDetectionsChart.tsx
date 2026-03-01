@@ -33,7 +33,7 @@ const tooltipStyle = {
 export default function WeeklyDetectionsChart() {
   return (
     <div className="w-full h-[280px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={280}>
         <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" />
           <XAxis

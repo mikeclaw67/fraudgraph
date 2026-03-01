@@ -303,42 +303,42 @@ export default function RingQueuePage() {
                         </>
                       ) : (
                         <>
-                          {/* Full: flat icon + label */}
-                          <td className="px-3 py-3">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase">
-                              <span className="text-sm grayscale">{RING_TYPE_ICONS[ring.ring_type]}</span>
+                          {/* Full: stacked card with icon above label */}
+                          <td className="px-3 py-2">
+                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-slate-700/40 text-slate-300 leading-tight">
+                              <span className="text-base mb-0.5">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>
-                          <td className="px-3 py-3 max-w-[320px]">
+                          <td className="px-3 py-2 max-w-[320px]">
                             <span className="text-data text-smoking-gun font-medium truncate block" title={ring.common_element}>
                               {ring.common_element}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-right">
+                          <td className="px-3 py-2 text-right">
                             <span className="text-data text-text-primary tabular-nums">{ring.member_count}</span>
                           </td>
-                          <td className="px-3 py-3 text-right">
+                          <td className="px-3 py-2 text-right">
                             <span className="text-data text-text-primary tabular-nums font-medium">
                               {formatCurrency(ring.total_exposure)}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-right">
+                          <td className="px-3 py-2 text-right">
                             <span className={cn("text-data tabular-nums font-bold", getRiskColor(ring.avg_risk_score))}>
                               {ring.avg_risk_score}
                             </span>
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="px-3 py-2">
                             <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", statusConfig.bg)}>
                               {statusConfig.label}
                             </span>
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="px-3 py-2">
                             <span className="text-data text-text-secondary">
                               {ring.assigned_to || <span className="text-text-muted">&mdash;</span>}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-right">
+                          <td className="px-3 py-2 text-right">
                             <span className="text-data text-text-secondary tabular-nums">
                               {formatDate(ring.detected_at)}
                             </span>
@@ -353,10 +353,10 @@ export default function RingQueuePage() {
 
             {/* Footer */}
             <div className="flex items-center justify-between border-t border-border px-3 py-2">
-              <span className="text-[11px] text-text-muted">
+              <span className="text-label text-text-muted">
                 {filtered.length} ring{filtered.length !== 1 ? "s" : ""} displayed
               </span>
-              <span className="text-[11px] text-text-muted">
+              <span className="text-label text-text-muted">
                 Sorted by {sortField.replace(/_/g, " ")} {sortDir === "desc" ? "descending" : "ascending"}
               </span>
             </div>
