@@ -1,48 +1,40 @@
-# Investigation WebSocket API — streams LangGraph agent steps to the UI.
-# WS /ws/investigate/{alert_id}?entity_id=XXX streams JSON line events.
-# GET /api/investigate/{alert_id} returns full investigation result synchronously.
+# backend/api/investigate.py
+# WebSocket endpoint for LangGraph fraud investigation agent.
+# Route: /api/investigate/ws/{ring_id}?entity_id={entity_id}
+# Streams InvStep JSON events to the frontend as the agent runs.
 
 from __future__ import annotations
-
-import os
+import json
+import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
-from fastapi.responses import JSONResponse
+from backend.agents.investigator import run_investigation
 
-router = APIRouter(prefix="/investigate", tags=["investigate"])
-
-
-@router.get("/{alert_id}")
-async def run_investigation(
-    alert_id: str,
-    entity_id: str = Query(..., description="Primary entity to investigate"),
-) -> JSONResponse:
-    """Run full investigation and return structured findings."""
-    from backend.agent.investigator import investigate
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        return JSONResponse({"error": "ANTHROPIC_API_KEY not set"}, status_code=503)
-    result = await investigate(alert_id, entity_id)
-    return JSONResponse(result)
+logger = logging.getLogger(__name__)
+router = APIRouter()
 
 
-@router.websocket("/ws/{alert_id}")
-async def investigate_ws(
+@router.websocket("/investigate/ws/{ring_id}")
+async def investigation_websocket(
     websocket: WebSocket,
-    alert_id: str,
-    entity_id: str = Query(..., description="Primary entity to investigate"),
+    ring_id: str,
+    entity_id: str = Query(default=""),
 ):
-    """Stream investigation steps as JSON lines over WebSocket."""
     await websocket.accept()
+    step = 0
+
+    async def send(type_: str, content: str, tool_name: str | None = None):
+        nonlocal step
+        step += 1
+        msg = {"step": step, "type": type_, "content": content}
+        if tool_name:
+            msg["tool_name"] = tool_name
+        await websocket.send_json(msg)
+
     try:
-        from backend.agent.investigator import investigate_stream
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            await websocket.send_text('{"type":"error","content":"ANTHROPIC_API_KEY not set"}')
-            await websocket.close()
-            return
-        async for line in investigate_stream(alert_id, entity_id):
-            await websocket.send_text(line)
+        async for event in run_investigation(ring_id, entity_id, send):
+            pass  # events sent via send() callback
     except WebSocketDisconnect:
-        pass
+        logger.info("Client disconnected during investigation %s", ring_id)
     except Exception as e:
-        await websocket.send_text(f'{{"type":"error","content":"{str(e)[:200]}"}}')
-    finally:
-        await websocket.close()
+        logger.error("Investigation error: %s", e, exc_info=True)
+        await send("error", f"Investigation failed: {str(e)}")

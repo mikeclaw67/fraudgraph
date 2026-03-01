@@ -1,39 +1,35 @@
-# FraudGraph — Claude Code Instructions
+# CLAUDE.md — FraudGraph Backend
 
 ## What This Is
-Production-quality reimplementation of Palantir's government fraud detection platform.
-Target: impress a current Palantir engineer. Real product, not a demo.
+FastAPI + Python fraud detection backend. Palantir-quality code.
+Stack: FastAPI + SQLAlchemy async + PostgreSQL + Neo4j + LangGraph
 
-## NON-NEGOTIABLE: Verification Loop (Cursor-style iteration)
-After writing ANY frontend file, immediately run:
-```bash
-cd frontend && npx tsc --noEmit 2>&1 | head -30
-```
-If there are TypeScript errors: FIX THEM BEFORE MOVING ON. Do not leave type errors.
-Repeat until `tsc --noEmit` produces zero output.
-Only then run `npm run build` as final confirmation.
-This is the difference between 90% working code and 100% working code.
+## Git (Non-Negotiable)
+After EVERY meaningful change:
+git add -A && git commit -m "feat: <what + why>" && git push origin $(git branch --show-current)
 
-## NON-NEGOTIABLE: Git After Every Meaningful Change
-```bash
-git add -A && git commit -m "feat: <what and why>" && git push origin $(git branch --show-current)
-```
-GitHub must always reflect current state. Remote: https://github.com/mikeclaw67/fraudgraph.git
+## Before Writing Any Code
+1. Run: python3 -m py_compile <file> on any file you plan to edit
+2. Read existing API routes — don't duplicate endpoints
+3. Check: does this task need a DB migration?
 
-## Exploration Before Writing
-Before writing any new component or page:
-1. Read the existing types in frontend/src/lib/types.ts
-2. Read the existing utils in frontend/src/lib/utils.ts  
-3. Read one existing page to understand the pattern
-Then write. Not before.
+## After Every File Write
+Run: python3 -m py_compile <that file>
+Fix ALL syntax errors immediately.
 
-## Architecture
-- Frontend: Next.js 15, Tailwind CSS, TypeScript, Sigma.js (graph viz), Recharts
-- Backend: FastAPI, Neo4j, PostgreSQL, Redis
-- Design: bg #0F1117, panels #1A1D27, accent #2A6EBB, critical #C94B4B, zero border-radius
+## Tests Must Pass
+cd /Users/mikeclaw/Projects/fraudgraph && source .venv/bin/activate && pytest tests/ -q
+All 35+ tests must pass before committing. No regressions.
+
+## Code Style
+- Type hints on every function — no untyped code
+- Semantic header comment on every file (first line, explains purpose)
+- Async all the way — no blocking calls in route handlers
+- Error responses: return {error: str, details: str} not bare exceptions
 
 ## Done Signal
-1. tsc --noEmit passes with zero errors
-2. npm run build passes
+1. pytest passes — all tests green
+2. python3 -m py_compile on all changed files — no syntax errors  
 3. git add -A && git commit && git push
-4. Write RALPH_DONE to progress.md
+4. Write SPRINT_DONE / ITERATION_DONE to progress.md
+5. openclaw system event --text "Done: <summary>" --mode now

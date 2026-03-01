@@ -62,6 +62,7 @@ services:
       FG_NEO4J_URI: bolt://neo4j:7687
       FG_NEO4J_PASSWORD: fraudgraph
       FG_REDIS_URL: redis://redis:6379/0
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     ports:
       - "8000:8000"
     depends_on:
