@@ -63,3 +63,4 @@ RALPH_DONE
 - WebSocket support needed for real-time alert push (use Redis pub/sub channel `fraudgraph:alerts`)
 - Case audit trail is in-memory list — move to `AuditEntry` PostgreSQL model
 - CORS is wide open (`*`) — restrict in production
+FORGE_DONE: Investigation agent backend complete. Demo fallback wired.
