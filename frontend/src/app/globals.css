@@ -65,3 +65,10 @@ html, body {
 * {
   border-radius: 0 !important;
 }
+
+/* Print styles for Evidence Package export */
+@media print {
+  nav, aside, [data-print-hide] { display: none !important; }
+  [data-print-show] { display: block !important; }
+  body { background: white !important; color: black !important; }
+}

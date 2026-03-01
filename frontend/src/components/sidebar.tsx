@@ -15,7 +15,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-12 flex-col border-r border-slate-700/50 bg-slate-950">
+    <aside data-print-hide className="fixed left-0 top-0 z-40 flex h-screen w-12 flex-col border-r border-slate-700/50 bg-slate-950">
       {/* Logo — icon only */}
       <div className="flex h-12 items-center justify-center border-b border-slate-700/50">
         <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
