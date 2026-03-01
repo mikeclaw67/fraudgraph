@@ -2,7 +2,7 @@
 
 export type RingType = "ADDRESS_FARM" | "ACCOUNT_CLUSTER" | "EIN_RECYCLER" | "STRAW_COMPANY" | "THRESHOLD_GAMING";
 export type RingStatus = "NEW" | "UNDER_REVIEW" | "REFERRED" | "DISMISSED";
-export type CaseStatus = "UNDER_REVIEW" | "REFERRED_TO_DOJ" | "DISMISSED" | "CLOSED";
+export type CaseStatus = "OPEN" | "UNDER_REVIEW" | "REFERRED_TO_DOJ" | "CLOSED";
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 export type Schema = "ppp_loans" | "medicaid" | "procurement";
 

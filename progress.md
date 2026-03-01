@@ -11,3 +11,4 @@ Sprint 4 (alert-queue design) is committed. Now rebuilding with ring-first archi
 - npm run build passes clean
 
 ITERATION_DONE: Ring Queue
+ITERATION_DONE: Case Manager
