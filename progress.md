@@ -1,13 +1,11 @@
-# ITERATION_DONE: RD-03 Smoking Gun Labels + Chip Spec Alignment
+# FORGE_DONE: Visual polish complete
 
-## Commit: 18598e5 (main)
-## Date: 2026-03-01 ~05:06 AM EST
+## Fixes applied (sprint-frontend):
+- Bug 1: Analytics charts — wrapped ResponsiveContainer in explicit-height div to fix height-0 measurement during SSR. Both bar chart and line chart now render with visible colored data.
+- Bug 2: Ring Queue TYPE column — removed bg-slate-700/40 card background and stacked layout. Now flat inline icon + uppercase label, no border-radius, no card.
+- Bug 3: Ring Detail graph — center node 18→40, member nodes 6-16→14-36, labelSize 11→14, labelThreshold 6→4, edges proportionally thicker. Graph fills canvas with evidence, not dots in space.
 
-## Changes:
-- "Shared Element" → "Common Element" (matches field name)
-- "Property Record" → "Key Facts"
-- Chip styling aligned to spec: gap-1.5, mt-1, text-[11px], leading-snug
-- Truncation: 52 chars with `…`, title hover for full text
-
-## Build: ✅ `npm run build` passes clean (Next.js 16.1.6, 0 errors)
-## Pushed: ✅ main → origin/main
+## Verification:
+- tsc --noEmit: clean
+- npm run build: clean
+- Screenshots: /tmp/screenshot-analytics.png, /tmp/screenshot-rings.png, /tmp/screenshot-ring-detail.png
