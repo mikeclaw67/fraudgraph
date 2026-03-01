@@ -17,8 +17,9 @@ neo4j>=5.15.0
 celery>=5.3.6
 redis>=5.0.1
 
-# Data generation
+# Data generation / import
 faker>=22.0.0
+pandas>=2.1.0
 
 # ML / Analytics
 scikit-learn>=1.4.0
