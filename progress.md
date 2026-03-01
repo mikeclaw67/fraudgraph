@@ -1,28 +1,34 @@
-# RALPH_DONE: Investigation Agent UI
+# ITERATION_DONE: EX-01/02 Export Graph + Evidence Package
 
-## All TASK.md criteria verified
-## Date: 2026-03-01 ~04:02 AM EST
+## Commit: b8b60fe (sprint-frontend)
+## Date: 2026-03-01 ~04:15 AM EST
 
 ---
 
-## Verification (heartbeat check):
+## What changed:
 
-### TASK.md: Wire Investigation Agent into Ring Detail UI
-- ✅ "Investigate" button on Ring Detail KPI strip
-- ✅ WebSocket connection to ws://localhost:8000/api/investigate/ws/{alert_id}?entity_id={entity_id}
-- ✅ Live step timeline (tool_call + finding types) with auto-scroll
-- ✅ Structured findings panel (risk_tier, executive_summary, key_findings, estimated_fraud_amount, recommended_action)
-- ✅ Spinner while running, checkmark on complete, error state handled
-- ✅ Dark government aesthetic (#0A0C12 investigation panel bg)
-- ✅ npm run build passes clean (0 errors, 0 warnings)
-- ✅ Committed: ec9aad1 feat: wire investigation agent into Ring Detail UI
+### EX-01 — Export Graph as PNG ✅
+- **New file:** `lib/exportGraph.ts` — `exportSigmaAsPNG()` utility
+- Uses `afterRender` callback + synchronous `drawImage` to capture WebGL canvases
+  (Sigma v3 has `preserveDrawingBuffer: false` — naive toDataURL returns blank)
+- Layer compositing in render order: edges → edgeLabels → nodes → labels
+- Dark background fill (#0F1117) for clean output
+- Triggers browser download as `fraudgraph-ring-{ring_id}.png`
+- `sigmaRef` typed as `any` to avoid Sigma's strict event union types
 
-### Implementation (in ring-detail.tsx):
-- Investigation types: InvStatus, InvStep, KeyFinding, InvFindings
-- State: invStatus, invSteps, invFindings managed with useState + useRef
-- WS lifecycle: connect on click, parse JSON events, handle complete/error, cleanup on unmount
-- InvestigationPanel: split layout — steps timeline (left) + findings (right on complete)
-- FindingsPanel: risk tier badge, estimated amount, executive summary, key findings with severity dots, evidence citations
-- Button states: idle (purple), running (disabled + spinner), complete (green "Re-run"), error (red "Retry")
+### EX-02 — Evidence Package (Print to PDF) ✅
+- "Evidence Package" button triggers `window.print()`
+- `@media print` CSS in globals.css hides nav/sidebar via `data-print-hide`
+- Hidden evidence summary panel (`data-print-show`) renders in print view:
+  Ring ID, Type, Common Element, Exposure, Risk Score, Members, Status, Date
+- Sidebar tagged with `data-print-hide`
 
-## No further tasks in TASK.md. Awaiting PM assignment.
+### Files Modified
+| File | Action |
+|---|---|
+| `lib/exportGraph.ts` | Created — Sigma PNG export utility |
+| `components/ring-detail.tsx` | Handlers, button wiring, print panel |
+| `components/sidebar.tsx` | data-print-hide attribute |
+| `app/globals.css` | @media print rules |
+
+## Build: ✅ `npm run build` passes (Next.js 16.1.6, 0 errors)

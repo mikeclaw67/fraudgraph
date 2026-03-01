@@ -22,7 +22,7 @@ const RING_TYPE_ICONS: Record<RingType, string> = {
 const STATUS_CONFIG: Record<RingStatus, { label: string; bg: string }> = {
   NEW: { label: "NEW", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
   DETECTED: { label: "DETECTED", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
-  UNDER_REVIEW: { label: "REVIEW", bg: "bg-amber-500/20 text-amber-400 border border-amber-500/30" },
+  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-amber-500/20 text-amber-400 border border-amber-500/30" },
   CASE_OPENED: { label: "CASE", bg: "bg-blue-500/20 text-blue-400 border border-blue-500/30" },
   REFERRED: { label: "REFERRED", bg: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" },
   CLOSED: { label: "CLOSED", bg: "bg-slate-500/20 text-slate-400 border border-slate-500/30" },
@@ -149,14 +149,12 @@ export default function RingQueuePage() {
           isOpen ? "w-[35%] min-w-[420px] border-r border-border" : "w-full"
         )}
       >
-        <div className="p-4">
+        <div className="p-6">
           {/* Header */}
           <div className="mb-4 flex items-end justify-between">
             <div>
               <h1 className="text-[15px] font-semibold text-text-primary tracking-wide">RING QUEUE</h1>
-              {!isOpen && (
-                <p className="text-[11px] text-text-muted mt-0.5">Detected fraud rings sorted by dollar exposure</p>
-              )}
+              <p className="text-[11px] text-text-muted mt-0.5">Detected fraud rings sorted by dollar exposure — triage and assign for investigation</p>
             </div>
             <div className="flex items-center gap-1.5">
               {(["ALL", "NEW", "UNDER_REVIEW", "REFERRED", "DISMISSED"] as const).map((s) => (
@@ -170,7 +168,7 @@ export default function RingQueuePage() {
                       : "bg-bg-panel text-text-muted border-border hover:text-text-secondary"
                   )}
                 >
-                  {s === "ALL" ? "ALL" : s === "UNDER_REVIEW" ? "REVIEW" : s}
+                  {s === "ALL" ? "ALL" : s.replace(/_/g, " ")}
                 </button>
               ))}
             </div>
@@ -305,42 +303,42 @@ export default function RingQueuePage() {
                         </>
                       ) : (
                         <>
-                          {/* Full: type badge */}
-                          <td className="px-3 py-2">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold tracking-wide bg-slate-700/40 text-slate-300">
-                              <span>{RING_TYPE_ICONS[ring.ring_type]}</span>
+                          {/* Full: type badge (stacked icon + label) */}
+                          <td className="px-3 py-3">
+                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-slate-700/40 text-slate-300 leading-tight">
+                              <span className="text-base mb-0.5">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>
-                          <td className="px-3 py-2">
-                            <span className="text-data text-smoking-gun font-medium truncate block">
+                          <td className="px-3 py-3 max-w-[320px]">
+                            <span className="text-data text-smoking-gun font-medium truncate block" title={ring.common_element}>
                               {ring.common_element}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-right">
+                          <td className="px-3 py-3 text-right">
                             <span className="text-data text-text-primary tabular-nums">{ring.member_count}</span>
                           </td>
-                          <td className="px-3 py-2 text-right">
+                          <td className="px-3 py-3 text-right">
                             <span className="text-data text-text-primary tabular-nums font-medium">
                               {formatCurrency(ring.total_exposure)}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-right">
+                          <td className="px-3 py-3 text-right">
                             <span className={cn("text-data tabular-nums font-bold", getRiskColor(ring.avg_risk_score))}>
                               {ring.avg_risk_score}
                             </span>
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-3 py-3">
                             <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", statusConfig.bg)}>
                               {statusConfig.label}
                             </span>
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-3 py-3">
                             <span className="text-data text-text-secondary">
                               {ring.assigned_to || <span className="text-text-muted">&mdash;</span>}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-right">
+                          <td className="px-3 py-3 text-right">
                             <span className="text-data text-text-secondary tabular-nums">
                               {formatDate(ring.detected_at)}
                             </span>
@@ -356,16 +354,20 @@ export default function RingQueuePage() {
             {/* Footer */}
             <div className="flex items-center justify-between border-t border-border px-3 py-2">
               <span className="text-[11px] text-text-muted">
-                {filtered.length} ring{filtered.length !== 1 ? "s" : ""}
+                {filtered.length} ring{filtered.length !== 1 ? "s" : ""} displayed
               </span>
-              {!isOpen && (
-                <span className="text-[11px] text-text-muted">
-                  Sorted by {sortField.replace(/_/g, " ")} {sortDir === "desc" ? "desc" : "asc"}
-                </span>
-              )}
+              <span className="text-[11px] text-text-muted">
+                Sorted by {sortField.replace(/_/g, " ")} {sortDir === "desc" ? "descending" : "ascending"}
+              </span>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Notification Toast (bottom-left) ─────────────────────────── */}
+      <div className="fixed bottom-4 left-[216px] z-50 flex items-center gap-2 bg-[#C94B4B] px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
+        <span>5 Issues</span>
+        <button className="ml-1 text-white/70 hover:text-white">&times;</button>
       </div>
 
       {/* ── Right Panel: Ring Detail (slide-in) ───────────────────────── */}
