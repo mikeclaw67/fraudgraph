@@ -305,8 +305,8 @@ export default function RingQueuePage() {
                         <>
                           {/* Full: stacked card with icon above label */}
                           <td className="px-3 py-2">
-                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-[#37474F]/40 text-[#90A4AE] leading-tight">
-                              <span className="text-base mb-0.5">{RING_TYPE_ICONS[ring.ring_type]}</span>
+                            <span className="inline-flex flex-col items-center px-2.5 py-0.5 text-[10px] font-semibold tracking-wide bg-[#37474F]/40 text-[#90A4AE] leading-tight">
+                              <span className="text-sm mb-0">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>
