@@ -4,15 +4,15 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { FRAUD_RINGS } from "@/lib/ring-data";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
 import type { RingType, RingStatus } from "@/lib/types";
 
 const RING_TYPE_CONFIG: Record<RingType, { icon: string; label: string; bg: string }> = {
-  ADDRESS_FARM: { icon: "\u{1F3E0}", label: "ADDRESS FARM", bg: "bg-violet-500/15 text-violet-400" },
-  ACCOUNT_CLUSTER: { icon: "\u{1F3E6}", label: "ACCOUNT CLUSTER", bg: "bg-blue-500/15 text-blue-400" },
-  EIN_RECYCLER: { icon: "\u{1F522}", label: "EIN RECYCLER", bg: "bg-amber-500/15 text-amber-400" },
-  STRAW_COMPANY: { icon: "\u{1F47B}", label: "STRAW COMPANY", bg: "bg-red-500/15 text-red-400" },
-  THRESHOLD_GAMING: { icon: "\u{1F3AF}", label: "THRESHOLD GAMING", bg: "bg-emerald-500/15 text-emerald-400" },
+  ADDRESS_FARM: { icon: "\u{1F3E0}", label: "ADDRESS FARM", bg: "bg-slate-700/40 text-slate-300" },
+  ACCOUNT_CLUSTER: { icon: "\u{1F3E6}", label: "ACCOUNT CLUSTER", bg: "bg-slate-700/40 text-slate-300" },
+  EIN_RECYCLER: { icon: "\u{1F522}", label: "EIN RECYCLER", bg: "bg-slate-700/40 text-slate-300" },
+  STRAW_COMPANY: { icon: "\u{1F47B}", label: "STRAW COMPANY", bg: "bg-slate-700/40 text-slate-300" },
+  THRESHOLD_GAMING: { icon: "\u{1F3AF}", label: "THRESHOLD GAMING", bg: "bg-slate-700/40 text-slate-300" },
 };
 
 const STATUS_CONFIG: Record<RingStatus, { label: string; bg: string }> = {
@@ -154,7 +154,7 @@ export default function RingQueuePage() {
                     </td>
 
                     {/* Smoking gun */}
-                    <td className="px-3 py-2 max-w-[320px]">
+                    <td className="px-3 py-2">
                       <span className="text-data text-smoking-gun font-medium truncate block">
                         {ring.common_element}
                       </span>
@@ -176,9 +176,7 @@ export default function RingQueuePage() {
                     <td className="px-3 py-2 text-right">
                       <span className={cn(
                         "text-data tabular-nums font-bold",
-                        ring.avg_risk_score >= 90 ? "text-critical" :
-                        ring.avg_risk_score >= 80 ? "text-high" :
-                        ring.avg_risk_score >= 70 ? "text-medium" : "text-low"
+                        getRiskColor(ring.avg_risk_score)
                       )}>
                         {ring.avg_risk_score}
                       </span>

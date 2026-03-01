@@ -69,3 +69,20 @@ export function ruleDisplayName(rule: string): string {
 export function statusDisplayName(status: string): string {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+/** Heat-map risk score color — single source of truth for threshold logic.
+ *  0–49: muted green | 50–74: yellow-amber | 75–89: orange | 90–100: red */
+export function getRiskColor(score: number): string {
+  if (score >= 90) return "text-red-400";
+  if (score >= 75) return "text-orange-400";
+  if (score >= 50) return "text-amber-300";
+  return "text-emerald-400";
+}
+
+/** Background variant of heat-map risk color for cells/badges */
+export function getRiskBg(score: number): string {
+  if (score >= 90) return "bg-red-500/15 text-red-400";
+  if (score >= 75) return "bg-orange-500/15 text-orange-400";
+  if (score >= 50) return "bg-amber-500/15 text-amber-300";
+  return "bg-emerald-500/15 text-emerald-400";
+}

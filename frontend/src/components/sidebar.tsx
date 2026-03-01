@@ -1,4 +1,4 @@
-/* FraudGraph — Navigation sidebar with Palantir-dark styling */
+/* FraudGraph — Icon-rail sidebar with tooltip nav labels */
 "use client";
 
 import Link from "next/link";
@@ -15,54 +15,49 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r border-slate-700/50 bg-slate-950">
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-slate-700/50 px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/20">
-          <svg className="h-5 w-5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold text-slate-100">FraudGraph</h1>
-          <p className="text-[10px] text-slate-500">FRAUD DETECTION PLATFORM</p>
-        </div>
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-12 flex-col border-r border-slate-700/50 bg-slate-950">
+      {/* Logo — icon only */}
+      <div className="flex h-12 items-center justify-center border-b border-slate-700/50">
+        <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      {/* Navigation — icons with tooltips */}
+      <nav className="flex-1 flex flex-col items-center gap-1 py-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
+              title={item.label}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "group relative flex h-9 w-9 items-center justify-center transition-colors",
                 isActive
-                  ? "bg-sky-500/10 text-sky-400"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  ? "bg-slate-800/60 text-slate-200 border-l-2 border-slate-400"
+                  : "text-slate-500 hover:bg-slate-800/40 hover:text-slate-300 border-l-2 border-transparent"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              {item.label}
+              <item.icon className="h-[18px] w-[18px]" />
+              {/* Tooltip */}
+              <span className="pointer-events-none absolute left-full ml-2 whitespace-nowrap bg-slate-800 px-2 py-1 text-[11px] font-medium text-slate-200 opacity-0 transition-opacity group-hover:opacity-100 shadow-lg border border-slate-700/50">
+                {item.label}
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-slate-700/50 p-4">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="text-xs text-slate-500">System Operational</span>
-        </div>
+      {/* Footer — status dot only */}
+      <div className="flex items-center justify-center border-t border-slate-700/50 py-3">
+        <div className="h-1.5 w-1.5 bg-emerald-400" title="System Operational" />
       </div>
     </aside>
   );
 }
 
-/* Inline SVG icons to avoid extra dependencies */
+/* Inline SVG icons */
 function RingIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
