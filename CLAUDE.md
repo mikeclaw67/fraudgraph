@@ -44,5 +44,5 @@ If build fails: fix it before doing anything else.
 1. npx tsc --noEmit passes clean
 2. npm run build passes clean
 3. git add -A && git commit && git push
-4. Write ITERATION_DONE: <what was built> to progress.md
+4. Write FORGE_DONE: <what was built> to progress.md
 5. openclaw system event --text "Done: <summary>" --mode now

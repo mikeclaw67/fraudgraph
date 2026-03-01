@@ -1,1 +1,1 @@
-ITERATION_DONE: Case Model Integration — Ring Detail is now Case Workspace. On mount loads ring + case if attached. Open Case button creates case via POST /api/rings/{id}/case. All actions (AddNote, Refer, Dismiss) update case. CaseTimeline component shows merged audit trail + notes. Export button downloads referral package ZIP. tsc clean, build clean.
+FORGE_DONE: F-Case Case Model Integration — Ring Detail is Case Workspace. Open Case, Case Timeline, Refer to DOJ, audited action log.
