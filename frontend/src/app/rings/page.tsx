@@ -20,13 +20,13 @@ const RING_TYPE_ICONS: Record<RingType, string> = {
 };
 
 const STATUS_CONFIG: Record<RingStatus, { label: string; bg: string }> = {
-  NEW: { label: "NEW", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
-  DETECTED: { label: "DETECTED", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
-  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-amber-500/20 text-amber-400 border border-amber-500/30" },
-  CASE_OPENED: { label: "CASE", bg: "bg-blue-500/20 text-blue-400 border border-blue-500/30" },
-  REFERRED: { label: "REFERRED", bg: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" },
-  CLOSED: { label: "CLOSED", bg: "bg-slate-500/20 text-slate-400 border border-slate-500/30" },
-  DISMISSED: { label: "DISMISSED", bg: "bg-slate-500/20 text-slate-400 border border-slate-500/30" },
+  NEW: { label: "NEW", bg: "bg-[#1565C0] text-[#90CAF9]" },
+  DETECTED: { label: "DETECTED", bg: "bg-[#1565C0] text-[#90CAF9]" },
+  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-[#E65100] text-[#FFE0B2]" },
+  CASE_OPENED: { label: "CASE", bg: "bg-[#4A148C] text-[#E1BEE7]" },
+  REFERRED: { label: "REFERRED", bg: "bg-[#1B5E20] text-[#C8E6C9]" },
+  CLOSED: { label: "CLOSED", bg: "bg-[#37474F] text-[#90A4AE]" },
+  DISMISSED: { label: "DISMISSED", bg: "bg-[#37474F] text-[#90A4AE]" },
 };
 
 const RING_TYPE_LABELS: Record<RingType, string> = {
@@ -192,28 +192,28 @@ export default function RingQueuePage() {
                   {/* Compressed columns when split-pane open, full when closed */}
                   {isOpen ? (
                     <>
-                      <th className="text-label px-2 py-2 text-left font-medium w-8">TYPE</th>
+                      <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-2 py-2 text-left w-8">TYPE</th>
                       <th
-                        className="text-label px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-2 py-2 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("avg_risk_score")}
                       >
                         RISK{sortIndicator("avg_risk_score")}
                       </th>
                       <th
-                        className="text-label px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-2 py-2 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("total_exposure")}
                       >
                         EXPOSURE{sortIndicator("total_exposure")}
                       </th>
                       <th
-                        className="text-label px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-2 py-2 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("member_count")}
                       >
                         #MBR{sortIndicator("member_count")}
                       </th>
-                      <th className="text-label px-2 py-2 text-left font-medium">STATUS</th>
+                      <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-2 py-2 text-left">STATUS</th>
                       <th
-                        className="text-label px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-2 py-2 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("detected_at")}
                       >
                         DATE{sortIndicator("detected_at")}
@@ -221,30 +221,30 @@ export default function RingQueuePage() {
                     </>
                   ) : (
                     <>
-                      <th className="text-label px-3 py-2.5 text-left font-medium">TYPE</th>
-                      <th className="text-label px-3 py-2.5 text-left font-medium">SMOKING GUN</th>
+                      <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">TYPE</th>
+                      <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">SMOKING GUN</th>
                       <th
-                        className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("member_count")}
                       >
                         MEMBERS{sortIndicator("member_count")}
                       </th>
                       <th
-                        className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("total_exposure")}
                       >
                         EXPOSURE{sortIndicator("total_exposure")}
                       </th>
                       <th
-                        className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("avg_risk_score")}
                       >
                         RISK{sortIndicator("avg_risk_score")}
                       </th>
-                      <th className="text-label px-3 py-2.5 text-left font-medium">STATUS</th>
-                      <th className="text-label px-3 py-2.5 text-left font-medium">INVESTIGATOR</th>
+                      <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">STATUS</th>
+                      <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">INVESTIGATOR</th>
                       <th
-                        className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
+                        className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("detected_at")}
                       >
                         DETECTED{sortIndicator("detected_at")}
@@ -291,7 +291,7 @@ export default function RingQueuePage() {
                             <span className="text-data text-text-primary tabular-nums">{ring.member_count}</span>
                           </td>
                           <td className="px-2 py-2">
-                            <span className={cn("inline-flex px-1.5 py-0.5 text-[9px] font-semibold tracking-wider", statusConfig.bg)}>
+                            <span className={cn("inline-flex py-0.5 px-2 text-[10px] uppercase font-semibold tracking-[0.5px]", statusConfig.bg)}>
                               {statusConfig.label}
                             </span>
                           </td>
@@ -303,43 +303,43 @@ export default function RingQueuePage() {
                         </>
                       ) : (
                         <>
-                          {/* Full: stacked card with icon above label */}
-                          <td className="px-3 py-2">
-                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-slate-700/40 text-slate-300 leading-tight">
-                              <span className="text-base mb-0.5">{RING_TYPE_ICONS[ring.ring_type]}</span>
+                          {/* Full: flat icon + label */}
+                          <td className="px-3 py-1.5">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-text-secondary uppercase">
+                              <span className="text-sm grayscale">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>
-                          <td className="px-3 py-2 max-w-[320px]">
+                          <td className="px-3 py-1.5 max-w-[320px]">
                             <span className="text-data text-smoking-gun font-medium truncate block" title={ring.common_element}>
                               {ring.common_element}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            <span className="text-data text-text-primary tabular-nums">{ring.member_count}</span>
+                          <td className="px-3 py-1.5 text-right">
+                            <span className="text-xs text-text-primary tabular-nums">{ring.member_count}</span>
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            <span className="text-data text-text-primary tabular-nums font-medium">
+                          <td className="px-3 py-1.5 text-right">
+                            <span className="text-xs text-text-primary tabular-nums font-medium">
                               {formatCurrency(ring.total_exposure)}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            <span className={cn("text-data tabular-nums font-bold", getRiskColor(ring.avg_risk_score))}>
+                          <td className="px-3 py-1.5 text-right">
+                            <span className={cn("text-xs tabular-nums font-bold", getRiskColor(ring.avg_risk_score))}>
                               {ring.avg_risk_score}
                             </span>
                           </td>
-                          <td className="px-3 py-2">
-                            <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", statusConfig.bg)}>
+                          <td className="px-3 py-1.5">
+                            <span className={cn("inline-flex py-0.5 px-2 text-[10px] uppercase font-semibold tracking-[0.5px]", statusConfig.bg)}>
                               {statusConfig.label}
                             </span>
                           </td>
-                          <td className="px-3 py-2">
-                            <span className="text-data text-text-secondary">
+                          <td className="px-3 py-1.5">
+                            <span className="text-xs text-text-secondary">
                               {ring.assigned_to || <span className="text-text-muted">&mdash;</span>}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            <span className="text-data text-text-secondary tabular-nums">
+                          <td className="px-3 py-1.5 text-right">
+                            <span className="text-xs text-text-secondary tabular-nums">
                               {formatDate(ring.detected_at)}
                             </span>
                           </td>
@@ -353,10 +353,10 @@ export default function RingQueuePage() {
 
             {/* Footer */}
             <div className="flex items-center justify-between border-t border-border px-3 py-2">
-              <span className="text-label text-text-muted">
+              <span className="text-[11px] text-text-muted">
                 {filtered.length} ring{filtered.length !== 1 ? "s" : ""} displayed
               </span>
-              <span className="text-label text-text-muted">
+              <span className="text-[11px] text-text-muted">
                 Sorted by {sortField.replace(/_/g, " ")} {sortDir === "desc" ? "descending" : "ascending"}
               </span>
             </div>
@@ -365,7 +365,7 @@ export default function RingQueuePage() {
       </div>
 
       {/* ── Notification Toast (bottom-left) ─────────────────────────── */}
-      <div className="fixed bottom-4 left-[216px] z-50 flex items-center gap-2 bg-[#C94B4B] px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
+      <div className="fixed bottom-4 left-[216px] z-50 flex items-center gap-2 bg-critical px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
         <span>5 Issues</span>
         <button className="ml-1 text-white/70 hover:text-white">&times;</button>
       </div>

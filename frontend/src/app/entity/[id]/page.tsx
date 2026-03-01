@@ -34,10 +34,10 @@ export default function EntityPage() {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-64 rounded bg-slate-800" />
-          <div className="h-4 w-96 rounded bg-slate-800" />
+          <div className="h-8 w-64 bg-bg-panel" />
+          <div className="h-4 w-96 bg-bg-panel" />
           <div className="grid grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-lg bg-slate-800" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-40 bg-bg-panel" />)}
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@ export default function EntityPage() {
   if (!entity) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <p className="text-slate-400">Entity not found</p>
+        <p className="text-text-secondary">Entity not found</p>
       </div>
     );
   }
@@ -65,22 +65,22 @@ export default function EntityPage() {
         <div className="flex items-start gap-4">
           <RiskScoreBadge score={topScore} size="lg" />
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">{attr.borrower_name}</h1>
-            <p className="text-sm text-slate-400">{attr.business_name} &middot; {attr.ein}</p>
-            <p className="mt-1 text-xs text-slate-500">{entity.entity_id}</p>
+            <h1 className="text-2xl font-bold text-text-primary">{attr.borrower_name}</h1>
+            <p className="text-sm text-text-secondary">{attr.business_name} &middot; {attr.ein}</p>
+            <p className="mt-1 text-xs text-text-muted">{entity.entity_id}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+          <span className="bg-bg-row px-3 py-1 text-xs text-text-primary">
             {entity.alert_count} alert{entity.alert_count !== 1 ? "s" : ""}
           </span>
-          <button className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-500">
+          <button className="bg-critical px-3 py-1.5 text-xs font-medium text-white hover:bg-critical">
             Escalate
           </button>
-          <button className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-500">
+          <button className="bg-accent-dim px-3 py-1.5 text-xs font-medium text-white hover:bg-accent">
             Open Case
           </button>
-          <button className="rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700">
+          <button className="border border-border-2 bg-bg-row px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-bg-row-hover">
             Dismiss
           </button>
         </div>
@@ -116,12 +116,12 @@ export default function EntityPage() {
               {alerts
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .map((alert) => (
-                  <div key={alert.alert_id} className="flex items-start gap-3 border-l-2 border-slate-700 pl-4">
+                  <div key={alert.alert_id} className="flex items-start gap-3 border-l-2 border-border pl-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <SeverityBadge severity={alert.severity} />
                         <StatusBadge status={alert.status} />
-                        <span className="text-xs text-slate-500">{formatDateTime(alert.created_at)}</span>
+                        <span className="text-xs text-text-muted">{formatDateTime(alert.created_at)}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {alert.fired_rules.map((r) => <RuleBadge key={r} rule={r} />)}
@@ -140,14 +140,14 @@ export default function EntityPage() {
             {allRules.length > 0 ? (
               <div className="space-y-3">
                 {allRules.map((rule) => (
-                  <div key={rule} className="flex items-center gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2">
-                    <div className="h-2 w-2 rounded-full bg-red-400" />
+                  <div key={rule} className="flex items-center gap-2 border border-critical/20 bg-critical/5 p-2">
+                    <div className="h-2 w-2 rounded-full bg-critical" />
                     <RuleBadge rule={rule} />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No rules fired</p>
+              <p className="text-sm text-text-muted">No rules fired</p>
             )}
           </Card>
 
@@ -157,18 +157,18 @@ export default function EntityPage() {
               <ScoreBar label="ML Anomaly" value={topScore * 0.35} max={35} />
               <ScoreBar label="Graph Centrality" value={topScore * 0.25} max={25} />
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-slate-700 pt-3">
-              <span className="text-sm font-medium text-slate-300">Composite Score</span>
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+              <span className="text-sm font-medium text-text-primary">Composite Score</span>
               <span className={cn("text-lg font-bold", riskScoreColor(topScore))}>{Math.round(topScore)}</span>
             </div>
           </Card>
 
           <Card title="Quick Actions">
             <div className="space-y-2">
-              <Link href={`/graph?entity=${entity.entity_id}`} className="block w-full rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-center text-sm text-slate-300 hover:bg-slate-700">
+              <Link href={`/graph?entity=${entity.entity_id}`} className="block w-full border border-border-2 bg-bg-row px-3 py-2 text-center text-sm text-text-primary hover:bg-bg-row-hover">
                 View in Graph
               </Link>
-              <button className="w-full rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700">
+              <button className="w-full border border-border-2 bg-bg-row px-3 py-2 text-sm text-text-primary hover:bg-bg-row-hover">
                 Export Report
               </button>
             </div>
@@ -181,8 +181,8 @@ export default function EntityPage() {
 
 function Card({ title, children, danger }: { title: string; children: React.ReactNode; danger?: boolean }) {
   return (
-    <div className={cn("rounded-lg border p-4", danger ? "border-red-500/30 bg-red-500/5" : "border-slate-700/50 bg-slate-900")}>
-      <h3 className={cn("mb-3 text-sm font-semibold uppercase tracking-wider", danger ? "text-red-400" : "text-slate-400")}>{title}</h3>
+    <div className={cn("border p-4", danger ? "border-critical/30 bg-critical/5" : "border-border bg-bg-panel")}>
+      <h3 className={cn("mb-3 text-[11px] font-semibold uppercase tracking-[1px]", danger ? "text-critical" : "text-text-muted")}>{title}</h3>
       {children}
     </div>
   );
@@ -191,19 +191,19 @@ function Card({ title, children, danger }: { title: string; children: React.Reac
 function Field({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className={cn("text-sm font-medium", highlight ? "text-red-400" : "text-slate-200")}>{value}</p>
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className={cn("text-sm font-medium", highlight ? "text-critical" : "text-text-primary")}>{value}</p>
     </div>
   );
 }
 
 function ConnectionCard({ title, value, sub, danger }: { title: string; value: string; sub?: string; danger?: boolean }) {
   return (
-    <div className={cn("rounded-lg border p-3", danger ? "border-red-500/30 bg-red-500/5" : "border-slate-700/50 bg-slate-900")}>
-      <p className={cn("text-xs font-semibold uppercase tracking-wider", danger ? "text-red-400" : "text-slate-500")}>{title}</p>
-      <p className="mt-1 text-sm font-medium text-slate-200 break-words">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
-      {danger && <p className="mt-1 text-[10px] font-medium text-red-400">SHARED INDICATOR</p>}
+    <div className={cn("border p-3", danger ? "border-critical/30 bg-critical/5" : "border-border bg-bg-panel")}>
+      <p className={cn("text-xs font-semibold uppercase tracking-wider", danger ? "text-critical" : "text-text-muted")}>{title}</p>
+      <p className="mt-1 text-sm font-medium text-text-primary break-words">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-text-muted">{sub}</p>}
+      {danger && <p className="mt-1 text-[10px] font-medium text-critical">SHARED INDICATOR</p>}
     </div>
   );
 }
@@ -213,11 +213,11 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
   return (
     <div>
       <div className="flex items-center justify-between text-xs">
-        <span className="text-slate-400">{label}</span>
-        <span className="text-slate-300">{Math.round(value)}/{max}</span>
+        <span className="text-text-secondary">{label}</span>
+        <span className="text-text-primary">{Math.round(value)}/{max}</span>
       </div>
-      <div className="mt-1 h-1.5 w-full rounded-full bg-slate-800">
-        <div className="h-1.5 rounded-full bg-sky-500" style={{ width: `${pct}%` }} />
+      <div className="mt-1 h-1.5 w-full bg-bg-row">
+        <div className="h-1.5 bg-accent" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

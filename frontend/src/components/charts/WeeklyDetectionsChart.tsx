@@ -1,3 +1,5 @@
+/* WeeklyDetectionsChart — line chart showing ring detections per week.
+   Update when design tokens change or detection cadence model changes. */
 "use client";
 
 import {
@@ -21,39 +23,39 @@ const WEEKLY_DETECTIONS = buildWeeklyDetections();
 
 const tooltipStyle = {
   contentStyle: {
-    backgroundColor: "#1A1D27",
-    border: "1px solid #2A2D3E",
+    backgroundColor: "#2C3539",
+    border: "1px solid #37474F",
     borderRadius: 0,
-    color: "#E8EAF0",
+    color: "#ECEFF1",
     fontSize: 12,
   },
-  labelStyle: { color: "#8B90A8" },
+  labelStyle: { color: "#90A4AE" },
 };
 
 export default function WeeklyDetectionsChart() {
   return (
     <div className="w-full h-[280px]">
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#37474F" />
           <XAxis
             dataKey="week"
-            stroke="#4A4F6A"
-            tick={{ fontSize: 10, fill: "#8B90A8" }}
+            stroke="#546E7A"
+            tick={{ fontSize: 10, fill: "#90A4AE" }}
             interval={3}
           />
           <YAxis
-            stroke="#4A4F6A"
-            tick={{ fontSize: 11, fill: "#8B90A8" }}
+            stroke="#546E7A"
+            tick={{ fontSize: 11, fill: "#90A4AE" }}
           />
           <Tooltip {...tooltipStyle} />
           <Line
             type="monotone"
             dataKey="rings"
-            stroke="#2A6EBB"
+            stroke="#2196F3"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: "#2A6EBB", stroke: "#E8EAF0", strokeWidth: 1 }}
+            activeDot={{ r: 4, fill: "#2196F3", stroke: "#ECEFF1", strokeWidth: 1 }}
             name="Rings"
           />
         </LineChart>

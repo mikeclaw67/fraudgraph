@@ -1,4 +1,5 @@
-/* FraudGraph — Navigation sidebar with branding, labels, and teal active state */
+/* FraudGraph -- 48px icon-only navigation rail with Palantir-style active indicator.
+   Update when nav routes change or sidebar behavior is modified. */
 "use client";
 
 import Link from "next/link";
@@ -15,54 +16,52 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside data-print-hide className="fixed left-0 top-0 z-40 flex h-screen w-[200px] flex-col border-r border-slate-700/50 bg-slate-950">
-      {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-slate-700/50 px-4">
-        <div className="flex h-7 w-7 items-center justify-center bg-sky-500/20">
-          <svg className="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold text-slate-100">FraudGraph</h1>
-          <p className="text-[9px] text-slate-500 tracking-wider">FRAUD DETECTION</p>
-        </div>
+    <aside
+      data-print-hide
+      className="fixed left-0 top-0 z-40 flex h-screen w-12 flex-col border-r border-[#2E3B40] bg-bg-sidebar"
+    >
+      {/* Logo icon */}
+      <div className="flex h-12 items-center justify-center border-b border-[#2E3B40]">
+        <svg className="h-5 w-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
+        </svg>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-2 py-3">
+      {/* Navigation icons */}
+      <nav className="flex flex-1 flex-col items-center gap-1 py-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
+              title={item.label}
               className={cn(
-                "flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium transition-colors",
+                "relative flex h-10 w-10 items-center justify-center transition-colors",
                 isActive
-                  ? "bg-sky-500/10 text-sky-400"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  ? "border-l-[3px] border-accent text-[#4A9FD9]"
+                  : "text-[#78909C] hover:text-text-secondary"
               )}
             >
               <item.icon className="h-[18px] w-[18px]" />
-              {item.label}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-slate-700/50 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 bg-emerald-400" />
-          <span className="text-[10px] text-slate-500">System Operational</span>
-        </div>
+      {/* Status dot footer */}
+      <div className="flex items-center justify-center border-t border-[#2E3B40] py-3">
+        <div className="h-1.5 w-1.5 bg-success" />
       </div>
     </aside>
   );
 }
 
-/* Inline SVG icons */
+/* Inline SVG icons -- kept minimal for the icon rail */
 function RingIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

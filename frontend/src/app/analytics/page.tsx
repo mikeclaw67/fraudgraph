@@ -2,18 +2,9 @@
 "use client";
 
 import { useMemo } from "react";
-import dynamic from "next/dynamic";
 import { formatCurrency, cn } from "@/lib/utils";
-
-const ExposureChart = dynamic(() => import("@/components/charts/ExposureChart"), {
-  ssr: false,
-  loading: () => <div className="w-full h-[280px] bg-slate-800 animate-pulse" />,
-});
-
-const WeeklyDetectionsChart = dynamic(() => import("@/components/charts/WeeklyDetectionsChart"), {
-  ssr: false,
-  loading: () => <div className="w-full h-[280px] bg-slate-800 animate-pulse" />,
-});
+import ExposureChart from "@/components/charts/ExposureChart";
+import WeeklyDetectionsChart from "@/components/charts/WeeklyDetectionsChart";
 
 /* ------------------------------------------------------------------ */
 /*  Mock data — hardcoded                                             */
@@ -28,11 +19,11 @@ const KPI = {
 
 
 const FUNNEL: { stage: string; count: number; color: string }[] = [
-  { stage: "Detected",   count: 347, color: "#2A6EBB" },
-  { stage: "Reviewed",   count: 281, color: "#3E8E57" },
-  { stage: "Case Opened", count: 142, color: "#C9A227" },
-  { stage: "Referred",   count: 64,  color: "#D4733A" },
-  { stage: "Convicted",  count: 23,  color: "#C94B4B" },
+  { stage: "Detected",   count: 347, color: "#2196F3" },
+  { stage: "Reviewed",   count: 281, color: "#43A047" },
+  { stage: "Case Opened", count: 142, color: "#FFB300" },
+  { stage: "Referred",   count: 64,  color: "#FFB300" },
+  { stage: "Convicted",  count: 23,  color: "#E53935" },
 ];
 
 /* US state top-10 heatmap data */
@@ -78,12 +69,12 @@ export default function AnalyticsPage() {
 
       {/* Main grid: 2 columns */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Exposure by Ring Type — bar chart (dynamic, ssr:false) */}
+        {/* Exposure by Ring Type — bar chart  */}
         <Panel title="Exposure by Ring Type">
           <ExposureChart />
         </Panel>
 
-        {/* Detection Timeline — line chart (dynamic, ssr:false) */}
+        {/* Detection Timeline — line chart  */}
         <Panel title="Rings Detected per Week (6 Months)">
           <WeeklyDetectionsChart />
         </Panel>
@@ -197,12 +188,12 @@ function USMapPlaceholder() {
   return (
     <svg viewBox="0 0 960 600" className="w-full h-auto" aria-label="US geographic heatmap placeholder">
       {/* Continental US outline — simplified */}
-      <g fill="none" stroke="#2A2D3E" strokeWidth={1}>
+      <g fill="none" stroke="#37474F" strokeWidth={1}>
         {/* Background fill */}
-        <rect x="0" y="0" width="960" height="600" fill="#0F1117" />
+        <rect x="0" y="0" width="960" height="600" fill="#263238" />
         {/* State outlines — highly simplified continental US shape */}
         <path d="M220,130 L280,120 L340,115 L400,110 L460,105 L520,100 L560,95 L600,100 L640,105 L680,110 L720,115 L760,125 L800,140 L830,160 L845,190 L850,220 L845,250 L830,280 L810,310 L790,340 L770,370 L750,390 L720,405 L690,415 L660,420 L630,430 L600,440 L570,445 L540,440 L500,430 L460,420 L420,410 L380,400 L340,395 L300,400 L260,410 L230,425 L210,440 L190,450 L170,440 L160,420 L155,395 L160,365 L170,335 L180,305 L185,275 L190,245 L195,215 L200,185 L205,155 Z"
-              fill="#1A1D27" stroke="#2A2D3E" strokeWidth={1.5} />
+              fill="#2C3539" stroke="#37474F" strokeWidth={1.5} />
       </g>
       {/* Hotspot dots for top states */}
       {[
@@ -218,22 +209,22 @@ function USMapPlaceholder() {
         { x: 700, y: 230, r: 6,  abbr: "OH" },
       ].map((dot) => (
         <g key={dot.abbr}>
-          <circle cx={dot.x} cy={dot.y} r={dot.r} fill="#2A6EBB" opacity={0.6} />
-          <circle cx={dot.x} cy={dot.y} r={dot.r * 0.5} fill="#2A6EBB" opacity={0.9} />
-          <text x={dot.x} y={dot.y - dot.r - 4} textAnchor="middle" fill="#8B90A8" fontSize={10}>
+          <circle cx={dot.x} cy={dot.y} r={dot.r} fill="#2196F3" opacity={0.6} />
+          <circle cx={dot.x} cy={dot.y} r={dot.r * 0.5} fill="#2196F3" opacity={0.9} />
+          <text x={dot.x} y={dot.y - dot.r - 4} textAnchor="middle" fill="#90A4AE" fontSize={10}>
             {dot.abbr}
           </text>
         </g>
       ))}
       {/* Legend */}
       <g transform="translate(40, 520)">
-        <text fill="#4A4F6A" fontSize={10} fontWeight={600}>CONCENTRATION</text>
-        <circle cx={0} cy={20} r={4} fill="#2A6EBB" opacity={0.5} />
-        <text x={10} y={24} fill="#8B90A8" fontSize={10}>Low</text>
-        <circle cx={60} cy={20} r={7} fill="#2A6EBB" opacity={0.7} />
-        <text x={72} y={24} fill="#8B90A8" fontSize={10}>Med</text>
-        <circle cx={120} cy={20} r={10} fill="#2A6EBB" opacity={0.9} />
-        <text x={135} y={24} fill="#8B90A8" fontSize={10}>High</text>
+        <text fill="#546E7A" fontSize={10} fontWeight={600}>CONCENTRATION</text>
+        <circle cx={0} cy={20} r={4} fill="#2196F3" opacity={0.5} />
+        <text x={10} y={24} fill="#90A4AE" fontSize={10}>Low</text>
+        <circle cx={60} cy={20} r={7} fill="#2196F3" opacity={0.7} />
+        <text x={72} y={24} fill="#90A4AE" fontSize={10}>Med</text>
+        <circle cx={120} cy={20} r={10} fill="#2196F3" opacity={0.9} />
+        <text x={135} y={24} fill="#90A4AE" fontSize={10}>High</text>
       </g>
     </svg>
   );

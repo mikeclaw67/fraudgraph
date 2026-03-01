@@ -1,13 +1,5 @@
-FORGE_DONE: Analytics charts fixed with dynamic import ssr:false
+RALPH_DONE: Analytics charts fix — removed dynamic() wrapper, direct imports
 
-## Implementation
-- Created `components/charts/ExposureChart.tsx` (client component, 'use client')
-- Created `components/charts/WeeklyDetectionsChart.tsx` (client component, 'use client')
-- Analytics page dynamically imports both with `ssr: false` + loading skeleton
-- ResponsiveContainer height set to 280px (fixed, avoids SSR height=0 bug)
-- Follow-up QA fix: chart height, TYPE badges, footer, row density (commit 23deea4)
+Root cause: dynamic() with ssr:false broke Recharts ResponsiveContainer DOM measurement during async chunk load. Page is already "use client" so dynamic import was unnecessary.
 
-## Verification
-- `tsc --noEmit`: clean
-- `npm run build`: clean, all 9 routes generated
-- Committed on sprint-frontend branch
+Fix: Replaced dynamic() with direct imports for ExposureChart and WeeklyDetectionsChart in analytics/page.tsx. No other files touched.

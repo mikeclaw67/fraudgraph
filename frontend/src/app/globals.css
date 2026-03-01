@@ -1,24 +1,33 @@
-/* FraudGraph — Government investigation tool design system */
+/* FraudGraph — Palantir-parity design token system for government investigation UI.
+   Update when design tokens change or new semantic colors are added. */
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg-shell: #0F1117;
-  --color-bg-panel: #1A1D27;
-  --color-bg-row: #1E2130;
-  --color-bg-row-hover: #252840;
-  --color-bg-selected: #1C2B4A;
-  --color-border: #2A2D3E;
-  --color-text-primary: #E8EAF0;
-  --color-text-secondary: #8B90A8;
-  --color-text-muted: #4A4F6A;
-  --color-accent: #2A6EBB;
-  --color-critical: #C94B4B;
-  --color-high: #D4733A;
-  --color-medium: #C9A227;
-  --color-low: #3E8E57;
-  --color-smoking-gun: #C94B4B;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-shell: #263238;
+  --color-bg-panel: #2C3539;
+  --color-bg-sidebar: #1A1F23;
+  --color-bg-topbar: #37474F;
+  --color-bg-input: #1E292E;
+  --color-bg-row: #2C3539;
+  --color-bg-row-hover: #2F3D42;
+  --color-bg-selected: #1E3A4A;
+  --color-border: #37474F;
+  --color-border-2: #455A64;
+  --color-text-primary: #ECEFF1;
+  --color-text-secondary: #90A4AE;
+  --color-text-muted: #546E7A;
+  --color-accent: #2196F3;
+  --color-accent-dim: #1565C0;
+  --color-critical: #E53935;
+  --color-high: #FFB300;
+  --color-medium: #FFB300;
+  --color-low: #43A047;
+  --color-smoking-gun: #E53935;
+  --color-info: #7B5EA7;
+  --color-success: #43A047;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
 }
 
 html, body {
