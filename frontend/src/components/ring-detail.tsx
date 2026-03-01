@@ -637,7 +637,22 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
               <p className="text-data text-[#E8EAF0]">{RING_TYPE_LABELS[ring.ring_type]}</p>
               <div className="my-3 h-px bg-[#2A2D3E]" />
               <p className="text-label mb-1">Property Record</p>
-              <p className="text-data leading-relaxed text-[#8B90A8]">{ring.common_element_detail}</p>
+              <div className="flex flex-wrap gap-1">
+                {ring.common_element_detail.split(/\.\s+/).filter(Boolean).map((sentence, i) => {
+                  const text = sentence.replace(/\.$/, "").trim();
+                  if (!text) return null;
+                  const display = text.length > 52 ? text.slice(0, 49) + "\u2026" : text;
+                  return (
+                    <span
+                      key={i}
+                      title={text}
+                      className="inline-block bg-[#1E2130] border border-[#2A2D3E] px-2 py-0.5 text-[10px] text-[#8B90A8] max-w-full truncate"
+                    >
+                      {display}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
