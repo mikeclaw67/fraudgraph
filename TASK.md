@@ -1,24 +1,34 @@
-# Task: Fix Analytics Charts — Recharts SSR Bug
+# F-35: Ring Queue — Inline Actions + State Machine
 
-Read CLAUDE.md first.
+## What to build
+Each ring row in the Ring Queue (/rings) needs inline action buttons visible on hover.
+The ring state machine: NEW → UNDER REVIEW → REFERRED → DISMISSED
 
-## Problem
-The "Exposure by Ring Type" bar chart and "Rings Detected Per Week" line chart on /analytics render empty. ResponsiveContainer measures height=0 during SSR in Next.js. Wrapping in a div did not fix it.
+## Exact UI
+- On row hover: show 3 action buttons on the right side of the row
+  - [Open Case] → moves ring to UNDER REVIEW, fills Investigator column with "You"
+  - [Refer] → moves ring to REFERRED (only if UNDER REVIEW)  
+  - [Dismiss ▾] → dropdown with reason codes: DUPLICATE, INSUFFICIENT_EVIDENCE, FALSE_POSITIVE, OUT_OF_JURISDICTION
+- Status badge updates immediately (optimistic UI)
+- Dismissed rings get a strikethrough on the smoking gun text + dimmed row opacity (0.4)
+- Action buttons: 0px radius, 11px uppercase, 22px height — same Palantir token system
 
-## Correct Fix
-All Recharts components must be dynamically imported with ssr:false. This is the only reliable fix.
+## State lives in component state (no backend call needed)
+Use React useState with a map of ringId → status. Initialize from the ring's current status field.
 
-In the analytics page file, for each chart component:
-1. Create a separate client component file (e.g. `components/charts/ExposureChart.tsx`) with `'use client'` at top
-2. Move the chart JSX into it
-3. In the analytics page, import it via:
-   `const ExposureChart = dynamic(() => import('@/components/charts/ExposureChart'), { ssr: false })`
-4. Show a loading skeleton (a div with bg-slate-800 and animate-pulse) while the chart loads
+## Acceptance criteria
+- [ ] Hover a NEW row → 3 buttons appear
+- [ ] Click "Open Case" → badge flips to UNDER REVIEW, investigator shows "You", buttons change to [Refer] [Dismiss]
+- [ ] Click "Dismiss" → dropdown appears with 4 reason codes
+- [ ] Selecting a reason → badge flips to DISMISSED, row dims to opacity-40
+- [ ] Dismissed rings still appear in list (just dimmed) unless ALL filter is deselected
+- [ ] tsc --noEmit clean, npm run build clean
 
-Do this for both broken charts. Pipeline funnel and map are fine — do not touch them.
+## Files to touch
+- frontend/src/app/rings/page.tsx — add hover state, action buttons, status state machine
 
-## Verify
-After fix: screenshot /analytics and confirm both charts render colored bars/lines.
-tsc --noEmit, fix all errors.
-git add -A && git commit -m "fix: analytics charts — dynamic import ssr:false" && git push origin sprint-frontend
-Write to progress.md: FORGE_DONE: Analytics charts fixed with dynamic import.
+## Done
+tsc --noEmit passes, npm run build passes.
+git add -A && git commit -m "feat: F-35 ring queue inline actions + state machine (NEW→UNDER_REVIEW→REFERRED→DISMISSED)" && git push origin sprint-frontend
+Write to /Users/mikeclaw/Projects/fraudgraph-frontend/progress.md:
+FORGE_DONE: F-35 ring queue inline actions + state machine

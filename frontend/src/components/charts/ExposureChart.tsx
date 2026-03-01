@@ -1,3 +1,5 @@
+/* FraudGraph — Exposure by ring type horizontal bar chart.
+   Update when adding new ring types or changing the color palette. */
 "use client";
 
 import {
@@ -6,41 +8,41 @@ import {
 import { formatCurrency } from "@/lib/utils";
 
 const EXPOSURE_BY_TYPE: { type: string; label: string; exposure: number; color: string }[] = [
-  { type: "ADDRESS_FARM",     label: "Address Farm",     exposure: 312_000_000, color: "#C94B4B" },
-  { type: "ACCOUNT_CLUSTER",  label: "Account Cluster",  exposure: 224_000_000, color: "#D4733A" },
-  { type: "EIN_RECYCLER",     label: "EIN Recycler",     exposure: 178_000_000, color: "#C9A227" },
-  { type: "STRAW_COMPANY",    label: "Straw Company",    exposure: 112_000_000, color: "#3E8E57" },
-  { type: "THRESHOLD_GAMING", label: "Threshold Gaming", exposure: 66_400_000,  color: "#2A6EBB" },
+  { type: "ADDRESS_FARM",     label: "Address Farm",     exposure: 312_000_000, color: "#E53935" },
+  { type: "ACCOUNT_CLUSTER",  label: "Account Cluster",  exposure: 224_000_000, color: "#FFB300" },
+  { type: "EIN_RECYCLER",     label: "EIN Recycler",     exposure: 178_000_000, color: "#FFB300" },
+  { type: "STRAW_COMPANY",    label: "Straw Company",    exposure: 112_000_000, color: "#43A047" },
+  { type: "THRESHOLD_GAMING", label: "Threshold Gaming", exposure: 66_400_000,  color: "#2196F3" },
 ];
 
 const tooltipStyle = {
   contentStyle: {
-    backgroundColor: "#1A1D27",
-    border: "1px solid #2A2D3E",
+    backgroundColor: "#2C3539",
+    border: "1px solid #37474F",
     borderRadius: 0,
-    color: "#E8EAF0",
+    color: "#ECEFF1",
     fontSize: 12,
   },
-  labelStyle: { color: "#8B90A8" },
+  labelStyle: { color: "#90A4AE" },
 };
 
 export default function ExposureChart() {
   return (
     <div className="w-full h-[280px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={280}>
         <BarChart data={EXPOSURE_BY_TYPE} layout="vertical" margin={{ left: 4, right: 24 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#37474F" horizontal={false} />
           <XAxis
             type="number"
-            stroke="#4A4F6A"
-            tick={{ fontSize: 11, fill: "#8B90A8" }}
+            stroke="#546E7A"
+            tick={{ fontSize: 11, fill: "#90A4AE" }}
             tickFormatter={(v: number) => `$${(v / 1_000_000).toFixed(0)}M`}
           />
           <YAxis
             dataKey="label"
             type="category"
-            stroke="#4A4F6A"
-            tick={{ fontSize: 11, fill: "#8B90A8" }}
+            stroke="#546E7A"
+            tick={{ fontSize: 11, fill: "#90A4AE" }}
             width={110}
           />
           <Tooltip

@@ -1,4 +1,5 @@
-/* FraudGraph — Shared utility functions */
+/* FraudGraph — Shared utility functions for formatting, color mapping, and display names.
+   Update when adding new severity levels, risk thresholds, or rule types. */
 
 import { clsx, type ClassValue } from "clsx";
 import type { Severity } from "./types";
@@ -9,34 +10,34 @@ export function cn(...inputs: ClassValue[]) {
 
 export function severityColor(severity: Severity): string {
   switch (severity) {
-    case "CRITICAL": return "text-red-400";
-    case "HIGH": return "text-orange-400";
-    case "MEDIUM": return "text-yellow-300";
-    case "LOW": return "text-sky-400";
+    case "CRITICAL": return "text-[#E53935]";
+    case "HIGH": return "text-[#FFB300]";
+    case "MEDIUM": return "text-[#FFB300]";
+    case "LOW": return "text-[#43A047]";
   }
 }
 
 export function severityBg(severity: Severity): string {
   switch (severity) {
-    case "CRITICAL": return "bg-red-500/20 text-red-400 border-red-500/30";
-    case "HIGH": return "bg-orange-500/20 text-orange-400 border-orange-500/30";
-    case "MEDIUM": return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
-    case "LOW": return "bg-sky-500/20 text-sky-400 border-sky-500/30";
+    case "CRITICAL": return "bg-[#E53935]/20 text-[#E53935] border-[#E53935]/30";
+    case "HIGH": return "bg-[#FFB300]/20 text-[#FFB300] border-[#FFB300]/30";
+    case "MEDIUM": return "bg-[#FFB300]/20 text-[#FFB300] border-[#FFB300]/30";
+    case "LOW": return "bg-[#43A047]/20 text-[#43A047] border-[#43A047]/30";
   }
 }
 
 export function riskScoreColor(score: number): string {
-  if (score >= 80) return "text-red-400";
-  if (score >= 60) return "text-orange-400";
-  if (score >= 40) return "text-yellow-300";
-  return "text-sky-400";
+  if (score >= 80) return "text-[#E53935]";
+  if (score >= 60) return "text-[#FFB300]";
+  if (score >= 40) return "text-[#FFB300]";
+  return "text-[#43A047]";
 }
 
 export function riskScoreBg(score: number): string {
-  if (score >= 80) return "bg-red-500/20 text-red-400";
-  if (score >= 60) return "bg-orange-500/20 text-orange-400";
-  if (score >= 40) return "bg-yellow-500/20 text-yellow-300";
-  return "bg-sky-500/20 text-sky-400";
+  if (score >= 80) return "bg-[#E53935]/20 text-[#E53935]";
+  if (score >= 60) return "bg-[#FFB300]/20 text-[#FFB300]";
+  if (score >= 40) return "bg-[#FFB300]/20 text-[#FFB300]";
+  return "bg-[#43A047]/20 text-[#43A047]";
 }
 
 export function formatCurrency(amount: number): string {
@@ -71,18 +72,18 @@ export function statusDisplayName(status: string): string {
 }
 
 /** Heat-map risk score color — single source of truth for threshold logic.
- *  0–49: muted green | 50–74: yellow-amber | 75–94: orange | 95–100: red */
+ *  0-49: muted green | 50-74: yellow-amber | 75-94: orange | 95-100: red */
 export function getRiskColor(score: number): string {
-  if (score >= 95) return "text-red-400";
-  if (score >= 75) return "text-orange-400";
-  if (score >= 50) return "text-amber-300";
-  return "text-emerald-400";
+  if (score >= 95) return "text-[#E53935]";
+  if (score >= 75) return "text-[#FFB300]";
+  if (score >= 50) return "text-[#FFB300]";
+  return "text-[#43A047]";
 }
 
 /** Background variant of heat-map risk color for cells/badges */
 export function getRiskBg(score: number): string {
-  if (score >= 95) return "bg-red-500/15 text-red-400";
-  if (score >= 75) return "bg-orange-500/15 text-orange-400";
-  if (score >= 50) return "bg-amber-500/15 text-amber-300";
-  return "bg-emerald-500/15 text-emerald-400";
+  if (score >= 95) return "bg-[#E53935]/15 text-[#E53935]";
+  if (score >= 75) return "bg-[#FFB300]/15 text-[#FFB300]";
+  if (score >= 50) return "bg-[#FFB300]/15 text-[#FFB300]";
+  return "bg-[#43A047]/15 text-[#43A047]";
 }

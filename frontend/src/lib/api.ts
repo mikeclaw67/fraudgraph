@@ -11,6 +11,8 @@ import type {
   CaseUpdate,
   Severity,
   AlertStatus,
+  FraudRing,
+  InvestigationCase,
 } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -105,6 +107,49 @@ export async function updateCase(caseId: string, data: CaseUpdate): Promise<{ ca
     method: "PATCH",
     body: JSON.stringify(data),
   });
+}
+
+/* --- Rings --- */
+
+export async function getRing(ringId: string): Promise<{ ring: FraudRing }> {
+  return fetchJSON<{ ring: FraudRing }>(`/api/rings/${encodeURIComponent(ringId)}`);
+}
+
+export async function createRingCase(ringId: string): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(`/api/rings/${encodeURIComponent(ringId)}/case`, {
+    method: "POST",
+  });
+}
+
+/* --- Investigation Cases --- */
+
+export async function getInvestigationCase(caseId: string): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(`/api/cases/${encodeURIComponent(caseId)}`);
+}
+
+export async function addCaseNote(
+  caseId: string,
+  content: string
+): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(
+    `/api/cases/${encodeURIComponent(caseId)}/notes`,
+    { method: "POST", body: JSON.stringify({ content }) }
+  );
+}
+
+export async function updateCaseStatus(
+  caseId: string,
+  status: string
+): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(
+    `/api/cases/${encodeURIComponent(caseId)}`,
+    { method: "PATCH", body: JSON.stringify({ status }) }
+  );
+}
+
+export function downloadReferralPackage(caseId: string): void {
+  const url = `${API}/api/cases/${encodeURIComponent(caseId)}/referral-package`;
+  window.open(url, "_blank");
 }
 
 /* --- WebSocket --- */

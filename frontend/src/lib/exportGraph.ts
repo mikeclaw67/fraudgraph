@@ -18,7 +18,7 @@ type SigmaExportable = {
 export function exportSigmaAsPNG(
   sigma: SigmaExportable,
   filename: string,
-  bgColor = "#0F1117",
+  bgColor = "#263238",
 ): void {
   const onAfterRender = () => {
     sigma.removeListener("afterRender", onAfterRender);

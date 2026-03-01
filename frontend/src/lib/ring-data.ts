@@ -1,6 +1,6 @@
 /* FraudGraph — Hardcoded mock data for 20 realistic PPP fraud rings */
 
-import type { FraudRing, RingMember, RingType } from "./types";
+import type { FraudRing, RingMember, RingType, RiskBreakdown } from "./types";
 
 const FIRST_NAMES = [
   "Marcus", "Diana", "Robert", "Sarah", "James", "Patricia", "Michael", "Angela",
@@ -152,6 +152,7 @@ const RING_DEFINITIONS: {
   status: "NEW" | "DETECTED" | "UNDER_REVIEW" | "CASE_OPENED" | "REFERRED" | "CLOSED" | "DISMISSED";
   assigned_to: string | null;
   detected_at: string;
+  riskBreakdown?: RiskBreakdown;
 }[] = [
   {
     ring_id: "ring_001",
@@ -164,6 +165,7 @@ const RING_DEFINITIONS: {
     status: "NEW",
     assigned_to: null,
     detected_at: "2025-02-28T08:14:00Z",
+    riskBreakdown: { rules: 88, ml: 78, graph: 74, firedRules: ["ADDR_REUSE", "STRAW_CO", "ACCOUNT_SHARE"], mlLabel: "Isolation Forest anomaly" },
   },
   {
     ring_id: "ring_002",
@@ -176,6 +178,7 @@ const RING_DEFINITIONS: {
     status: "NEW",
     assigned_to: null,
     detected_at: "2025-02-27T14:32:00Z",
+    riskBreakdown: { rules: 82, ml: 76, graph: 72, firedRules: ["ADDR_REUSE", "STRAW_CO", "ACCOUNT_SHARE"], mlLabel: "Isolation Forest anomaly" },
   },
   {
     ring_id: "ring_003",
@@ -188,6 +191,7 @@ const RING_DEFINITIONS: {
     status: "UNDER_REVIEW",
     assigned_to: "J. Morrison",
     detected_at: "2025-02-25T11:07:00Z",
+    riskBreakdown: { rules: 78, ml: 68, graph: 55, firedRules: ["EIN_REUSE", "STRAW_CO"], mlLabel: "Isolation Forest anomaly" },
   },
   {
     ring_id: "ring_004",
@@ -200,6 +204,7 @@ const RING_DEFINITIONS: {
     status: "NEW",
     assigned_to: null,
     detected_at: "2025-02-26T09:45:00Z",
+    riskBreakdown: { rules: 62, ml: 74, graph: 82, firedRules: ["ACCOUNT_SHARE", "NEW_EIN"], mlLabel: "Isolation Forest anomaly" },
   },
   {
     ring_id: "ring_005",
@@ -212,6 +217,7 @@ const RING_DEFINITIONS: {
     status: "NEW",
     assigned_to: null,
     detected_at: "2025-02-24T16:22:00Z",
+    riskBreakdown: { rules: 55, ml: 48, graph: 35, firedRules: ["THRESHOLD_GAME", "NEW_EIN"], mlLabel: "Isolation Forest anomaly" },
   },
   {
     ring_id: "ring_006",

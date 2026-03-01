@@ -1,24 +1,29 @@
-/* FraudGraph — Root layout with Palantir-dark theme and navigation sidebar */
+/* FraudGraph -- Root layout with Palantir-dark theme, Barlow display font, and icon-rail sidebar.
+   Update when global layout structure, fonts, or theme wrapper changes. */
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow_Condensed } from "next/font/google";
 import { Sidebar } from "@/components/sidebar";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "FraudGraph — Fraud Detection Platform",
+  title: "FraudGraph -- Fraud Detection Platform",
   description: "Government-grade fraud detection and investigation platform",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-slate-100`}>
+      <body className={`${barlowCondensed.variable} font-sans antialiased bg-bg-shell text-text-primary`}>
         <Sidebar />
-        <main className="ml-[200px] min-h-screen">{children}</main>
+        <main className="ml-[48px] min-h-screen">{children}</main>
       </body>
     </html>
   );
