@@ -17,6 +17,7 @@ from backend.api.graph import router as graph_router
 from backend.api.cases import router as cases_router
 from backend.api.investigate import router as investigate_router
 from backend.api.ring_actions import router as ring_actions_router
+from backend.api.rings import router as rings_router
 from backend.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,15 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Application lifecycle — setup and teardown."""
     logger.info("FraudGraph starting up — schema: %s", settings.active_schema)
+
+    # Seed demo data into in-memory stores on startup
+    from data.seed_demo import seed_demo_data
+    summary = seed_demo_data()
+    logger.info(
+        "Demo data seeded: %d rings, %d entities, %d alerts, %d graph nodes",
+        summary["rings"], summary["entities"], summary["alerts"], summary["graph_nodes"],
+    )
+
     yield
     logger.info("FraudGraph shutting down")
 
@@ -55,6 +65,7 @@ app.include_router(graph_router, prefix=settings.api_prefix)
 app.include_router(cases_router, prefix=settings.api_prefix)
 app.include_router(investigate_router, prefix=settings.api_prefix)
 app.include_router(ring_actions_router, prefix=settings.api_prefix)
+app.include_router(rings_router, prefix=settings.api_prefix)
 
 
 @app.get("/")

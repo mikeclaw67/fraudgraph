@@ -1,0 +1,427 @@
+#!/usr/bin/env python3
+# Demo Seeder — populates 5 realistic fraud rings with entities, transactions,
+# and detection results for the FraudGraph demo environment. Each ring models a
+# real-world fraud pattern with interconnected entities that trigger the detection
+# rules engine. Idempotent: clears and re-seeds on every run.
+
+from __future__ import annotations
+
+import random
+import uuid
+from datetime import datetime, timezone
+from typing import Any
+
+from backend.api.alerts import set_alert_store
+from backend.api.entities import set_alert_index, set_entity_store
+from backend.api.graph import build_graph_from_records, set_graph_data
+from backend.api.rings import set_ring_store
+from backend.detection.alerts import generate_alerts_batch
+from backend.detection.rules import build_context, evaluate_batch
+from backend.detection.scoring import score_batch
+
+random.seed(42)
+
+
+# ---------------------------------------------------------------------------
+# Ring definitions — 5 curated fraud scenarios
+# ---------------------------------------------------------------------------
+
+def _make_entity(
+    *,
+    borrower_name: str,
+    business_name: str,
+    ein: str,
+    address: str,
+    city: str,
+    state: str,
+    zipcode: str,
+    employee_count: int,
+    business_age_months: int,
+    loan_amount: float,
+    loan_program: str = "PPP",
+    loan_date: str = "2020-08-15",
+    lender: str = "Cross River Bank",
+    bank_routing: str = "",
+    bank_account: str = "",
+    naics_code: str = "541110",
+    industry: str = "Offices of Lawyers",
+    fraud_label: bool = True,
+    fraud_type: str | None = None,
+) -> dict[str, Any]:
+    """Build a single entity record with all required LoanRecord fields."""
+    return {
+        "borrower_id": str(uuid.uuid4()),
+        "borrower_name": borrower_name,
+        "ssn_last4": f"{random.randint(1000, 9999)}",
+        "business_name": business_name,
+        "ein": ein,
+        "business_address": address,
+        "business_city": city,
+        "business_state": state,
+        "business_zip": zipcode,
+        "employee_count": employee_count,
+        "business_age_months": business_age_months,
+        "loan_program": loan_program,
+        "loan_amount": loan_amount,
+        "loan_date": loan_date,
+        "lender_name": lender,
+        "bank_routing": bank_routing or f"{random.randint(100000000, 999999999)}",
+        "bank_account": bank_account or f"{random.randint(10000000, 9999999999)}",
+        "naics_code": naics_code,
+        "industry": industry,
+        "fraud_label": fraud_label,
+        "fraud_type": fraud_type,
+    }
+
+
+def _build_ring_001() -> tuple[dict, list[dict]]:
+    """RING-001: Identity Theft Network — $2.1M, 12 entities, CRITICAL.
+
+    Pattern: Same EIN recycled across 4 groups of 3 businesses each.
+    All businesses share a common mail forwarding address.
+    Triggers: EIN_REUSE (CRITICAL), ADDR_REUSE (HIGH), NEW_EIN (MEDIUM).
+    """
+    shared_address = "1847 Commerce Blvd Suite 400"
+    shared_city, shared_state, shared_zip = "Miami", "FL", "33131"
+    recycled_eins = ["77-1234001", "77-1234002", "77-1234003", "77-1234004"]
+
+    entities: list[dict] = []
+    names = [
+        ("Marcus Williams", "Atlantic Consulting Group"),
+        ("Diana Foster", "Bayside Healthcare LLC"),
+        ("Raymond Chen", "Pacific Trading Corp"),
+        ("Lisa Morales", "Sunrise Medical Services"),
+        ("James Patterson", "Metro Financial Advisors"),
+        ("Angela Cruz", "Coastal Property Holdings"),
+        ("Terrence Jackson", "Southern Logistics Inc"),
+        ("Maria Gonzalez", "Freedom Health Services"),
+        ("David Park", "Global Trading Solutions"),
+        ("Katherine Lee", "Alliance Business Group"),
+        ("Robert Mitchell", "Premier Investment Holdings"),
+        ("Sandra Thompson", "National Consulting Partners"),
+    ]
+
+    for i, (name, biz) in enumerate(names):
+        entities.append(_make_entity(
+            borrower_name=name,
+            business_name=biz,
+            ein=recycled_eins[i % 4],
+            address=shared_address,
+            city=shared_city,
+            state=shared_state,
+            zipcode=shared_zip,
+            employee_count=random.randint(0, 2),
+            business_age_months=random.randint(0, 4),
+            loan_amount=round(random.uniform(140_000, 200_000), 2),
+            loan_date=f"2020-{7 + (i % 3):02d}-{10 + i:02d}",
+            lender=random.choice(["Cross River Bank", "Celtic Bank", "Kabbage Inc"]),
+            fraud_type="identity_theft",
+        ))
+
+    ring = {
+        "id": "RING-001",
+        "name": "Identity Theft Network",
+        "type": "IDENTITY_THEFT",
+        "status": "ACTIVE",
+        "riskScore": 94,
+        "totalExposure": 2_100_000,
+        "entityCount": 12,
+        "createdAt": "2024-11-15T08:30:00Z",
+    }
+    return ring, entities
+
+
+def _build_ring_002() -> tuple[dict, list[dict]]:
+    """RING-002: Shell Company Cluster — $1.48M, 8 entities, CRITICAL.
+
+    Pattern: 8 straw companies — 0 employees, <6 months old, loans >$100K.
+    All deposit into the same bank account (shared routing number).
+    Triggers: STRAW_CO (HIGH), ACCOUNT_SHARE (HIGH), NEW_EIN (MEDIUM).
+    """
+    shared_routing = "021000089"
+
+    entities: list[dict] = []
+    names = [
+        ("Victor Petrov", "Zenith Capital Solutions"),
+        ("Elena Volkov", "Apex Business Ventures"),
+        ("Nikolai Sorokin", "Summit Enterprise Group"),
+        ("Irina Kozlov", "Pinnacle Holdings LLC"),
+        ("Sergei Ivanov", "Cardinal Business Services"),
+        ("Natasha Popov", "Eclipse Consulting Group"),
+        ("Dmitri Orlov", "Vanguard Commercial LLC"),
+        ("Anya Kovalenko", "Meridian Trade Corp"),
+    ]
+
+    for i, (name, biz) in enumerate(names):
+        entities.append(_make_entity(
+            borrower_name=name,
+            business_name=biz,
+            ein=f"88-200000{i}",
+            address=f"{1200 + i * 10} Industrial Parkway",
+            city="Houston",
+            state="TX",
+            zipcode="77001",
+            employee_count=0,
+            business_age_months=random.randint(1, 4),
+            loan_amount=round(random.uniform(140_000, 210_000), 2),
+            loan_date=f"2020-{5 + (i % 4):02d}-{5 + i * 2:02d}",
+            lender="Benworth Capital",
+            bank_routing=shared_routing,
+            naics_code="236220",
+            industry="Commercial Construction",
+            fraud_type="straw_company",
+        ))
+
+    ring = {
+        "id": "RING-002",
+        "name": "Shell Company Cluster",
+        "type": "SHELL_COMPANY",
+        "status": "ACTIVE",
+        "riskScore": 91,
+        "totalExposure": 1_480_000,
+        "entityCount": 8,
+        "createdAt": "2024-12-03T14:15:00Z",
+    }
+    return ring, entities
+
+
+def _build_ring_003() -> tuple[dict, list[dict]]:
+    """RING-003: Invoice Factoring Scheme — $890K, 15 entities, HIGH.
+
+    Pattern: 15 businesses at 3 shared addresses (5 per address),
+    with loan amounts clustered near the $150K SBA review threshold.
+    Triggers: ADDR_REUSE (HIGH), THRESHOLD_GAME (MEDIUM).
+    """
+    addresses = [
+        ("2500 Peachtree Road NE Suite 300", "Atlanta", "GA", "30305"),
+        ("4100 Spring Valley Road Suite 150", "Dallas", "TX", "75244"),
+        ("7700 Forsyth Blvd Suite 200", "St. Louis", "MO", "63105"),
+    ]
+
+    entities: list[dict] = []
+    names = [
+        ("Robert Hayes", "Premier Invoice Solutions"),
+        ("Jennifer Liu", "Capital Factoring Group"),
+        ("Michael Torres", "American Trade Finance"),
+        ("Sarah Watson", "Riverdale Business Credit"),
+        ("Christopher Adams", "National Factoring Corp"),
+        ("Amanda Peters", "Heritage Financial Services"),
+        ("Daniel Kim", "Pacific Factor LLC"),
+        ("Jessica Brown", "Midwest Capital Funding"),
+        ("Thomas Wright", "Atlantic Commercial Credit"),
+        ("Michelle Davis", "Continental Business Fund"),
+        ("Andrew Clark", "Landmark Financial Group"),
+        ("Rebecca Allen", "Gateway Factor Solutions"),
+        ("Steven Moore", "Summit Capital Partners"),
+        ("Lauren Taylor", "Horizon Trade Credit"),
+        ("Brian Wilson", "Keystone Business Finance"),
+    ]
+
+    for i, (name, biz) in enumerate(names):
+        addr = addresses[i % 3]
+        entities.append(_make_entity(
+            borrower_name=name,
+            business_name=biz,
+            ein=f"66-300000{i:01d}" if i < 10 else f"66-30000{i}",
+            address=addr[0],
+            city=addr[1],
+            state=addr[2],
+            zipcode=addr[3],
+            employee_count=random.randint(2, 8),
+            business_age_months=random.randint(8, 24),
+            loan_amount=round(random.uniform(145_000, 149_999), 2),
+            loan_date=f"2020-{6 + (i % 5):02d}-{3 + i:02d}",
+            lender=random.choice(["Ready Capital", "Customers Bank", "WebBank"]),
+            naics_code="524210",
+            industry="Insurance Agencies",
+            fraud_type="invoice_factoring",
+        ))
+
+    ring = {
+        "id": "RING-003",
+        "name": "Invoice Factoring Scheme",
+        "type": "INVOICE_FACTORING",
+        "status": "MONITORING",
+        "riskScore": 78,
+        "totalExposure": 890_000,
+        "entityCount": 15,
+        "createdAt": "2025-01-20T11:45:00Z",
+    }
+    return ring, entities
+
+
+def _build_ring_004() -> tuple[dict, list[dict]]:
+    """RING-004: Benefits Double-Dipping — $340K, 6 entities, MEDIUM.
+
+    Pattern: 3 pairs of businesses sharing the same EIN (each EIN used twice).
+    Moderate loan amounts to stay under radar.
+    Triggers: EIN_REUSE (CRITICAL).
+    """
+    shared_eins = ["55-4000001", "55-4000002", "55-4000003"]
+
+    entities: list[dict] = []
+    names = [
+        ("Patricia Nguyen", "Serenity Wellness Center"),
+        ("William Hernandez", "Serenity Health Corp"),
+        ("Karen Phillips", "Oakwood Family Practice"),
+        ("George Campbell", "Oakwood Medical Group"),
+        ("Donna Robinson", "Maple Street Pharmacy"),
+        ("Paul Stewart", "Maple Health Distributors"),
+    ]
+
+    cities = [
+        ("430 Elm Street", "Phoenix", "AZ", "85001"),
+        ("430 Elm Street", "Phoenix", "AZ", "85001"),
+        ("2100 Oak Avenue", "Denver", "CO", "80202"),
+        ("2100 Oak Avenue", "Denver", "CO", "80202"),
+        ("8900 Maple Drive", "Portland", "OR", "97201"),
+        ("8900 Maple Drive", "Portland", "OR", "97201"),
+    ]
+
+    for i, (name, biz) in enumerate(names):
+        addr = cities[i]
+        entities.append(_make_entity(
+            borrower_name=name,
+            business_name=biz,
+            ein=shared_eins[i // 2],
+            address=addr[0],
+            city=addr[1],
+            state=addr[2],
+            zipcode=addr[3],
+            employee_count=random.randint(3, 15),
+            business_age_months=random.randint(12, 48),
+            loan_amount=round(random.uniform(40_000, 70_000), 2),
+            loan_date=f"2020-{5 + (i % 3):02d}-{8 + i * 3:02d}",
+            lender="JPMorgan Chase",
+            naics_code="621111",
+            industry="Offices of Physicians",
+            fraud_type="benefits_double_dip",
+        ))
+
+    ring = {
+        "id": "RING-004",
+        "name": "Benefits Double-Dipping",
+        "type": "BENEFITS_FRAUD",
+        "status": "MONITORING",
+        "riskScore": 62,
+        "totalExposure": 340_000,
+        "entityCount": 6,
+        "createdAt": "2025-02-10T09:20:00Z",
+    }
+    return ring, entities
+
+
+def _build_ring_005() -> tuple[dict, list[dict]]:
+    """RING-005: Address Cycling Ring — $175K, 4 entities, LOW.
+
+    Pattern: 4 businesses at the same address, modest loans.
+    Just above the address reuse threshold.
+    Triggers: ADDR_REUSE (HIGH).
+    """
+    shared_address = "9200 Wilshire Blvd Suite 100"
+
+    entities: list[dict] = []
+    names = [
+        ("Frank Reynolds", "Westside Auto Repair"),
+        ("Carol Baskin", "Sunset Pet Grooming"),
+        ("Dennis Murphy", "Pacific Lawn Care LLC"),
+        ("Janet Collins", "Bayview Cleaning Services"),
+    ]
+
+    for i, (name, biz) in enumerate(names):
+        entities.append(_make_entity(
+            borrower_name=name,
+            business_name=biz,
+            ein=f"44-500000{i}",
+            address=shared_address,
+            city="Los Angeles",
+            state="CA",
+            zipcode="90024",
+            employee_count=random.randint(1, 5),
+            business_age_months=random.randint(18, 60),
+            loan_amount=round(random.uniform(35_000, 55_000), 2),
+            loan_date=f"2020-0{7 + i}-{12 + i * 5:02d}",
+            lender="Bank of America",
+            naics_code="561720",
+            industry="Janitorial Services",
+            fraud_type="address_cycling",
+        ))
+
+    ring = {
+        "id": "RING-005",
+        "name": "Address Cycling Ring",
+        "type": "ADDRESS_CYCLING",
+        "status": "RESOLVED",
+        "riskScore": 45,
+        "totalExposure": 175_000,
+        "entityCount": 4,
+        "createdAt": "2025-03-01T16:00:00Z",
+    }
+    return ring, entities
+
+
+# ---------------------------------------------------------------------------
+# Ring builder registry
+# ---------------------------------------------------------------------------
+
+RING_BUILDERS = [
+    _build_ring_001,
+    _build_ring_002,
+    _build_ring_003,
+    _build_ring_004,
+    _build_ring_005,
+]
+
+
+def build_all_rings() -> tuple[list[dict], list[dict]]:
+    """Build all 5 demo rings and their entity records.
+
+    Returns (rings, all_entity_records) where rings is the frontend-ready
+    ring metadata and all_entity_records is the flat list of loan records.
+    """
+    rings: list[dict] = []
+    all_entities: list[dict] = []
+
+    for builder in RING_BUILDERS:
+        ring, entities = builder()
+        ring["entities"] = [e["borrower_id"] for e in entities]
+        rings.append(ring)
+        all_entities.extend(entities)
+
+    return rings, all_entities
+
+
+def seed_demo_data() -> dict[str, Any]:
+    """Seed all in-memory stores with 5 demo fraud rings.
+
+    This is the main entry point called at application startup.
+    Idempotent: clears and re-seeds on every call.
+
+    Returns a summary dict with counts for logging/verification.
+    """
+    rings, records = build_all_rings()
+
+    # --- Run detection pipeline on seeded records ---
+    rule_results = evaluate_batch(records)
+    context = build_context(records)
+    risk_scores = score_batch(records, rule_results)
+    alerts = generate_alerts_batch(risk_scores, score_threshold=10.0)
+    alert_dicts = [a.to_dict() for a in alerts]
+
+    # --- Build graph ---
+    graph_data = build_graph_from_records(records)
+
+    # --- Populate all in-memory stores (idempotent — replaces existing) ---
+    set_ring_store(rings)
+    set_alert_store(alert_dicts)
+    set_entity_store(records)
+    set_alert_index(alert_dicts)
+    set_graph_data(graph_data)
+
+    return {
+        "rings": len(rings),
+        "entities": len(records),
+        "alerts": len(alert_dicts),
+        "graph_nodes": len(graph_data["nodes"]),
+        "graph_edges": len(graph_data["edges"]),
+    }

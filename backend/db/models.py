@@ -125,3 +125,20 @@ class AuditEntry(Base):
     )
 
     case: Mapped["Case"] = relationship(back_populates="audit_entries")
+
+
+class FraudRing(Base):
+    """A detected fraud ring — a cluster of connected entities exhibiting coordinated fraud."""
+    __tablename__ = "fraud_rings"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ring_id: Mapped[str] = mapped_column(String(16), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(256), nullable=False)
+    type: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
+    risk_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    total_exposure: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    entity_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
