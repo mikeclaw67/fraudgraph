@@ -1,4 +1,5 @@
-/* FraudGraph — Ring Detail page with smoking gun callout, member table, borrower 360, and evidence graph */
+/* FraudGraph — Ring Detail page with smoking gun callout, member table, borrower 360, evidence graph,
+   and live AI investigation panel streaming LangGraph agent steps via WebSocket. */
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -8,7 +9,34 @@ import { RiskScoreBadge, StatusBadge } from "@/components/badges";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import type { FraudRing, RingMember, RingType } from "@/lib/types";
 
-/* ── Mock ring data for ring-001 ─────────────────────────────────────────── */
+/* ── Investigation types ─────────────────────────────────────────────────── */
+
+type InvStatus = "idle" | "running" | "complete" | "error";
+
+interface InvStep {
+  step: number;
+  type: "tool_call" | "finding" | "complete" | "error";
+  tool_name?: string;
+  content: string;
+}
+
+interface KeyFinding {
+  finding: string;
+  severity?: string;
+  data_source?: string;
+}
+
+interface InvFindings {
+  risk_tier: string;
+  executive_summary: string;
+  key_findings: KeyFinding[];
+  estimated_fraud_amount: number;
+  recommended_action: string;
+  evidence_citations?: string[];
+  confidence?: number;
+}
+
+/* ── Mock ring data ──────────────────────────────────────────────────────── */
 
 const RING_TYPE_LABELS: Record<RingType, string> = {
   ADDRESS_FARM: "Address Farm",
@@ -87,8 +115,8 @@ function generateMockRing(id: string): FraudRing {
       lender: "Citibank",
       status: "FUNDED",
       risk_score: 93,
-      notes: "Highest risk — $149,900 just below $150K threshold",
-      red_flags: ["Threshold gaming ($149,900)", "Zero employees", "Business age < 2 months", "Same address as 3 others"],
+      notes: "Highest risk — \$149,900 just below \$150K threshold",
+      red_flags: ["Threshold gaming (\$149,900)", "Zero employees", "Business age < 2 months", "Same address as 3 others"],
       ssn_last4: "6307",
       bank_account_last4: "7703",
       program: "PPP",
@@ -122,7 +150,7 @@ function generateMockRing(id: string): FraudRing {
     ring_type: "ADDRESS_FARM",
     common_element: "1847 W Commerce St, Unit 204, Milwaukee WI 53204",
     common_element_detail:
-      "Commercial mail receiving agency (CMRA). UPS Store #4182. 340 sqft unit leased to \"MKE Business Services\" since Jan 2020. No physical office space — mailbox-only facility. Property owner: Lakeside Commercial REIT.",
+      'Commercial mail receiving agency (CMRA). UPS Store #4182. 340 sqft unit leased to "MKE Business Services" since Jan 2020. No physical office space — mailbox-only facility. Property owner: Lakeside Commercial REIT.',
     members,
     member_count: members.length,
     total_exposure: members.reduce((s, m) => s + m.loan_amount, 0),
@@ -145,9 +173,86 @@ export default function RingDetailPage() {
   const graphContainerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<unknown>(null);
 
+  /* ── Investigation state ─────────────────────────────────────────────── */
+  const [invStatus, setInvStatus] = useState<InvStatus>("idle");
+  const [invSteps, setInvSteps] = useState<InvStep[]>([]);
+  const [invFindings, setInvFindings] = useState<InvFindings | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const invStatusRef = useRef<InvStatus>("idle");
+
+  function setInvStatusBoth(s: InvStatus) {
+    invStatusRef.current = s;
+    setInvStatus(s);
+  }
+
+  function startInvestigation() {
+    if (!ring || invStatus === "running") return;
+
+    setInvStatusBoth("running");
+    setInvSteps([]);
+    setInvFindings(null);
+
+    const sorted = [...ring.members].sort((a, b) => b.risk_score - a.risk_score);
+    const alertId = ring.ring_id;
+    const entityId = sorted[0]?.member_id ?? ring.ring_id;
+    const wsUrl = `ws://localhost:8000/api/investigate/ws/${alertId}?entity_id=${entityId}`;
+
+    if (wsRef.current) wsRef.current.close();
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onmessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data as string) as InvStep;
+        setInvSteps((prev) => [...prev, data]);
+
+        if (data.type === "complete") {
+          let findings: InvFindings | null = null;
+          try {
+            let raw = data.content;
+            if (raw.includes("```json")) {
+              raw = raw.split("```json")[1].split("```")[0].trim();
+            } else if (raw.includes("{")) {
+              const start = raw.indexOf("{");
+              const end = raw.lastIndexOf("}") + 1;
+              raw = raw.slice(start, end);
+            }
+            findings = JSON.parse(raw) as InvFindings;
+          } catch {
+            /* leave null — will show raw content fallback */
+          }
+          setInvFindings(findings);
+          setInvStatusBoth("complete");
+        } else if (data.type === "error") {
+          setInvStatusBoth("error");
+        }
+      } catch {
+        /* ignore parse errors */
+      }
+    };
+
+    ws.onerror = () => setInvStatusBoth("error");
+    ws.onclose = () => {
+      if (invStatusRef.current === "running") setInvStatusBoth("error");
+    };
+  }
+
+  function closeInvestigation() {
+    wsRef.current?.close();
+    setInvStatusBoth("idle");
+    setInvSteps([]);
+    setInvFindings(null);
+  }
+
+  /* Cleanup WS on unmount */
+  useEffect(() => {
+    return () => {
+      wsRef.current?.close();
+    };
+  }, []);
+
   useEffect(() => {
     setLoading(true);
-    // Simulate API fetch — fall back to mock
     const timer = setTimeout(() => {
       setRing(generateMockRing(params.id));
       setLoading(false);
@@ -155,7 +260,6 @@ export default function RingDetailPage() {
     return () => clearTimeout(timer);
   }, [params.id]);
 
-  // Initialize notes from ring data
   useEffect(() => {
     if (!ring) return;
     const notes: Record<string, string> = {};
@@ -171,7 +275,11 @@ export default function RingDetailPage() {
     if (!graphContainerRef.current || !ring) return;
 
     if (sigmaRef.current) {
-      try { (sigmaRef.current as { kill: () => void }).kill(); } catch { /* noop */ }
+      try {
+        (sigmaRef.current as { kill: () => void }).kill();
+      } catch {
+        /* noop */
+      }
       sigmaRef.current = null;
     }
 
@@ -182,7 +290,6 @@ export default function RingDetailPage() {
 
       const graph = new Graph();
 
-      // Central shared-element node
       const centerNodeId = "shared_element";
       graph.addNode(centerNodeId, {
         label: ring.common_element.split(",")[0],
@@ -193,7 +300,6 @@ export default function RingDetailPage() {
         nodeType: "SharedElement",
       });
 
-      // Member nodes arranged in a circle around center
       const angleStep = (2 * Math.PI) / ring.members.length;
       ring.members.forEach((member, i) => {
         const angle = angleStep * i - Math.PI / 2;
@@ -214,24 +320,21 @@ export default function RingDetailPage() {
           size: 2,
         });
 
-        // Add cross-links for shared bank accounts
         ring.members.forEach((other) => {
-          if (
-            other.member_id > member.member_id &&
-            other.bank_account_last4 === member.bank_account_last4
-          ) {
+          if (other.member_id > member.member_id && other.bank_account_last4 === member.bank_account_last4) {
             try {
               graph.addEdge(member.member_id, other.member_id, {
                 type: "line",
                 color: "#4A4F6A",
                 size: 1,
               });
-            } catch { /* ignore duplicate */ }
+            } catch {
+              /* ignore duplicate */
+            }
           }
         });
       });
 
-      // Light layout pass to refine positions
       forceAtlas2.assign(graph, { iterations: 50, settings: { gravity: 3, scalingRatio: 4 } });
 
       const sigma = new Sigma(graph, graphContainerRef.current, {
@@ -253,11 +356,18 @@ export default function RingDetailPage() {
     }
   }, [ring]);
 
-  useEffect(() => { initGraph(); }, [initGraph]);
+  useEffect(() => {
+    initGraph();
+  }, [initGraph]);
+
   useEffect(() => {
     return () => {
       if (sigmaRef.current) {
-        try { (sigmaRef.current as { kill: () => void }).kill(); } catch { /* noop */ }
+        try {
+          (sigmaRef.current as { kill: () => void }).kill();
+        } catch {
+          /* noop */
+        }
       }
     };
   }, []);
@@ -294,7 +404,9 @@ export default function RingDetailPage() {
       {/* Header bar */}
       <div className="flex items-center justify-between border-b border-[#2A2D3E] bg-[#1A1D27] px-6 py-3">
         <div className="flex items-center gap-4">
-          <Link href="/alerts" className="text-xs text-[#8B90A8] hover:text-[#E8EAF0]">&larr; Back</Link>
+          <Link href="/alerts" className="text-xs text-[#8B90A8] hover:text-[#E8EAF0]">
+            &larr; Back
+          </Link>
           <div className="h-4 w-px bg-[#2A2D3E]" />
           <div>
             <div className="flex items-center gap-2">
@@ -302,7 +414,8 @@ export default function RingDetailPage() {
               <StatusBadge status={ring.status} />
             </div>
             <p className="text-xs text-[#8B90A8]">
-              {ring.ring_id} &middot; {ring.member_count} members &middot; {formatCurrency(ring.total_exposure)} exposure &middot; Detected {formatDate(ring.detected_at)}
+              {ring.ring_id} &middot; {ring.member_count} members &middot; {formatCurrency(ring.total_exposure)} exposure &middot; Detected{" "}
+              {formatDate(ring.detected_at)}
             </p>
           </div>
         </div>
@@ -348,21 +461,9 @@ export default function RingDetailPage() {
           <div className="mt-4 border border-[#2A2D3E] bg-[#1A1D27] p-4">
             <p className="text-label mb-2">Shared Indicators</p>
             <div className="space-y-2">
-              <IndicatorRow
-                label="Address"
-                value={ring.common_element.split(",")[0]}
-                count={ring.member_count}
-              />
-              <IndicatorRow
-                label="Bank Acct"
-                value="****7703"
-                count={ring.members.filter((m) => m.bank_account_last4 === "7703").length}
-              />
-              <IndicatorRow
-                label="SSN"
-                value="****4821"
-                count={ring.members.filter((m) => m.ssn_last4 === "4821").length}
-              />
+              <IndicatorRow label="Address" value={ring.common_element.split(",")[0]} count={ring.member_count} />
+              <IndicatorRow label="Bank Acct" value="****7703" count={ring.members.filter((m) => m.bank_account_last4 === "7703").length} />
+              <IndicatorRow label="SSN" value="****4821" count={ring.members.filter((m) => m.ssn_last4 === "4821").length} />
             </div>
           </div>
 
@@ -382,8 +483,8 @@ export default function RingDetailPage() {
         <div className="flex min-w-0 flex-1 flex-col">
           {/* CENTER — Ring members table + graph */}
           <div className="flex min-h-0 flex-1">
-            <div className={cn("flex min-w-0 flex-1 flex-col overflow-hidden transition-all", selectedMember ? "mr-0" : "mr-0")}>
-              {/* Table */}
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+              {/* Members table */}
               <div className="shrink-0 overflow-x-auto border-b border-[#2A2D3E]">
                 <table className="w-full">
                   <thead>
@@ -405,9 +506,7 @@ export default function RingDetailPage() {
                         onClick={() => setSelectedMember(member)}
                         className={cn(
                           "cursor-pointer border-b border-[#2A2D3E] transition-colors",
-                          selectedMember?.member_id === member.member_id
-                            ? "bg-[#1C2B4A]"
-                            : "bg-[#1E2130] hover:bg-[#252840]"
+                          selectedMember?.member_id === member.member_id ? "bg-[#1C2B4A]" : "bg-[#1E2130] hover:bg-[#252840]"
                         )}
                       >
                         <td className="p-3">
@@ -422,7 +521,9 @@ export default function RingDetailPage() {
                         </td>
                         <td className="p-3 text-data text-[#8B90A8]">{formatDate(member.loan_date)}</td>
                         <td className="p-3 text-data text-[#8B90A8]">{member.lender}</td>
-                        <td className="p-3"><RiskScoreBadge score={member.risk_score} /></td>
+                        <td className="p-3">
+                          <RiskScoreBadge score={member.risk_score} />
+                        </td>
                         <td className="p-3">
                           <span className="text-data text-[#C94B4B]">{member.red_flags.length}</span>
                         </td>
@@ -438,7 +539,6 @@ export default function RingDetailPage() {
                   <p className="text-label">Evidence Graph</p>
                   <p className="text-[10px] text-[#4A4F6A]">{ring.member_count} members &middot; Click node to inspect</p>
                 </div>
-                {/* Legend */}
                 <div className="absolute bottom-3 left-4 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
@@ -470,14 +570,19 @@ export default function RingDetailPage() {
                 <Borrower360
                   member={selectedMember}
                   notes={memberNotes[selectedMember.member_id] || ""}
-                  onNotesChange={(val) =>
-                    setMemberNotes((prev) => ({ ...prev, [selectedMember.member_id]: val }))
-                  }
+                  onNotesChange={(val) => setMemberNotes((prev) => ({ ...prev, [selectedMember.member_id]: val }))}
                   onClose={() => setSelectedMember(null)}
                 />
               )}
             </div>
           </div>
+
+          {/* Investigation Panel — expands between graph and action bar when active */}
+          {invStatus !== "idle" && (
+            <div className="h-[340px] shrink-0 border-t border-[#2A2D3E]">
+              <InvestigationPanel status={invStatus} steps={invSteps} findings={invFindings} onClose={closeInvestigation} />
+            </div>
+          )}
 
           {/* BOTTOM — Action bar */}
           <div className="flex items-center justify-between border-t border-[#2A2D3E] bg-[#1A1D27] px-6 py-3">
@@ -494,6 +599,57 @@ export default function RingDetailPage() {
               <button className="border border-[#2A2D3E] bg-[#1E2130] px-4 py-2 text-xs font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0]">
                 Dismiss Ring
               </button>
+
+              {/* Run Investigation */}
+              <button
+                onClick={startInvestigation}
+                disabled={invStatus === "running"}
+                className={cn(
+                  "flex items-center gap-1.5 border px-4 py-2 text-xs font-semibold transition-colors",
+                  invStatus === "running"
+                    ? "cursor-not-allowed border-[#4A4F6A] bg-[#1A1D27] text-[#4A4F6A]"
+                    : invStatus === "complete"
+                    ? "border-[#2A9B6B] bg-[#2A9B6B]/10 text-[#2A9B6B] hover:bg-[#2A9B6B]/20"
+                    : invStatus === "error"
+                    ? "border-[#C94B4B] bg-[#C94B4B]/10 text-[#C94B4B] hover:bg-[#C94B4B]/20"
+                    : "border-[#7B5EA7] bg-[#7B5EA7]/10 text-[#C4A9F0] hover:bg-[#7B5EA7]/20"
+                )}
+              >
+                {invStatus === "running" ? (
+                  <>
+                    <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Investigating…
+                  </>
+                ) : invStatus === "complete" ? (
+                  <>
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Re-run Investigation
+                  </>
+                ) : invStatus === "error" ? (
+                  <>
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                    Retry Investigation
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    </svg>
+                    Run Investigation
+                  </>
+                )}
+              </button>
             </div>
             <div className="flex items-center gap-3 text-[10px] text-[#4A4F6A]">
               <span>Ring {ring.ring_id}</span>
@@ -505,6 +661,221 @@ export default function RingDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Investigation Panel ─────────────────────────────────────────────────── */
+
+function InvestigationPanel({
+  status,
+  steps,
+  findings,
+  onClose,
+}: {
+  status: InvStatus;
+  steps: InvStep[];
+  findings: InvFindings | null;
+  onClose: () => void;
+}) {
+  const stepsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = stepsRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [steps]);
+
+  const visibleSteps = steps.filter((s) => s.type !== "complete");
+  const showFindings = status === "complete";
+
+  return (
+    <div className="flex h-full bg-[#0A0C12]">
+      {/* Steps / timeline column */}
+      <div className={cn("flex flex-col overflow-hidden border-r border-[#2A2D3E]", showFindings && findings ? "w-[420px] shrink-0" : "flex-1")}>
+        {/* Panel header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-[#2A2D3E] px-4 py-2.5">
+          <div className="flex items-center gap-2.5">
+            {status === "running" && (
+              <svg className="h-3.5 w-3.5 animate-spin text-[#7B5EA7]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            )}
+            {status === "complete" && (
+              <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#2A9B6B]">
+                <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+            {status === "error" && <div className="h-3.5 w-3.5 rounded-full bg-[#C94B4B]" />}
+            <span className="text-xs font-semibold text-[#E8EAF0]">AI Investigation</span>
+            <span className="text-[10px] text-[#4A4F6A]">
+              {status === "running" && "Running…"}
+              {status === "complete" && `${visibleSteps.length} steps complete`}
+              {status === "error" && "Connection failed"}
+            </span>
+          </div>
+          <button onClick={onClose} className="text-[#4A4F6A] hover:text-[#E8EAF0]">
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Step timeline */}
+        <div ref={stepsRef} className="flex-1 overflow-y-auto p-3 space-y-1">
+          {visibleSteps.length === 0 && status === "running" && (
+            <div className="flex items-center gap-2 py-4 text-[#4A4F6A]">
+              <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span className="text-[11px]">Connecting to investigation agent…</span>
+            </div>
+          )}
+          {visibleSteps.map((s, i) => (
+            <InvStepItem key={i} step={s} />
+          ))}
+          {status === "error" && (
+            <div className="flex items-start gap-2 border border-[#C94B4B]/30 bg-[#C94B4B]/5 p-2">
+              <div className="mt-0.5 h-2 w-2 shrink-0 bg-[#C94B4B]" />
+              <span className="text-[11px] text-[#C94B4B]">
+                WebSocket connection failed. Is the backend running on localhost:8000?
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Findings column — visible when complete */}
+      {showFindings && (
+        <div className="flex-1 overflow-y-auto">
+          {findings ? (
+            <FindingsPanel findings={findings} />
+          ) : (
+            <div className="p-4">
+              <p className="text-label mb-2">Investigation Complete</p>
+              <pre className="whitespace-pre-wrap text-[11px] text-[#8B90A8]">{steps.find((s) => s.type === "complete")?.content}</pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Step item ───────────────────────────────────────────────────────────── */
+
+function InvStepItem({ step }: { step: InvStep }) {
+  const isToolCall = step.type === "tool_call";
+
+  return (
+    <div className={cn("flex items-start gap-2 border-l-2 py-1 pl-2", isToolCall ? "border-[#7B5EA7]" : "border-[#2A6EBB]")}>
+      <div className="mt-1.5 shrink-0">
+        {isToolCall ? <div className="h-1.5 w-1.5 bg-[#7B5EA7]" /> : <div className="h-1.5 w-1.5 bg-[#2A6EBB]" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className={cn("text-[9px] font-semibold uppercase tracking-wider", isToolCall ? "text-[#7B5EA7]" : "text-[#2A6EBB]")}>
+            {isToolCall ? (step.tool_name ?? "tool") : "finding"}
+          </span>
+          <span className="text-[9px] text-[#4A4F6A]">step {step.step}</span>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[#8B90A8]">{step.content}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Structured Findings Panel ───────────────────────────────────────────── */
+
+const TIER_COLORS: Record<string, string> = {
+  CRITICAL: "text-[#C94B4B] border-[#C94B4B] bg-[#C94B4B]/10",
+  HIGH: "text-[#D4733A] border-[#D4733A] bg-[#D4733A]/10",
+  MEDIUM: "text-[#D4B83A] border-[#D4B83A] bg-[#D4B83A]/10",
+  LOW: "text-[#2A9B6B] border-[#2A9B6B] bg-[#2A9B6B]/10",
+};
+
+const ACTION_COLORS: Record<string, string> = {
+  ESCALATE_TO_DOJ: "text-[#C94B4B]",
+  ESCALATE_TO_SENIOR: "text-[#D4733A]",
+  FURTHER_INVESTIGATION: "text-[#D4B83A]",
+  DISMISS: "text-[#2A9B6B]",
+};
+
+const SEVERITY_DOT: Record<string, string> = {
+  CRITICAL: "bg-[#C94B4B]",
+  HIGH: "bg-[#D4733A]",
+  MEDIUM: "bg-[#D4B83A]",
+  LOW: "bg-[#2A9B6B]",
+};
+
+function FindingsPanel({ findings }: { findings: InvFindings }) {
+  const tierStyle = TIER_COLORS[findings.risk_tier] ?? "text-[#8B90A8] border-[#2A2D3E] bg-[#1A1D27]";
+  const actionColor = ACTION_COLORS[findings.recommended_action] ?? "text-[#8B90A8]";
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* Risk tier + action row */}
+      <div className="flex items-start justify-between gap-4">
+        <div className={cn("border px-3 py-1.5 text-sm font-bold", tierStyle)}>{findings.risk_tier}</div>
+        <div className="text-right">
+          <p className="text-[10px] text-[#4A4F6A]">Recommended Action</p>
+          <p className={cn("text-xs font-semibold", actionColor)}>{findings.recommended_action.replace(/_/g, " ")}</p>
+        </div>
+      </div>
+
+      {/* Estimated amount */}
+      {findings.estimated_fraud_amount > 0 && (
+        <div className="border border-[#C94B4B]/30 bg-[#C94B4B]/5 px-3 py-2">
+          <p className="text-[10px] text-[#4A4F6A]">Estimated Fraud Amount</p>
+          <p className="text-lg font-bold text-[#C94B4B]">{formatCurrency(findings.estimated_fraud_amount)}</p>
+        </div>
+      )}
+
+      {/* Executive summary */}
+      <div className="border border-[#2A2D3E] bg-[#1A1D27] p-3">
+        <p className="text-label mb-1.5">Executive Summary</p>
+        <p className="text-[12px] leading-relaxed text-[#C4C8DC]">{findings.executive_summary}</p>
+      </div>
+
+      {/* Key findings */}
+      {findings.key_findings && findings.key_findings.length > 0 && (
+        <div className="border border-[#2A2D3E] bg-[#1A1D27] p-3">
+          <p className="text-label mb-2">Key Findings</p>
+          <div className="space-y-2">
+            {findings.key_findings.map((kf, i) => {
+              const sev = (kf.severity ?? "").toUpperCase();
+              const dotColor = SEVERITY_DOT[sev] ?? "bg-[#4A4F6A]";
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <div className={cn("mt-1.5 h-1.5 w-1.5 shrink-0", dotColor)} />
+                  <div>
+                    <p className="text-[11px] leading-snug text-[#C4C8DC]">{kf.finding}</p>
+                    {kf.data_source && <p className="mt-0.5 font-mono text-[9px] text-[#4A4F6A]">{kf.data_source}</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Evidence citations */}
+      {findings.evidence_citations && findings.evidence_citations.length > 0 && (
+        <div className="border border-[#2A2D3E] bg-[#1A1D27] p-3">
+          <p className="text-label mb-2">Evidence Citations</p>
+          <div className="space-y-1">
+            {findings.evidence_citations.map((cite, i) => (
+              <div key={i} className="flex items-start gap-1.5">
+                <span className="shrink-0 font-mono text-[9px] text-[#4A4F6A]">[{i + 1}]</span>
+                <span className="text-[11px] text-[#8B90A8]">{cite}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -524,7 +895,6 @@ function Borrower360({
 }) {
   return (
     <div className="flex h-full flex-col">
-      {/* Panel header */}
       <div className="flex items-center justify-between border-b border-[#2A2D3E] px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-[#E8EAF0]">{member.borrower_name}</p>
@@ -538,16 +908,16 @@ function Borrower360({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* Risk score header */}
         <div className="flex items-center gap-3">
           <RiskScoreBadge score={member.risk_score} size="lg" />
           <div>
             <p className="text-sm font-semibold text-[#E8EAF0]">{member.business_name}</p>
-            <p className="text-xs text-[#8B90A8]">{member.program} &middot; EIN {member.ein}</p>
+            <p className="text-xs text-[#8B90A8]">
+              {member.program} &middot; EIN {member.ein}
+            </p>
           </div>
         </div>
 
-        {/* Loan details */}
         <PanelSection title="Loan Details">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <PanelField label="Amount" value={formatCurrency(member.loan_amount)} danger={member.loan_amount >= 145000} />
@@ -562,7 +932,6 @@ function Borrower360({
           </div>
         </PanelSection>
 
-        {/* Other businesses */}
         {member.all_businesses.length > 1 && (
           <PanelSection title="Other Businesses">
             <div className="space-y-1">
@@ -576,7 +945,6 @@ function Borrower360({
           </PanelSection>
         )}
 
-        {/* Risk flags */}
         <PanelSection title="Risk Flags" danger>
           <div className="space-y-1.5">
             {member.red_flags.map((flag) => (
@@ -588,7 +956,6 @@ function Borrower360({
           </div>
         </PanelSection>
 
-        {/* Notes field */}
         <PanelSection title="Investigator Notes">
           <textarea
             value={notes}
@@ -600,7 +967,6 @@ function Borrower360({
         </PanelSection>
       </div>
 
-      {/* Panel footer actions */}
       <div className="border-t border-[#2A2D3E] p-4 space-y-2">
         <Link
           href={`/entity/${member.member_id}`}
