@@ -16,6 +16,7 @@ from backend.api.entities import router as entities_router
 from backend.api.graph import router as graph_router
 from backend.api.cases import router as cases_router
 from backend.api.investigate import router as investigate_router
+from backend.api.ring_actions import router as ring_actions_router
 from backend.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ app.include_router(entities_router, prefix=settings.api_prefix)
 app.include_router(graph_router, prefix=settings.api_prefix)
 app.include_router(cases_router, prefix=settings.api_prefix)
 app.include_router(investigate_router, prefix=settings.api_prefix)
+app.include_router(ring_actions_router, prefix=settings.api_prefix)
 
 
 @app.get("/")
