@@ -382,8 +382,8 @@ export default function RingQueuePage() {
                       ) : (
                         <>
                           <td className="px-3 py-2">
-                            <span className="inline-flex flex-col items-center px-2.5 py-0.5 text-[10px] font-semibold tracking-wide bg-[#37474F]/40 text-[#90A4AE] leading-tight">
-                              <span className="text-sm mb-0">{RING_TYPE_ICONS[ring.ring_type]}</span>
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide bg-[#37474F]/40 text-[#90A4AE] leading-none">
+                              <span className="text-xs">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>
