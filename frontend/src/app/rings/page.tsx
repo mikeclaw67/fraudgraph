@@ -303,10 +303,10 @@ export default function RingQueuePage() {
                         </>
                       ) : (
                         <>
-                          {/* Full: type badge (stacked icon + label) */}
+                          {/* Full: flat icon + label */}
                           <td className="px-3 py-3">
-                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-slate-700/40 text-slate-300 leading-tight">
-                              <span className="text-base mb-0.5">{RING_TYPE_ICONS[ring.ring_type]}</span>
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase">
+                              <span className="text-sm grayscale">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>

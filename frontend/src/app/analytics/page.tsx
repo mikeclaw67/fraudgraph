@@ -111,62 +111,66 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Exposure by Ring Type — bar chart */}
         <Panel title="Exposure by Ring Type">
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={EXPOSURE_BY_TYPE} layout="vertical" margin={{ left: 4, right: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" horizontal={false} />
-              <XAxis
-                type="number"
-                stroke="#4A4F6A"
-                tick={{ fontSize: 11, fill: "#8B90A8" }}
-                tickFormatter={(v: number) => `$${(v / 1_000_000).toFixed(0)}M`}
-              />
-              <YAxis
-                dataKey="label"
-                type="category"
-                stroke="#4A4F6A"
-                tick={{ fontSize: 11, fill: "#8B90A8" }}
-                width={110}
-              />
-              <Tooltip
-                {...tooltipStyle}
-                formatter={(value: number | undefined) => [formatCurrency(value ?? 0), "Exposure"]}
-              />
-              <Bar dataKey="exposure" barSize={20}>
-                {EXPOSURE_BY_TYPE.map((entry) => (
-                  <Cell key={entry.type} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="w-full h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={EXPOSURE_BY_TYPE} layout="vertical" margin={{ left: 4, right: 24 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" horizontal={false} />
+                <XAxis
+                  type="number"
+                  stroke="#4A4F6A"
+                  tick={{ fontSize: 11, fill: "#8B90A8" }}
+                  tickFormatter={(v: number) => `$${(v / 1_000_000).toFixed(0)}M`}
+                />
+                <YAxis
+                  dataKey="label"
+                  type="category"
+                  stroke="#4A4F6A"
+                  tick={{ fontSize: 11, fill: "#8B90A8" }}
+                  width={110}
+                />
+                <Tooltip
+                  {...tooltipStyle}
+                  formatter={(value: number | undefined) => [formatCurrency(value ?? 0), "Exposure"]}
+                />
+                <Bar dataKey="exposure" barSize={20}>
+                  {EXPOSURE_BY_TYPE.map((entry) => (
+                    <Cell key={entry.type} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </Panel>
 
         {/* Detection Timeline — line chart */}
         <Panel title="Rings Detected per Week (6 Months)">
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" />
-              <XAxis
-                dataKey="week"
-                stroke="#4A4F6A"
-                tick={{ fontSize: 10, fill: "#8B90A8" }}
-                interval={3}
-              />
-              <YAxis
-                stroke="#4A4F6A"
-                tick={{ fontSize: 11, fill: "#8B90A8" }}
-              />
-              <Tooltip {...tooltipStyle} />
-              <Line
-                type="monotone"
-                dataKey="rings"
-                stroke="#2A6EBB"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4, fill: "#2A6EBB", stroke: "#E8EAF0", strokeWidth: 1 }}
-                name="Rings"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" />
+                <XAxis
+                  dataKey="week"
+                  stroke="#4A4F6A"
+                  tick={{ fontSize: 10, fill: "#8B90A8" }}
+                  interval={3}
+                />
+                <YAxis
+                  stroke="#4A4F6A"
+                  tick={{ fontSize: 11, fill: "#8B90A8" }}
+                />
+                <Tooltip {...tooltipStyle} />
+                <Line
+                  type="monotone"
+                  dataKey="rings"
+                  stroke="#2A6EBB"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4, fill: "#2A6EBB", stroke: "#E8EAF0", strokeWidth: 1 }}
+                  name="Rings"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </Panel>
 
         {/* Pipeline Funnel */}

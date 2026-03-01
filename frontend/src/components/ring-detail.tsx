@@ -307,7 +307,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
       const centerNodeId = "shared_element";
       graph.addNode(centerNodeId, {
         label: ring.common_element.split(",")[0],
-        size: 18,
+        size: 40,
         color: "#C94B4B",
         x: 0,
         y: 0,
@@ -318,7 +318,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
       ring.members.forEach((member, i) => {
         const angle = angleStep * i - Math.PI / 2;
         const radius = 40;
-        const loanScale = Math.max(6, Math.min(16, member.loan_amount / 12000));
+        const loanScale = Math.max(14, Math.min(36, member.loan_amount / 5000));
         graph.addNode(member.member_id, {
           label: member.business_name,
           size: loanScale,
@@ -331,7 +331,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         graph.addEdge(member.member_id, centerNodeId, {
           type: "line",
           color: "#C94B4B",
-          size: 2,
+          size: 3,
         });
 
         ring.members.forEach((other) => {
@@ -340,7 +340,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
               graph.addEdge(member.member_id, other.member_id, {
                 type: "line",
                 color: "#4A4F6A",
-                size: 1,
+                size: 2,
               });
             } catch {
               /* ignore duplicate */
@@ -355,8 +355,8 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         renderEdgeLabels: false,
         defaultEdgeColor: "#334155",
         labelColor: { color: "#e2e8f0" },
-        labelSize: 11,
-        labelRenderedSizeThreshold: 6,
+        labelSize: 14,
+        labelRenderedSizeThreshold: 4,
       });
 
       sigma.on("clickNode", ({ node }: { node: string }) => {
