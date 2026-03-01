@@ -1,218 +1,321 @@
-/* FraudGraph — Analytics dashboard with charts, overview cards, and schema switcher */
+/* FraudGraph — Analytics Command Center: leadership KPI dashboard */
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
+  LineChart, Line, Cell,
 } from "recharts";
-import { useAppStore, SCHEMA_LABELS } from "@/lib/store";
 import { formatCurrency, cn } from "@/lib/utils";
 
+/* ------------------------------------------------------------------ */
+/*  Mock data — hardcoded                                             */
+/* ------------------------------------------------------------------ */
+
+const KPI = {
+  totalRings: 347,
+  totalExposure: 892_400_000,
+  casesReferred: 64,
+  avgDaysToTriage: 3.2,
+};
+
+const EXPOSURE_BY_TYPE: { type: string; label: string; exposure: number; color: string }[] = [
+  { type: "ADDRESS_FARM",     label: "Address Farm",     exposure: 312_000_000, color: "#C94B4B" },
+  { type: "ACCOUNT_CLUSTER",  label: "Account Cluster",  exposure: 224_000_000, color: "#D4733A" },
+  { type: "EIN_RECYCLER",     label: "EIN Recycler",     exposure: 178_000_000, color: "#C9A227" },
+  { type: "STRAW_COMPANY",    label: "Straw Company",    exposure: 112_000_000, color: "#3E8E57" },
+  { type: "THRESHOLD_GAMING", label: "Threshold Gaming", exposure: 66_400_000,  color: "#2A6EBB" },
+];
+
+function buildWeeklyDetections() {
+  const weeks: { week: string; rings: number }[] = [];
+  const base = new Date(2025, 8, 1); // Sep 2025
+  for (let i = 0; i < 26; i++) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + i * 7);
+    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    // Deterministic wave pattern — no Math.random
+    const rings = Math.round(9 + 6 * Math.sin(i * 0.5) + 2 * Math.cos(i * 1.1));
+    weeks.push({ week: label, rings });
+  }
+  return weeks;
+}
+
+const WEEKLY_DETECTIONS = buildWeeklyDetections();
+
+const FUNNEL: { stage: string; count: number; color: string }[] = [
+  { stage: "Detected",   count: 347, color: "#2A6EBB" },
+  { stage: "Reviewed",   count: 281, color: "#3E8E57" },
+  { stage: "Case Opened", count: 142, color: "#C9A227" },
+  { stage: "Referred",   count: 64,  color: "#D4733A" },
+  { stage: "Convicted",  count: 23,  color: "#C94B4B" },
+];
+
+/* US state top-10 heatmap data */
+const STATE_DATA: { state: string; abbr: string; rings: number; exposure: number }[] = [
+  { state: "Florida",        abbr: "FL", rings: 62,  exposure: 187_000_000 },
+  { state: "Texas",          abbr: "TX", rings: 48,  exposure: 134_000_000 },
+  { state: "California",     abbr: "CA", rings: 41,  exposure: 121_000_000 },
+  { state: "New York",       abbr: "NY", rings: 37,  exposure: 98_000_000  },
+  { state: "Georgia",        abbr: "GA", rings: 29,  exposure: 76_000_000  },
+  { state: "Illinois",       abbr: "IL", rings: 24,  exposure: 62_000_000  },
+  { state: "New Jersey",     abbr: "NJ", rings: 22,  exposure: 58_000_000  },
+  { state: "Maryland",       abbr: "MD", rings: 19,  exposure: 44_000_000  },
+  { state: "Pennsylvania",   abbr: "PA", rings: 17,  exposure: 39_000_000  },
+  { state: "Ohio",           abbr: "OH", rings: 14,  exposure: 31_000_000  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Tooltip                                                           */
+/* ------------------------------------------------------------------ */
+
+const tooltipStyle = {
+  contentStyle: {
+    backgroundColor: "#1A1D27",
+    border: "1px solid #2A2D3E",
+    borderRadius: 0,
+    color: "#E8EAF0",
+    fontSize: 12,
+  },
+  labelStyle: { color: "#8B90A8" },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Page component                                                    */
+/* ------------------------------------------------------------------ */
+
 export default function AnalyticsPage() {
-  const { schema, setSchema } = useAppStore();
-  const labels = SCHEMA_LABELS[schema];
-
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d");
-
-  const overviewCards = useMemo(() => [
-    { label: "Total Alerts", value: "2,847", change: "+12.3%", up: true, color: "text-sky-400" },
-    { label: "Detection Rate", value: "94.2%", change: "+2.1%", up: true, color: "text-emerald-400" },
-    { label: "Avg Risk Score", value: "62.4", change: "-3.8%", up: false, color: "text-amber-400" },
-    { label: "Cases Resolved", value: "189", change: "+8.7%", up: true, color: "text-violet-400" },
-  ], []);
-
-  const alertsByType = useMemo(() => [
-    { name: "Address\nReuse", count: 487, fill: "#f97316" },
-    { name: "EIN\nRecycling", count: 312, fill: "#ef4444" },
-    { name: "Straw\nCompany", count: 245, fill: "#eab308" },
-    { name: "Threshold\nGaming", count: 198, fill: "#8b5cf6" },
-    { name: "Shared\nAccount", count: 156, fill: "#06b6d4" },
-    { name: "New\nEIN", count: 89, fill: "#10b981" },
-  ], []);
-
-  const riskDistribution = useMemo(() => [
-    { range: "0-20", count: 892, fill: "#38bdf8" },
-    { range: "20-40", count: 634, fill: "#38bdf8" },
-    { range: "40-60", count: 478, fill: "#facc15" },
-    { range: "60-80", count: 356, fill: "#f97316" },
-    { range: "80-100", count: 487, fill: "#ef4444" },
-  ], []);
-
-  const detectionsOverTime = useMemo(() => {
-    const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
-    return Array.from({ length: days }, (_, i) => ({
-      date: new Date(Date.now() - (days - i) * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      alerts: Math.floor(40 + Math.random() * 60 + Math.sin(i / 5) * 20),
-      resolved: Math.floor(30 + Math.random() * 40 + Math.sin(i / 5) * 15),
-    }));
-  }, [timeRange]);
-
-  const severityBreakdown = useMemo(() => [
-    { name: "Critical", value: 487, color: "#ef4444" },
-    { name: "High", value: 834, color: "#f97316" },
-    { name: "Medium", value: 912, color: "#facc15" },
-    { name: "Low", value: 614, color: "#38bdf8" },
-  ], []);
-
-  const tooltipStyle = {
-    contentStyle: { backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px", color: "#e2e8f0" },
-    labelStyle: { color: "#94a3b8" },
-  };
+  const funnelMax = useMemo(() => FUNNEL[0].count, []);
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-bg-shell p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Analytics Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-400">Detection performance and fraud intelligence — {labels.name}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Time Range */}
-          <div className="flex rounded-lg border border-slate-700 bg-slate-800">
-            {(["7d", "30d", "90d"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTimeRange(t)}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium",
-                  timeRange === t ? "bg-sky-600 text-white" : "text-slate-400 hover:text-slate-200"
-                )}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-          {/* Schema Switcher */}
-          <select
-            value={schema}
-            onChange={(e) => setSchema(e.target.value as typeof schema)}
-            className="rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm text-slate-200 focus:border-sky-500 focus:outline-none"
-          >
-            {Object.entries(SCHEMA_LABELS).map(([key, { name }]) => (
-              <option key={key} value={key}>{name}</option>
-            ))}
-          </select>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-text-primary tracking-tight">
+          Analytics Command Center
+        </h1>
+        <p className="mt-1 text-data text-text-secondary">
+          Fraud ring detection performance &amp; investigation pipeline — PPP / EIDL Program
+        </p>
       </div>
 
-      {/* Overview Cards */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {overviewCards.map((card) => (
-          <div key={card.label} className="rounded-lg border border-slate-700/50 bg-slate-900 p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{card.label}</p>
-            <div className="mt-2 flex items-end justify-between">
-              <span className={cn("text-2xl font-bold", card.color)}>{card.value}</span>
-              <span className={cn("text-xs font-medium", card.up ? "text-emerald-400" : "text-red-400")}>
-                {card.change}
+      {/* KPI Row */}
+      <div className="mb-6 grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-4 bg-border">
+        <KPICard label="Total Rings Detected" value={KPI.totalRings.toLocaleString()} />
+        <KPICard label="Total Exposure" value={formatCurrency(KPI.totalExposure)} highlight />
+        <KPICard label="Cases Referred to DOJ" value={KPI.casesReferred.toLocaleString()} />
+        <KPICard label="Avg Days to Triage" value={`${KPI.avgDaysToTriage}d`} />
+      </div>
+
+      {/* Main grid: 2 columns */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Exposure by Ring Type — bar chart */}
+        <Panel title="Exposure by Ring Type">
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={EXPOSURE_BY_TYPE} layout="vertical" margin={{ left: 4, right: 24 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" horizontal={false} />
+              <XAxis
+                type="number"
+                stroke="#4A4F6A"
+                tick={{ fontSize: 11, fill: "#8B90A8" }}
+                tickFormatter={(v: number) => `$${(v / 1_000_000).toFixed(0)}M`}
+              />
+              <YAxis
+                dataKey="label"
+                type="category"
+                stroke="#4A4F6A"
+                tick={{ fontSize: 11, fill: "#8B90A8" }}
+                width={110}
+              />
+              <Tooltip
+                {...tooltipStyle}
+                formatter={(value: number | undefined) => [formatCurrency(value ?? 0), "Exposure"]}
+              />
+              <Bar dataKey="exposure" barSize={20}>
+                {EXPOSURE_BY_TYPE.map((entry) => (
+                  <Cell key={entry.type} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Panel>
+
+        {/* Detection Timeline — line chart */}
+        <Panel title="Rings Detected per Week (6 Months)">
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2A2D3E" />
+              <XAxis
+                dataKey="week"
+                stroke="#4A4F6A"
+                tick={{ fontSize: 10, fill: "#8B90A8" }}
+                interval={3}
+              />
+              <YAxis
+                stroke="#4A4F6A"
+                tick={{ fontSize: 11, fill: "#8B90A8" }}
+              />
+              <Tooltip {...tooltipStyle} />
+              <Line
+                type="monotone"
+                dataKey="rings"
+                stroke="#2A6EBB"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, fill: "#2A6EBB", stroke: "#E8EAF0", strokeWidth: 1 }}
+                name="Rings"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Panel>
+
+        {/* Pipeline Funnel */}
+        <Panel title="Investigation Pipeline">
+          <div className="space-y-3 py-2">
+            {FUNNEL.map((stage) => (
+              <div key={stage.stage} className="flex items-center gap-3">
+                <span className="w-[100px] text-right text-data text-text-secondary shrink-0">
+                  {stage.stage}
+                </span>
+                <div className="flex-1 h-7 bg-bg-shell relative">
+                  <div
+                    className="h-full absolute left-0 top-0 flex items-center pl-2"
+                    style={{
+                      width: `${(stage.count / funnelMax) * 100}%`,
+                      backgroundColor: stage.color,
+                      minWidth: 40,
+                    }}
+                  >
+                    <span className="text-[11px] font-semibold text-white tabular-nums">
+                      {stage.count.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <span className="w-[48px] text-right text-data text-text-muted tabular-nums shrink-0">
+                  {((stage.count / funnelMax) * 100).toFixed(0)}%
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="flex items-center gap-2 text-data text-text-muted">
+              <span>Overall Conviction Rate:</span>
+              <span className="font-semibold text-text-primary">
+                {((FUNNEL[4].count / FUNNEL[0].count) * 100).toFixed(1)}%
+              </span>
+              <span className="mx-2">|</span>
+              <span>Referral Rate:</span>
+              <span className="font-semibold text-text-primary">
+                {((FUNNEL[3].count / FUNNEL[0].count) * 100).toFixed(1)}%
               </span>
             </div>
           </div>
-        ))}
-      </div>
+        </Panel>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Detections Over Time */}
-        <ChartCard title="Detections Over Time">
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={detectionsOverTime}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }} interval={timeRange === "7d" ? 0 : timeRange === "30d" ? 4 : 14} />
-              <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
-              <Tooltip {...tooltipStyle} />
-              <Line type="monotone" dataKey="alerts" stroke="#38bdf8" strokeWidth={2} dot={false} name="Alerts" />
-              <Line type="monotone" dataKey="resolved" stroke="#10b981" strokeWidth={2} dot={false} name="Resolved" />
-              <Legend />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* Alerts by Type */}
-        <ChartCard title={`${labels.entity} Alerts by Type`}>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={alertsByType} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-              <XAxis type="number" stroke="#64748b" tick={{ fontSize: 11 }} />
-              <YAxis dataKey="name" type="category" stroke="#64748b" tick={{ fontSize: 10 }} width={70} />
-              <Tooltip {...tooltipStyle} />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {alertsByType.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* Risk Distribution */}
-        <ChartCard title="Risk Score Distribution">
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={riskDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="range" stroke="#64748b" tick={{ fontSize: 11 }} />
-              <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
-              <Tooltip {...tooltipStyle} />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                {riskDistribution.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* Severity Breakdown */}
-        <ChartCard title="Severity Breakdown">
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={severityBreakdown}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={4}
-                dataKey="value"
-              >
-                {severityBreakdown.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip {...tooltipStyle} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </div>
-
-      {/* Schema Demo Banner */}
-      <div className="mt-6 rounded-lg border border-sky-500/30 bg-sky-500/5 p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/20">
-            <svg className="h-5 w-5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+        {/* State Map Placeholder */}
+        <Panel title="Geographic Distribution">
+          {/* Static US map SVG placeholder */}
+          <div className="relative mb-4">
+            <USMapPlaceholder />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-sky-400">Schema-Agnostic Detection</h3>
-            <p className="text-xs text-slate-400">
-              Switch between {Object.values(SCHEMA_LABELS).map(l => l.name).join(", ")} — same pipeline, different ontology.
-              This is the Foundry pattern: config-driven schema swap.
-            </p>
+          {/* Top states table */}
+          <div className="border-t border-border pt-3">
+            <table className="w-full">
+              <thead>
+                <tr className="text-label">
+                  <th className="text-left pb-2 font-medium">State</th>
+                  <th className="text-right pb-2 font-medium">Rings</th>
+                  <th className="text-right pb-2 font-medium">Exposure</th>
+                </tr>
+              </thead>
+              <tbody>
+                {STATE_DATA.slice(0, 5).map((s) => (
+                  <tr key={s.abbr} className="border-t border-border/50">
+                    <td className="py-1.5 text-data text-text-primary">{s.state}</td>
+                    <td className="py-1.5 text-right text-data text-text-secondary tabular-nums">{s.rings}</td>
+                    <td className="py-1.5 text-right text-data text-accent tabular-nums">{formatCurrency(s.exposure)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+        </Panel>
       </div>
     </div>
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                    */
+/* ------------------------------------------------------------------ */
+
+function KPICard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="rounded-lg border border-slate-700/50 bg-slate-900 p-4">
-      <h3 className="mb-4 text-sm font-semibold text-slate-300">{title}</h3>
+    <div className="bg-bg-panel px-5 py-4">
+      <div className="text-label mb-1">{label}</div>
+      <div className={cn(
+        "text-[22px] font-semibold tabular-nums",
+        highlight ? "text-critical" : "text-text-primary"
+      )}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-bg-panel border border-border p-4">
+      <h3 className="mb-4 text-label text-text-secondary font-semibold tracking-wider">
+        {title}
+      </h3>
       {children}
     </div>
+  );
+}
+
+function USMapPlaceholder() {
+  return (
+    <svg viewBox="0 0 960 600" className="w-full h-auto" aria-label="US geographic heatmap placeholder">
+      {/* Continental US outline — simplified */}
+      <g fill="none" stroke="#2A2D3E" strokeWidth={1}>
+        {/* Background fill */}
+        <rect x="0" y="0" width="960" height="600" fill="#0F1117" />
+        {/* State outlines — highly simplified continental US shape */}
+        <path d="M220,130 L280,120 L340,115 L400,110 L460,105 L520,100 L560,95 L600,100 L640,105 L680,110 L720,115 L760,125 L800,140 L830,160 L845,190 L850,220 L845,250 L830,280 L810,310 L790,340 L770,370 L750,390 L720,405 L690,415 L660,420 L630,430 L600,440 L570,445 L540,440 L500,430 L460,420 L420,410 L380,400 L340,395 L300,400 L260,410 L230,425 L210,440 L190,450 L170,440 L160,420 L155,395 L160,365 L170,335 L180,305 L185,275 L190,245 L195,215 L200,185 L205,155 Z"
+              fill="#1A1D27" stroke="#2A2D3E" strokeWidth={1.5} />
+      </g>
+      {/* Hotspot dots for top states */}
+      {[
+        { x: 770, y: 380, r: 14, abbr: "FL" },
+        { x: 500, y: 400, r: 12, abbr: "TX" },
+        { x: 170, y: 300, r: 11, abbr: "CA" },
+        { x: 800, y: 180, r: 10, abbr: "NY" },
+        { x: 720, y: 340, r: 9,  abbr: "GA" },
+        { x: 620, y: 240, r: 8,  abbr: "IL" },
+        { x: 810, y: 195, r: 7,  abbr: "NJ" },
+        { x: 790, y: 230, r: 7,  abbr: "MD" },
+        { x: 770, y: 210, r: 6,  abbr: "PA" },
+        { x: 700, y: 230, r: 6,  abbr: "OH" },
+      ].map((dot) => (
+        <g key={dot.abbr}>
+          <circle cx={dot.x} cy={dot.y} r={dot.r} fill="#2A6EBB" opacity={0.6} />
+          <circle cx={dot.x} cy={dot.y} r={dot.r * 0.5} fill="#2A6EBB" opacity={0.9} />
+          <text x={dot.x} y={dot.y - dot.r - 4} textAnchor="middle" fill="#8B90A8" fontSize={10}>
+            {dot.abbr}
+          </text>
+        </g>
+      ))}
+      {/* Legend */}
+      <g transform="translate(40, 520)">
+        <text fill="#4A4F6A" fontSize={10} fontWeight={600}>CONCENTRATION</text>
+        <circle cx={0} cy={20} r={4} fill="#2A6EBB" opacity={0.5} />
+        <text x={10} y={24} fill="#8B90A8" fontSize={10}>Low</text>
+        <circle cx={60} cy={20} r={7} fill="#2A6EBB" opacity={0.7} />
+        <text x={72} y={24} fill="#8B90A8" fontSize={10}>Med</text>
+        <circle cx={120} cy={20} r={10} fill="#2A6EBB" opacity={0.9} />
+        <text x={135} y={24} fill="#8B90A8" fontSize={10}>High</text>
+      </g>
+    </svg>
   );
 }
