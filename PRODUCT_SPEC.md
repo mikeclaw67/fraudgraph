@@ -43,26 +43,3 @@ Sigma.js ring visualization is:
 50,000 PPP/EIDL records (Minnesota-heavy, national spread)
 5 fraud archetypes, ~5% fraud rate
 10,000 Medicaid claims (for schema switch demo)
-
-## Data Model (2026-03-01 Update)
-
-**Ring** = Automated fraud detection alert from the detection engine (immutable source)
-**Case** = Investigator's investigation object, created from a ring when work begins (mutable, investigator-owned)
-**Actions** = First-class ontology citizens: OpenCase, AddNote, AddFlag, Refer, Dismiss, Close (audited, time-stamped)
-
-The flow: Ring detected → Ring appears in Queue → Investigator opens case → Case accumulates evidence → Actions logged → Case referred to DOJ
-
-This is the architectural center. Everything in the UI flows toward building a prosecution narrative within a Case object.
-
-## What This Means for Implementation
-
-Ring Detail is NOT the investigation. It's the source alert view.
-Case Workspace IS the investigation — where investigator accumulates evidence toward prosecution.
-
-When investigator clicks "Open Case" on a ring:
-1. Case object created (case_id, ring_id, status=OPEN, created_by, created_at)
-2. Investigation findings and notes accumulate in case.investigation_findings
-3. Every action (AddNote, Refer, Dismiss) creates auditable action_log entry
-4. Export generates DOJ referral package from case data + graph PNG
-
-Ring stays immutable. Case evolves toward prosecution.
