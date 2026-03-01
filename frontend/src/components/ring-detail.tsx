@@ -4,6 +4,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { StatusBadge } from "@/components/badges";
 import { CaseTimeline } from "@/components/case-timeline";
@@ -185,7 +186,10 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   const [ring, setRing] = useState<FraudRing | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMember, setSelectedMember] = useState<RingMember | null>(null);
+  const [entityNotFound, setEntityNotFound] = useState(false);
   const [memberNotes, setMemberNotes] = useState<Record<string, string>>({});
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const graphContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sigmaRef = useRef<any>(null);
@@ -426,6 +430,55 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     setMemberNotes(notes);
   }, [ring]);
 
+  /* ── URL sync: open drawer if ?entity_id= param present ────────────────── */
+  useEffect(() => {
+    if (!ring) return;
+    const entityId = searchParams.get("entity_id");
+    if (entityId) {
+      const member = ring.members.find((m) => m.member_id === entityId);
+      if (member) {
+        setSelectedMember(member);
+        setEntityNotFound(false);
+      } else {
+        setSelectedMember(null);
+        setEntityNotFound(true);
+      }
+    } else {
+      // No entity_id param — close drawer if open due to URL
+      setEntityNotFound(false);
+    }
+  }, [ring, searchParams]);
+
+  /* ── ESC key closes drawer ─────────────────────────────────────────────── */
+  useEffect(() => {
+    if (!selectedMember && !entityNotFound) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeEntityDrawer();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedMember, entityNotFound]);
+
+  /* ── Drawer open/close with URL sync ───────────────────────────────────── */
+  function openEntityDrawer(member: RingMember) {
+    setSelectedMember(member);
+    setEntityNotFound(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("entity_id", member.member_id);
+    router.push(`?${params.toString()}`, { scroll: false });
+  }
+
+  function closeEntityDrawer() {
+    setSelectedMember(null);
+    setEntityNotFound(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("entity_id");
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    router.push(newUrl, { scroll: false });
+  }
+
   /* ── Sigma.js evidence graph ─────────────────────────────────────────── */
 
   const initGraph = useCallback(async () => {
@@ -505,7 +558,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
 
       sigma.on("clickNode", ({ node }: { node: string }) => {
         const member = ring.members.find((m) => m.member_id === node);
-        if (member) setSelectedMember(member);
+        if (member) openEntityDrawer(member);
       });
 
       sigmaRef.current = sigma;
@@ -759,7 +812,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
                 {ring.members.map((member) => (
                   <tr
                     key={member.member_id}
-                    onClick={() => setSelectedMember(member)}
+                    onClick={() => openEntityDrawer(member)}
                     className={cn(
                       "cursor-pointer border-b border-[#37474F] transition-colors h-[32px]",
                       selectedMember?.member_id === member.member_id ? "bg-[#1E3A4A]" : "bg-[#1E292E] hover:bg-[#2F3D42]"
@@ -866,17 +919,22 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         </div>
       </div>
 
-      {/* ── Borrower 360 slide-over (fixed right overlay) ─────────────── */}
-      {selectedMember && (
+      {/* ── Entity 360 slide-over (fixed right overlay) ─────────────── */}
+      {(selectedMember || entityNotFound) && (
         <div className="fixed right-0 top-0 z-50 flex h-screen">
-          <div className="w-8 cursor-pointer bg-black/30 backdrop-blur-sm" onClick={() => setSelectedMember(null)} />
+          <div className="w-8 cursor-pointer bg-black/30 backdrop-blur-sm" onClick={() => closeEntityDrawer()} />
           <div className="w-[360px] border-l border-[#37474F] bg-[#2C3539] shadow-2xl">
-            <Borrower360
-              member={selectedMember}
-              notes={memberNotes[selectedMember.member_id] || ""}
-              onNotesChange={(val) => setMemberNotes((prev) => ({ ...prev, [selectedMember.member_id]: val }))}
-              onClose={() => setSelectedMember(null)}
-            />
+            {entityNotFound ? (
+              <EntityNotFound entityId={searchParams.get("entity_id") || "unknown"} onClose={closeEntityDrawer} />
+            ) : selectedMember ? (
+              <Entity360
+                member={selectedMember}
+                ring={ring!}
+                notes={memberNotes[selectedMember.member_id] || ""}
+                onNotesChange={(val) => setMemberNotes((prev) => ({ ...prev, [selectedMember.member_id]: val }))}
+                onClose={closeEntityDrawer}
+              />
+            ) : null}
           </div>
         </div>
       )}
@@ -1101,25 +1159,64 @@ function FindingsPanel({ findings }: { findings: InvFindings }) {
   );
 }
 
-/* ── Borrower 360 Side Panel ─────────────────────────────────────────────── */
+/* ── Entity Not Found ────────────────────────────────────────────────────── */
 
-function Borrower360({
+function EntityNotFound({ entityId, onClose }: { entityId: string; onClose: () => void }) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b border-[#37474F] px-4 py-3">
+        <div>
+          <p className="text-sm font-semibold text-[#ECEFF1]">Entity Not Found</p>
+          <p className="text-[10px] text-[#546E7A]">{entityId}</p>
+        </div>
+        <button onClick={onClose} className="text-[#546E7A] hover:text-[#ECEFF1]">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="mb-3 text-4xl">🔍</div>
+          <p className="text-sm text-[#90A4AE]">Entity not found in this ring</p>
+          <p className="mt-1 text-[10px] text-[#546E7A]">ID: {entityId}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Entity 360 Side Panel ───────────────────────────────────────────────── */
+
+function Entity360({
   member,
+  ring,
   notes,
   onNotesChange,
   onClose,
 }: {
   member: RingMember;
+  ring: FraudRing;
   notes: string;
   onNotesChange: (val: string) => void;
   onClose: () => void;
 }) {
+  // Compute relationships
+  const sameBank = ring.members.filter((m) => m.bank_account_last4 === member.bank_account_last4 && m.member_id !== member.member_id);
+  const sameSsn = ring.members.filter((m) => m.ssn_last4 === member.ssn_last4 && m.member_id !== member.member_id);
+
   return (
     <div className="flex h-full flex-col">
+      {/* Header with type badge and close button */}
       <div className="flex items-center justify-between border-b border-[#37474F] px-4 py-3">
-        <div>
-          <p className="text-sm font-semibold text-[#ECEFF1]">{member.borrower_name}</p>
-          <p className="text-[10px] text-[#546E7A]">{member.member_id}</p>
+        <div className="flex items-center gap-2">
+          <span className="bg-[#2196F3]/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#2196F3]">
+            Member
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-[#ECEFF1]">{member.borrower_name}</p>
+            <p className="text-[10px] text-[#546E7A]">{member.member_id}</p>
+          </div>
         </div>
         <button onClick={onClose} className="text-[#546E7A] hover:text-[#ECEFF1]">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1129,6 +1226,7 @@ function Borrower360({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Risk score badge */}
         <div className="flex items-center gap-3">
           <span className={cn("flex h-14 w-14 items-center justify-center text-xl font-bold tabular-nums", getRiskColor(member.risk_score), "bg-[#2C3539]")}>
             {member.risk_score}
@@ -1141,33 +1239,57 @@ function Borrower360({
           </div>
         </div>
 
-        <PanelSection title="Loan Details">
+        {/* Identity Section */}
+        <PanelSection title="Identity">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <PanelField label="Amount" value={formatCurrency(member.loan_amount)} danger={member.loan_amount >= 145000} />
-            <PanelField label="Program" value={member.program} />
-            <PanelField label="Date" value={formatDate(member.loan_date)} />
-            <PanelField label="Lender" value={member.lender} />
+            <PanelField label="Type" value="Member" />
+            <PanelField label="ID" value={member.member_id} />
+            <PanelField label="Borrower" value={member.borrower_name} />
+            <PanelField label="Business" value={member.business_name} />
             <PanelField label="Status" value={member.status} />
-            <PanelField label="Employees" value={String(member.employee_count)} danger={member.employee_count === 0} />
-            <PanelField label="Business Age" value={`${member.business_age_months}mo`} danger={member.business_age_months < 6} />
-            <PanelField label="SSN Last 4" value={`****${member.ssn_last4}`} />
-            <PanelField label="Bank Acct" value={`****${member.bank_account_last4}`} />
           </div>
         </PanelSection>
 
-        {member.all_businesses.length > 1 && (
-          <PanelSection title="Other Businesses">
-            <div className="space-y-1">
-              {member.all_businesses.map((biz) => (
-                <div key={biz} className={cn("text-data", biz === member.business_name ? "text-[#546E7A]" : "text-[#ECEFF1]")}>
-                  {biz}
-                  {biz === member.business_name && <span className="ml-1 text-[10px] text-[#546E7A]">(current)</span>}
-                </div>
-              ))}
-            </div>
-          </PanelSection>
-        )}
+        {/* Attributes Section */}
+        <PanelSection title="Key Attributes">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <PanelField label="EIN" value={member.ein} />
+            <PanelField label="SSN (last 4)" value={`****${member.ssn_last4}`} />
+            <PanelField label="Bank Acct" value={`****${member.bank_account_last4}`} />
+            <PanelField label="Program" value={member.program} />
+            <PanelField label="Loan Amount" value={formatCurrency(member.loan_amount)} danger={member.loan_amount >= 145000} />
+            <PanelField label="Loan Date" value={formatDate(member.loan_date)} />
+            <PanelField label="Lender" value={member.lender} />
+            <PanelField label="Employees" value={String(member.employee_count)} danger={member.employee_count === 0} />
+            <PanelField label="Business Age" value={`${member.business_age_months}mo`} danger={member.business_age_months < 6} />
+          </div>
+        </PanelSection>
 
+        {/* Relationships Section */}
+        <PanelSection title="Relationships">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#90A4AE]">Member of ring</span>
+              <span className="font-semibold text-[#ECEFF1]">{ring.ring_id}</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#90A4AE]">Connected entities (same bank)</span>
+              <span className="font-semibold text-[#ECEFF1]">{sameBank.length}</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#90A4AE]">Connected entities (same SSN)</span>
+              <span className="font-semibold text-[#ECEFF1]">{sameSsn.length}</span>
+            </div>
+            {member.all_businesses.length > 1 && (
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-[#90A4AE]">Other businesses</span>
+                <span className="font-semibold text-[#ECEFF1]">{member.all_businesses.length - 1}</span>
+              </div>
+            )}
+          </div>
+        </PanelSection>
+
+        {/* Risk Flags */}
         <PanelSection title="Risk Flags" danger>
           <div className="space-y-1.5">
             {member.red_flags.map((flag) => (
@@ -1179,26 +1301,28 @@ function Borrower360({
           </div>
         </PanelSection>
 
+        {/* Investigator Notes */}
         <PanelSection title="Investigator Notes">
           <textarea
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
-            placeholder="Add notes about this borrower..."
+            placeholder="Add notes about this entity..."
             rows={4}
             className="w-full border border-[#37474F] bg-[#263238] p-2 text-data text-[#ECEFF1] placeholder-[#546E7A] focus:border-[#2196F3] focus:outline-none"
           />
         </PanelSection>
       </div>
 
+      {/* Footer */}
       <div className="border-t border-[#37474F] p-4 space-y-2">
         <Link
-          href={`/entity/${member.member_id}`}
+          href={`/cases?entity_id=${member.member_id}`}
           className="block w-full border border-[#2196F3] bg-[#2196F3]/10 px-3 py-2 text-center text-xs font-semibold text-[#2196F3] hover:bg-[#2196F3]/20"
         >
-          Open Full Entity Profile
+          View in Full Case
         </Link>
         <button className="w-full border border-[#37474F] bg-[#1E292E] px-3 py-2 text-xs text-[#90A4AE] hover:bg-[#2F3D42]">
-          Flag for SAR Filing
+          Export Details
         </button>
       </div>
     </div>
