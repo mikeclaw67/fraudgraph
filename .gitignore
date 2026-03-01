@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 dist/
 .next/
+.venv/
+*.egg-info/
+.pytest_cache/

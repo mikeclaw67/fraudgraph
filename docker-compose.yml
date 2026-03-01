@@ -1,0 +1,82 @@
+# FraudGraph Docker Compose — single-command infrastructure for development.
+# Runs PostgreSQL 16, Neo4j 5 (with APOC), Redis 7, and the FastAPI backend.
+# Usage: docker compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fraudgraph-postgres
+    environment:
+      POSTGRES_USER: fraudgraph
+      POSTGRES_PASSWORD: fraudgraph
+      POSTGRES_DB: fraudgraph
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fraudgraph"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: fraudgraph-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/fraudgraph
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    ports:
+      - "7474:7474"   # Browser
+      - "7687:7687"   # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p fraudgraph 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fraudgraph-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fraudgraph-backend
+    environment:
+      FG_POSTGRES_HOST: postgres
+      FG_NEO4J_URI: bolt://neo4j:7687
+      FG_NEO4J_PASSWORD: fraudgraph
+      FG_REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  pg_data:
+  neo4j_data:
+  neo4j_logs:
+  redis_data:
