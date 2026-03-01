@@ -7,9 +7,10 @@ import { Sidebar } from "@/components/sidebar";
 import "./globals.css";
 
 const barlowCondensed = Barlow_Condensed({
-  weight: "600",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-display",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
