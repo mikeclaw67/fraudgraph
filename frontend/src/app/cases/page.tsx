@@ -8,7 +8,7 @@ import { getCases, updateCase } from "@/lib/api";
 import { generateMockCases } from "@/lib/mock-data";
 import type { Case, CaseStatus } from "@/lib/types";
 
-const COLUMNS: { status: CaseStatus; label: string; color: string }[] = [
+const COLUMNS: { status: string; label: string; color: string }[] = [
   { status: "OPEN", label: "Open", color: "border-sky-500" },
   { status: "IN_REVIEW", label: "In Review", color: "border-amber-500" },
   { status: "ESCALATED", label: "Escalated", color: "border-red-500" },
@@ -37,7 +37,7 @@ export default function CasesPage() {
   }, []);
 
   const columns = useMemo(() => {
-    const grouped: Record<CaseStatus, Case[]> = { OPEN: [], IN_REVIEW: [], ESCALATED: [], RESOLVED: [] };
+    const grouped: Record<string, Case[]> = { OPEN: [], IN_REVIEW: [], ESCALATED: [], RESOLVED: [] };
     cases.forEach((c) => {
       if (grouped[c.status]) grouped[c.status].push(c);
     });

@@ -26,7 +26,7 @@ export default function AlertsPage() {
     try {
       const data = await getAlerts({ page, severity: severityFilter, status: statusFilter });
       setAlerts(data.alerts);
-      setTotalPages(data.pagination.total_pages);
+      setTotalPages(Math.ceil(data.pagination.total / data.pagination.page_size));
     } catch {
       // Fallback to mock data when backend is unavailable
       const mock = generateMockAlerts(100);

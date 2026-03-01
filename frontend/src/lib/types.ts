@@ -106,3 +106,83 @@ export interface AnalyticsData {
   risk_distribution: { range: string; count: number }[];
   state_breakdown: { state: string; rings: number; exposure: number }[];
 }
+
+/* Legacy types — kept for backward compatibility with old pages */
+
+export type AlertStatus = "NEW" | "REVIEWING" | "ESCALATED" | "DISMISSED" | "RESOLVED";
+
+export interface Alert {
+  alert_id: string;
+  entity_id: string;
+  entity_type: string;
+  risk_score: number;
+  severity: Severity;
+  fired_rules: string[];
+  status: AlertStatus;
+  triage_action: string;
+  created_at: string;
+  details: Record<string, unknown>;
+  assigned_to: string | null;
+  case_id: string | null;
+}
+
+export interface Entity {
+  entity_id: string;
+  entity_type: string;
+  attributes: Record<string, unknown>;
+  alerts: Alert[];
+  alert_count: number;
+  connections: Record<string, string>;
+}
+
+export interface Case {
+  case_id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  assigned_to: string | null;
+  fraud_type: string;
+  alert_ids: string[];
+  total_exposure: number;
+  created_at: string;
+  updated_at: string;
+  audit_trail: AuditEntry[];
+}
+
+export interface AlertsResponse {
+  alerts: Alert[];
+  pagination: { page: number; page_size: number; total: number };
+}
+
+export interface EntityResponse {
+  entity: Entity;
+}
+
+export interface EntitySearchResponse {
+  entities: Entity[];
+  pagination: { page: number; page_size: number; total: number };
+}
+
+export interface GraphResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export interface CasesResponse {
+  cases: Case[];
+  pagination: { page: number; page_size: number; total: number };
+}
+
+export interface CaseCreate {
+  title: string;
+  description?: string;
+  ring_ids?: string[];
+  priority?: string;
+}
+
+export interface CaseUpdate {
+  status?: string;
+  assigned_to?: string | null;
+  notes?: string;
+}

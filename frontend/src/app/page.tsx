@@ -1,6 +1,6 @@
-/* FraudGraph — Root redirect to Alert Queue */
+/* FraudGraph — Root redirect to Ring Queue */
 import { redirect } from "next/navigation";
 
 export default function Home() {
-  redirect("/alerts");
+  redirect("/rings");
 }

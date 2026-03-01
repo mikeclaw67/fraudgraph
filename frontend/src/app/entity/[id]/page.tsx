@@ -52,7 +52,9 @@ export default function EntityPage() {
     );
   }
 
-  const { attributes: attr, alerts, connections } = entity;
+  const { attributes: rawAttr, alerts, connections } = entity;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const attr = rawAttr as Record<string, any>;
   const topScore = alerts.length > 0 ? Math.max(...alerts.map((a) => a.risk_score)) : 0;
   const allRules = [...new Set(alerts.flatMap((a) => a.fired_rules))];
 
