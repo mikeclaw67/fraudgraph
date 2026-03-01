@@ -1,0 +1,74 @@
+/* FraudGraph — Government investigation tool design system */
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg-shell: #0F1117;
+  --color-bg-panel: #1A1D27;
+  --color-bg-row: #1E2130;
+  --color-bg-row-hover: #252840;
+  --color-bg-selected: #1C2B4A;
+  --color-border: #2A2D3E;
+  --color-text-primary: #E8EAF0;
+  --color-text-secondary: #8B90A8;
+  --color-text-muted: #4A4F6A;
+  --color-accent: #2A6EBB;
+  --color-critical: #C94B4B;
+  --color-high: #D4733A;
+  --color-medium: #C9A227;
+  --color-low: #3E8E57;
+  --color-smoking-gun: #C94B4B;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html, body {
+  background: var(--color-bg-shell);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Dense data typography */
+.text-data {
+  font-size: 12px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-label {
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Government-tool scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-shell);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* No rounded corners anywhere */
+* {
+  border-radius: 0 !important;
+}
+
+/* Print styles for Evidence Package export */
+@media print {
+  nav, aside, [data-print-hide] { display: none !important; }
+  [data-print-show] { display: block !important; }
+  body { background: white !important; color: black !important; }
+}

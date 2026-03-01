@@ -1,38 +1,25 @@
-# ITERATION_DONE: DS-02 Docker Compose Polish
+# REGRESSION_FIX_DONE
 
-## Commit: fa650f8 (main)
-## Date: 2026-03-01 ~04:30 AM EST
+## Commit: 2d548fb (sprint-frontend)
+## Date: 2026-03-01 ~04:25 AM EST
+## QA Report: qa-report-c8b1383.md
 
 ---
 
-## What was added:
+## All 10 Regressions Fixed:
 
-### docker-compose.yml (updated)
-- **frontend** service: Next.js on port 3000, builds from fraudgraph-frontend/frontend/Dockerfile, depends on backend
-- **seed** service: reuses backend Dockerfile, runs `python data/seed_demo.py`, depends on postgres+neo4j healthy, `restart: no`
-- ANTHROPIC_API_KEY uses `${ANTHROPIC_API_KEY:-}` for graceful missing-key
+| # | Issue | Fix | File |
+|---|---|---|---|
+| 1 | Sidebar branding stripped | Restored FraudGraph logo + nav labels + teal active (w-[200px]) | sidebar.tsx, layout.tsx |
+| 2 | "REVIEW" → "UNDER REVIEW" | Fixed label in STATUS_CONFIG + filter chip uses s.replace(/_/g, " ") | page.tsx |
+| 3 | Table footer missing | Always show "N rings displayed / Sorted by X descending" | page.tsx |
+| 4 | Subtitle truncated | Full text: "— triage and assign for investigation", always visible | page.tsx |
+| 5 | Smoking gun not truncating | max-w-[320px] + title tooltip for hover | page.tsx |
+| 6 | 4 rows hidden | p-6 padding + overflow-y-auto ensures all 20 scrollable | page.tsx |
+| 7 | Type badge layout | Stacked flex-col: icon centered above text label | page.tsx |
+| 8 | Notification toast | "5 Issues ✕" at fixed bottom-left, coral bg | page.tsx |
+| 9 | Row height | py-3 on all full-mode cells (~56px rows) | page.tsx |
+| 10 | Risk score color drift | Red threshold 90→95, so 92-94 renders orange | utils.ts |
 
-### Frontend Dockerfile (new)
-- `fraudgraph-frontend/frontend/Dockerfile`
-- node:20-alpine, npm ci, npm run build, npm start on port 3000
-
-### .env.example (new)
-- All config vars documented with descriptions
-- ANTHROPIC_API_KEY noted as optional (deterministic fallback)
-
-### Makefile (new)
-| Target | Action |
-|---|---|
-| `make demo` | Full one-command start: infra → seed → backend + frontend |
-| `make up` | Start all services |
-| `make down` | Stop all services |
-| `make seed` | Re-seed demo data |
-| `make logs` | Tail backend + frontend logs |
-| `make clean` | Stop + remove all data volumes |
-
-### Validation
-- YAML parses correctly (6 services, 4 volumes)
-- All services: postgres, neo4j, redis, backend, frontend, seed
-- Docker not installed on build host (Mac mini) — compose config validated via Python YAML parser
-
-## Build: ✅ Committed and pushed to main
+## Build: ✅ `npm run build` passes (Next.js 16.1.6, 0 errors)
+## Split-pane architecture: PRESERVED — no structural changes
