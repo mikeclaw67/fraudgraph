@@ -1,12 +1,13 @@
-/* FraudGraph — Ring Detail page with smoking gun callout, member table, borrower 360, evidence graph,
-   and live AI investigation panel streaming LangGraph agent steps via WebSocket. */
+/* FraudGraph — Ring Detail: operational investigation workspace.
+   Layout: KPI strip → Evidence Graph (dominant) → context panels below fold.
+   Live AI investigation streams LangGraph agent steps via WebSocket. */
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { RiskScoreBadge, StatusBadge } from "@/components/badges";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { StatusBadge } from "@/components/badges";
+import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
 import type { FraudRing, RingMember, RingType } from "@/lib/types";
 
 /* ── Investigation types ─────────────────────────────────────────────────── */
@@ -115,8 +116,8 @@ function generateMockRing(id: string): FraudRing {
       lender: "Citibank",
       status: "FUNDED",
       risk_score: 93,
-      notes: "Highest risk — \$149,900 just below \$150K threshold",
-      red_flags: ["Threshold gaming (\$149,900)", "Zero employees", "Business age < 2 months", "Same address as 3 others"],
+      notes: "Highest risk — $149,900 just below $150K threshold",
+      red_flags: ["Threshold gaming ($149,900)", "Zero employees", "Business age < 2 months", "Same address as 3 others"],
       ssn_last4: "6307",
       bank_account_last4: "7703",
       program: "PPP",
@@ -380,10 +381,7 @@ export default function RingDetailPage() {
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-64 bg-[#1A1D27]" />
           <div className="h-4 w-96 bg-[#1A1D27]" />
-          <div className="flex gap-4">
-            <div className="h-60 w-[280px] bg-[#1A1D27]" />
-            <div className="h-60 flex-1 bg-[#1A1D27]" />
-          </div>
+          <div className="h-[60vh] w-full bg-[#1A1D27]" />
         </div>
       </div>
     );
@@ -397,270 +395,258 @@ export default function RingDetailPage() {
     );
   }
 
-  /* ── Render ─────────────────────────────────────────────────────────── */
+  /* ── Render — Workspace Layout ─────────────────────────────────────── */
 
   return (
-    <div className="flex h-[calc(100vh-0px)] flex-col overflow-hidden">
-      {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-[#2A2D3E] bg-[#1A1D27] px-6 py-3">
-        <div className="flex items-center gap-4">
-          <Link href="/alerts" className="text-xs text-[#8B90A8] hover:text-[#E8EAF0]">
-            &larr; Back
+    <div className="flex h-screen flex-col overflow-hidden">
+
+      {/* ── KPI Strip (RD-01 + RD-02) ─────────────────────────────────── */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#2A2D3E] bg-[#1A1D27] px-4">
+        {/* Left: nav + identity */}
+        <div className="flex items-center gap-3">
+          <Link href="/rings" className="text-xs text-[#4A4F6A] hover:text-[#E8EAF0] transition-colors">
+            &larr; Rings
           </Link>
           <div className="h-4 w-px bg-[#2A2D3E]" />
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold text-[#E8EAF0]">{RING_TYPE_LABELS[ring.ring_type]} Ring</h1>
-              <StatusBadge status={ring.status} />
+          <span className="bg-slate-700/40 px-2 py-0.5 text-[11px] font-semibold text-slate-300 tracking-wide">
+            {RING_TYPE_LABELS[ring.ring_type].toUpperCase()}
+          </span>
+          <span className="font-mono text-xs text-[#8B90A8]">{ring.ring_id}</span>
+          <div className="h-4 w-px bg-[#2A2D3E]" />
+
+          {/* Key metrics */}
+          <div className="flex items-center gap-4 text-xs">
+            <span className="text-[#8B90A8]">
+              <span className="text-[#4A4F6A] mr-1">Members</span>
+              <span className="font-semibold text-[#E8EAF0] tabular-nums">{ring.member_count}</span>
+            </span>
+            <span className="text-[#8B90A8]">
+              <span className="text-[#4A4F6A] mr-1">Exposure</span>
+              <span className="font-semibold text-[#E8EAF0] tabular-nums">{formatCurrency(ring.total_exposure)}</span>
+            </span>
+            <span className="text-[#8B90A8]">
+              <span className="text-[#4A4F6A] mr-1">Risk</span>
+              <span className={cn("font-bold tabular-nums", getRiskColor(ring.avg_risk_score))}>{ring.avg_risk_score}</span>
+            </span>
+          </div>
+          <StatusBadge status={ring.status} />
+        </div>
+
+        {/* Right: persistent actions (RD-02) */}
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/cases?ring=${ring.ring_id}`}
+            className="border border-[#2A6EBB] bg-[#2A6EBB]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2A6EBB] hover:bg-[#2A6EBB]/20 transition-colors"
+          >
+            Open Case
+          </Link>
+          <button className="border border-[#2A2D3E] bg-[#1E2130] px-3 py-1.5 text-[11px] font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0] transition-colors">
+            Export
+          </button>
+          <button className="border border-[#2A2D3E] bg-[#1E2130] px-3 py-1.5 text-[11px] font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0] transition-colors">
+            Dismiss
+          </button>
+          <button
+            onClick={startInvestigation}
+            disabled={invStatus === "running"}
+            className={cn(
+              "flex items-center gap-1.5 border px-3 py-1.5 text-[11px] font-semibold transition-colors",
+              invStatus === "running"
+                ? "cursor-not-allowed border-[#4A4F6A] bg-[#1A1D27] text-[#4A4F6A]"
+                : invStatus === "complete"
+                ? "border-[#2A9B6B] bg-[#2A9B6B]/10 text-[#2A9B6B] hover:bg-[#2A9B6B]/20"
+                : invStatus === "error"
+                ? "border-[#C94B4B] bg-[#C94B4B]/10 text-[#C94B4B] hover:bg-[#C94B4B]/20"
+                : "border-[#7B5EA7] bg-[#7B5EA7]/10 text-[#C4A9F0] hover:bg-[#7B5EA7]/20"
+            )}
+          >
+            {invStatus === "running" ? (
+              <>
+                <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Investigating…
+              </>
+            ) : invStatus === "complete" ? (
+              "Re-run"
+            ) : invStatus === "error" ? (
+              "Retry"
+            ) : (
+              <>
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+                Investigate
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* ── Main scrollable content ───────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto">
+
+        {/* ── Evidence Graph (RD-01: 62vh, dominant) ──────────────────── */}
+        <div className="relative" style={{ height: "max(420px, 62vh)" }}>
+          <div className="absolute left-4 top-3 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
+            <p className="text-label">Evidence Graph</p>
+            <p className="text-[10px] text-[#4A4F6A]">{ring.member_count} members &middot; Click node to inspect</p>
+          </div>
+          <div className="absolute bottom-3 left-4 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3" style={{ backgroundColor: "#C94B4B" }} />
+                <span className="text-[10px] text-[#8B90A8]">Shared Element</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3" style={{ backgroundColor: "#2A6EBB" }} />
+                <span className="text-[10px] text-[#8B90A8]">Member</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3" style={{ backgroundColor: "#D4733A" }} />
+                <span className="text-[10px] text-[#8B90A8]">High Risk</span>
+              </div>
             </div>
-            <p className="text-xs text-[#8B90A8]">
-              {ring.ring_id} &middot; {ring.member_count} members &middot; {formatCurrency(ring.total_exposure)} exposure &middot; Detected{" "}
-              {formatDate(ring.detected_at)}
-            </p>
+          </div>
+          <div ref={graphContainerRef} className="h-full w-full bg-[#0F1117]" />
+        </div>
+
+        {/* ── Investigation Panel (conditional) ───────────────────────── */}
+        {invStatus !== "idle" && (
+          <div className="h-[340px] shrink-0 border-t border-[#2A2D3E]">
+            <InvestigationPanel status={invStatus} steps={invSteps} findings={invFindings} onClose={closeInvestigation} />
+          </div>
+        )}
+
+        {/* ── Member Table (below fold) ───────────────────────────────── */}
+        <div className="border-t border-[#2A2D3E]">
+          <div className="flex items-center justify-between border-b border-[#2A2D3E] bg-[#1A1D27] px-4 py-2">
+            <p className="text-label">Ring Members</p>
+            <p className="text-[10px] text-[#4A4F6A]">{ring.member_count} entities</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[#2A2D3E] bg-[#1A1D27] text-left">
+                  <th className="p-3 text-label">Business</th>
+                  <th className="p-3 text-label">Borrower</th>
+                  <th className="p-3 text-label">EIN</th>
+                  <th className="p-3 text-label text-right">Loan Amount</th>
+                  <th className="p-3 text-label">Loan Date</th>
+                  <th className="p-3 text-label">Lender</th>
+                  <th className="p-3 text-label text-right">Risk</th>
+                  <th className="p-3 text-label text-right">Flags</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ring.members.map((member) => (
+                  <tr
+                    key={member.member_id}
+                    onClick={() => setSelectedMember(member)}
+                    className={cn(
+                      "cursor-pointer border-b border-[#2A2D3E] transition-colors",
+                      selectedMember?.member_id === member.member_id ? "bg-[#1C2B4A]" : "bg-[#1E2130] hover:bg-[#252840]"
+                    )}
+                  >
+                    <td className="p-3">
+                      <span className="text-data font-medium text-[#E8EAF0]">{member.business_name}</span>
+                    </td>
+                    <td className="p-3 text-data text-[#8B90A8]">{member.borrower_name}</td>
+                    <td className="p-3 font-mono text-data text-[#8B90A8]">{member.ein}</td>
+                    <td className="p-3 text-right">
+                      <span className={cn("text-data font-medium tabular-nums", member.loan_amount >= 145000 ? "text-[#C94B4B]" : "text-[#E8EAF0]")}>
+                        {formatCurrency(member.loan_amount)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-data text-[#8B90A8]">{formatDate(member.loan_date)}</td>
+                    <td className="p-3 text-data text-[#8B90A8]">{member.lender}</td>
+                    <td className="p-3 text-right">
+                      <span className={cn("text-data font-bold tabular-nums", getRiskColor(member.risk_score))}>{member.risk_score}</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <span className="text-data text-[#C94B4B]">{member.red_flags.length}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-        <RiskScoreBadge score={ring.avg_risk_score} size="lg" />
-      </div>
 
-      {/* Main content area */}
-      <div className="flex min-h-0 flex-1">
-        {/* LEFT — Smoking Gun Panel (280px) */}
-        <div className="w-[280px] shrink-0 overflow-y-auto border-r border-[#2A2D3E] bg-[#0F1117] p-4">
-          <div className="border-2 border-[#C94B4B] bg-[#C94B4B]/5 p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <div className="h-2.5 w-2.5 bg-[#C94B4B]" />
-              <span className="text-label text-[#C94B4B]">Smoking Gun</span>
-            </div>
-
-            <p className="text-label mb-1">Shared Element</p>
-            <p className="text-data font-semibold text-[#E8EAF0]">{ring.common_element}</p>
-
-            <div className="my-3 h-px bg-[#2A2D3E]" />
-
-            <p className="text-label mb-1">Ring Type</p>
-            <p className="text-data text-[#E8EAF0]">{RING_TYPE_LABELS[ring.ring_type]}</p>
-
-            <div className="my-3 h-px bg-[#2A2D3E]" />
-
-            <p className="text-label mb-1">Property Record</p>
-            <p className="text-data leading-relaxed text-[#8B90A8]">{ring.common_element_detail}</p>
-
-            <div className="my-3 h-px bg-[#2A2D3E]" />
-
-            <p className="text-label mb-1">Ring Statistics</p>
-            <div className="space-y-1.5">
-              <StatRow label="Members" value={String(ring.member_count)} />
-              <StatRow label="Total Exposure" value={formatCurrency(ring.total_exposure)} danger />
-              <StatRow label="Avg Risk Score" value={String(ring.avg_risk_score)} danger={ring.avg_risk_score >= 80} />
-              <StatRow label="Status" value={ring.status} />
-              <StatRow label="Assigned" value={ring.assigned_to || "Unassigned"} />
+        {/* ── Context Panels (3-col grid below fold) ──────────────────── */}
+        <div className="grid grid-cols-3 gap-px border-t border-[#2A2D3E] bg-[#2A2D3E]">
+          {/* Smoking Gun */}
+          <div className="bg-[#0F1117] p-4">
+            <div className="border-2 border-[#C94B4B] bg-[#C94B4B]/5 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="h-2.5 w-2.5 bg-[#C94B4B]" />
+                <span className="text-label text-[#C94B4B]">Smoking Gun</span>
+              </div>
+              <p className="text-label mb-1">Shared Element</p>
+              <p className="text-data font-semibold text-[#E8EAF0]">{ring.common_element}</p>
+              <div className="my-3 h-px bg-[#2A2D3E]" />
+              <p className="text-label mb-1">Ring Type</p>
+              <p className="text-data text-[#E8EAF0]">{RING_TYPE_LABELS[ring.ring_type]}</p>
+              <div className="my-3 h-px bg-[#2A2D3E]" />
+              <p className="text-label mb-1">Property Record</p>
+              <p className="text-data leading-relaxed text-[#8B90A8]">{ring.common_element_detail}</p>
             </div>
           </div>
 
-          {/* Shared indicators breakdown */}
-          <div className="mt-4 border border-[#2A2D3E] bg-[#1A1D27] p-4">
-            <p className="text-label mb-2">Shared Indicators</p>
-            <div className="space-y-2">
-              <IndicatorRow label="Address" value={ring.common_element.split(",")[0]} count={ring.member_count} />
-              <IndicatorRow label="Bank Acct" value="****7703" count={ring.members.filter((m) => m.bank_account_last4 === "7703").length} />
-              <IndicatorRow label="SSN" value="****4821" count={ring.members.filter((m) => m.ssn_last4 === "4821").length} />
+          {/* Shared Indicators */}
+          <div className="bg-[#0F1117] p-4">
+            <div className="border border-[#2A2D3E] bg-[#1A1D27] p-4 h-full">
+              <p className="text-label mb-3">Shared Indicators</p>
+              <div className="space-y-3">
+                <IndicatorRow label="Address" value={ring.common_element.split(",")[0]} count={ring.member_count} />
+                <IndicatorRow label="Bank Acct" value="****7703" count={ring.members.filter((m) => m.bank_account_last4 === "7703").length} />
+                <IndicatorRow label="SSN" value="****4821" count={ring.members.filter((m) => m.ssn_last4 === "4821").length} />
+              </div>
+              <div className="my-4 h-px bg-[#2A2D3E]" />
+              <p className="text-label mb-2">Ring Statistics</p>
+              <div className="space-y-1.5">
+                <StatRow label="Total Exposure" value={formatCurrency(ring.total_exposure)} danger />
+                <StatRow label="Avg Risk Score" value={String(ring.avg_risk_score)} danger={ring.avg_risk_score >= 80} />
+                <StatRow label="Status" value={ring.status} />
+                <StatRow label="Assigned" value={ring.assigned_to || "Unassigned"} />
+              </div>
             </div>
           </div>
 
           {/* Timeline */}
-          <div className="mt-4 border border-[#2A2D3E] bg-[#1A1D27] p-4">
-            <p className="text-label mb-2">Detection Timeline</p>
-            <div className="space-y-2">
-              <TimelineEntry time="Nov 14, 09:23" text="Ring detected by Louvain community algorithm" />
-              <TimelineEntry time="Nov 14, 09:23" text="5 members linked via shared address" />
-              <TimelineEntry time="Nov 14, 09:24" text="Risk scoring complete — avg 86.8" />
-              <TimelineEntry time="Nov 14, 09:24" text="Alert generated — awaiting triage" />
-            </div>
-          </div>
-        </div>
-
-        {/* CENTER + RIGHT panels */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          {/* CENTER — Ring members table + graph */}
-          <div className="flex min-h-0 flex-1">
-            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-              {/* Members table */}
-              <div className="shrink-0 overflow-x-auto border-b border-[#2A2D3E]">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-[#2A2D3E] bg-[#1A1D27] text-left">
-                      <th className="p-3 text-label">Business</th>
-                      <th className="p-3 text-label">Borrower</th>
-                      <th className="p-3 text-label">EIN</th>
-                      <th className="p-3 text-label">Loan Amount</th>
-                      <th className="p-3 text-label">Loan Date</th>
-                      <th className="p-3 text-label">Lender</th>
-                      <th className="p-3 text-label">Risk</th>
-                      <th className="p-3 text-label">Flags</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ring.members.map((member) => (
-                      <tr
-                        key={member.member_id}
-                        onClick={() => setSelectedMember(member)}
-                        className={cn(
-                          "cursor-pointer border-b border-[#2A2D3E] transition-colors",
-                          selectedMember?.member_id === member.member_id ? "bg-[#1C2B4A]" : "bg-[#1E2130] hover:bg-[#252840]"
-                        )}
-                      >
-                        <td className="p-3">
-                          <span className="text-data font-medium text-[#E8EAF0]">{member.business_name}</span>
-                        </td>
-                        <td className="p-3 text-data text-[#8B90A8]">{member.borrower_name}</td>
-                        <td className="p-3 font-mono text-data text-[#8B90A8]">{member.ein}</td>
-                        <td className="p-3">
-                          <span className={cn("text-data font-medium", member.loan_amount >= 145000 ? "text-[#C94B4B]" : "text-[#E8EAF0]")}>
-                            {formatCurrency(member.loan_amount)}
-                          </span>
-                        </td>
-                        <td className="p-3 text-data text-[#8B90A8]">{formatDate(member.loan_date)}</td>
-                        <td className="p-3 text-data text-[#8B90A8]">{member.lender}</td>
-                        <td className="p-3">
-                          <RiskScoreBadge score={member.risk_score} />
-                        </td>
-                        <td className="p-3">
-                          <span className="text-data text-[#C94B4B]">{member.red_flags.length}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="bg-[#0F1117] p-4">
+            <div className="border border-[#2A2D3E] bg-[#1A1D27] p-4 h-full">
+              <p className="text-label mb-3">Detection Timeline</p>
+              <div className="space-y-3">
+                <TimelineEntry time="Nov 14, 09:23" text="Ring detected by Louvain community algorithm" />
+                <TimelineEntry time="Nov 14, 09:23" text="5 members linked via shared address" />
+                <TimelineEntry time="Nov 14, 09:24" text="Risk scoring complete — avg 86.8" />
+                <TimelineEntry time="Nov 14, 09:24" text="Alert generated — awaiting triage" />
               </div>
-
-              {/* Evidence graph */}
-              <div className="relative min-h-0 flex-1">
-                <div className="absolute left-4 top-3 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
-                  <p className="text-label">Evidence Graph</p>
-                  <p className="text-[10px] text-[#4A4F6A]">{ring.member_count} members &middot; Click node to inspect</p>
-                </div>
-                <div className="absolute bottom-3 left-4 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-3 w-3" style={{ backgroundColor: "#C94B4B" }} />
-                      <span className="text-[10px] text-[#8B90A8]">Shared Element</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-3 w-3" style={{ backgroundColor: "#2A6EBB" }} />
-                      <span className="text-[10px] text-[#8B90A8]">Member</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-3 w-3" style={{ backgroundColor: "#D4733A" }} />
-                      <span className="text-[10px] text-[#8B90A8]">High Risk</span>
-                    </div>
-                  </div>
-                </div>
-                <div ref={graphContainerRef} className="h-full w-full bg-[#0F1117]" />
-              </div>
-            </div>
-
-            {/* RIGHT — Borrower 360 slide-in panel (360px) */}
-            <div
-              className={cn(
-                "h-full w-[360px] shrink-0 overflow-y-auto border-l border-[#2A2D3E] bg-[#1A1D27] transition-all duration-300",
-                selectedMember ? "translate-x-0 opacity-100" : "hidden"
-              )}
-            >
-              {selectedMember && (
-                <Borrower360
-                  member={selectedMember}
-                  notes={memberNotes[selectedMember.member_id] || ""}
-                  onNotesChange={(val) => setMemberNotes((prev) => ({ ...prev, [selectedMember.member_id]: val }))}
-                  onClose={() => setSelectedMember(null)}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Investigation Panel — expands between graph and action bar when active */}
-          {invStatus !== "idle" && (
-            <div className="h-[340px] shrink-0 border-t border-[#2A2D3E]">
-              <InvestigationPanel status={invStatus} steps={invSteps} findings={invFindings} onClose={closeInvestigation} />
-            </div>
-          )}
-
-          {/* BOTTOM — Action bar */}
-          <div className="flex items-center justify-between border-t border-[#2A2D3E] bg-[#1A1D27] px-6 py-3">
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/cases?ring=${ring.ring_id}`}
-                className="border border-[#2A6EBB] bg-[#2A6EBB]/10 px-4 py-2 text-xs font-semibold text-[#2A6EBB] hover:bg-[#2A6EBB]/20"
-              >
-                Open Full Case
-              </Link>
-              <button className="border border-[#2A2D3E] bg-[#1E2130] px-4 py-2 text-xs font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0]">
-                Export Evidence Package
-              </button>
-              <button className="border border-[#2A2D3E] bg-[#1E2130] px-4 py-2 text-xs font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0]">
-                Dismiss Ring
-              </button>
-
-              {/* Run Investigation */}
-              <button
-                onClick={startInvestigation}
-                disabled={invStatus === "running"}
-                className={cn(
-                  "flex items-center gap-1.5 border px-4 py-2 text-xs font-semibold transition-colors",
-                  invStatus === "running"
-                    ? "cursor-not-allowed border-[#4A4F6A] bg-[#1A1D27] text-[#4A4F6A]"
-                    : invStatus === "complete"
-                    ? "border-[#2A9B6B] bg-[#2A9B6B]/10 text-[#2A9B6B] hover:bg-[#2A9B6B]/20"
-                    : invStatus === "error"
-                    ? "border-[#C94B4B] bg-[#C94B4B]/10 text-[#C94B4B] hover:bg-[#C94B4B]/20"
-                    : "border-[#7B5EA7] bg-[#7B5EA7]/10 text-[#C4A9F0] hover:bg-[#7B5EA7]/20"
-                )}
-              >
-                {invStatus === "running" ? (
-                  <>
-                    <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Investigating…
-                  </>
-                ) : invStatus === "complete" ? (
-                  <>
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Re-run Investigation
-                  </>
-                ) : invStatus === "error" ? (
-                  <>
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
-                    Retry Investigation
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                      />
-                    </svg>
-                    Run Investigation
-                  </>
-                )}
-              </button>
-            </div>
-            <div className="flex items-center gap-3 text-[10px] text-[#4A4F6A]">
-              <span>Ring {ring.ring_id}</span>
-              <span>&middot;</span>
-              <span>{RING_TYPE_LABELS[ring.ring_type]}</span>
-              <span>&middot;</span>
-              <span>Last updated {formatDate(ring.updated_at)}</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── Borrower 360 slide-over (fixed right overlay) ─────────────── */}
+      {selectedMember && (
+        <div className="fixed right-0 top-0 z-50 flex h-screen">
+          <div className="w-8 cursor-pointer bg-black/30 backdrop-blur-sm" onClick={() => setSelectedMember(null)} />
+          <div className="w-[360px] border-l border-[#2A2D3E] bg-[#1A1D27] shadow-2xl">
+            <Borrower360
+              member={selectedMember}
+              notes={memberNotes[selectedMember.member_id] || ""}
+              onNotesChange={(val) => setMemberNotes((prev) => ({ ...prev, [selectedMember.member_id]: val }))}
+              onClose={() => setSelectedMember(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -702,13 +688,13 @@ function InvestigationPanel({
               </svg>
             )}
             {status === "complete" && (
-              <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#2A9B6B]">
+              <div className="flex h-3.5 w-3.5 items-center justify-center bg-[#2A9B6B]">
                 <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             )}
-            {status === "error" && <div className="h-3.5 w-3.5 rounded-full bg-[#C94B4B]" />}
+            {status === "error" && <div className="h-3.5 w-3.5 bg-[#C94B4B]" />}
             <span className="text-xs font-semibold text-[#E8EAF0]">AI Investigation</span>
             <span className="text-[10px] text-[#4A4F6A]">
               {status === "running" && "Running…"}
@@ -799,8 +785,10 @@ const TIER_COLORS: Record<string, string> = {
 
 const ACTION_COLORS: Record<string, string> = {
   ESCALATE_TO_DOJ: "text-[#C94B4B]",
+  REFER_TO_DOJ: "text-[#C94B4B]",
   ESCALATE_TO_SENIOR: "text-[#D4733A]",
   FURTHER_INVESTIGATION: "text-[#D4B83A]",
+  OPEN_CASE: "text-[#D4733A]",
   DISMISS: "text-[#2A9B6B]",
 };
 
@@ -909,7 +897,9 @@ function Borrower360({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center gap-3">
-          <RiskScoreBadge score={member.risk_score} size="lg" />
+          <span className={cn("flex h-14 w-14 items-center justify-center text-xl font-bold tabular-nums", getRiskColor(member.risk_score), "bg-slate-800")}>
+            {member.risk_score}
+          </span>
           <div>
             <p className="text-sm font-semibold text-[#E8EAF0]">{member.business_name}</p>
             <p className="text-xs text-[#8B90A8]">
