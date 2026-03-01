@@ -20,13 +20,13 @@ const RING_TYPE_ICONS: Record<RingType, string> = {
 };
 
 const STATUS_CONFIG: Record<RingStatus, { label: string; bg: string }> = {
-  NEW: { label: "NEW", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
-  DETECTED: { label: "DETECTED", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
-  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-amber-500/20 text-amber-400 border border-amber-500/30" },
-  CASE_OPENED: { label: "CASE", bg: "bg-blue-500/20 text-blue-400 border border-blue-500/30" },
-  REFERRED: { label: "REFERRED", bg: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" },
-  CLOSED: { label: "CLOSED", bg: "bg-slate-500/20 text-slate-400 border border-slate-500/30" },
-  DISMISSED: { label: "DISMISSED", bg: "bg-slate-500/20 text-slate-400 border border-slate-500/30" },
+  NEW: { label: "NEW", bg: "bg-[#1565C0] text-[#90CAF9]" },
+  DETECTED: { label: "DETECTED", bg: "bg-[#1565C0] text-[#90CAF9]" },
+  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-[#E65100] text-[#FFE0B2]" },
+  CASE_OPENED: { label: "CASE", bg: "bg-[#4A148C] text-[#E1BEE7]" },
+  REFERRED: { label: "REFERRED", bg: "bg-[#1B5E20] text-[#C8E6C9]" },
+  CLOSED: { label: "CLOSED", bg: "bg-[#37474F] text-[#90A4AE]" },
+  DISMISSED: { label: "DISMISSED", bg: "bg-[#37474F] text-[#90A4AE]" },
 };
 
 const RING_TYPE_LABELS: Record<RingType, string> = {
@@ -305,7 +305,7 @@ export default function RingQueuePage() {
                         <>
                           {/* Full: stacked card with icon above label */}
                           <td className="px-3 py-2">
-                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-slate-700/40 text-slate-300 leading-tight">
+                            <span className="inline-flex flex-col items-center px-2.5 py-1.5 text-[10px] font-semibold tracking-wide bg-[#37474F]/40 text-[#90A4AE] leading-tight">
                               <span className="text-base mb-0.5">{RING_TYPE_ICONS[ring.ring_type]}</span>
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
@@ -365,7 +365,7 @@ export default function RingQueuePage() {
       </div>
 
       {/* ── Notification Toast (bottom-left) ─────────────────────────── */}
-      <div className="fixed bottom-4 left-[216px] z-50 flex items-center gap-2 bg-[#C94B4B] px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
+      <div className="fixed bottom-4 left-[64px] z-50 flex items-center gap-2 bg-[#E53935] px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
         <span>5 Issues</span>
         <button className="ml-1 text-white/70 hover:text-white">&times;</button>
       </div>

@@ -8,11 +8,11 @@ import type { RingType, CaseStatus, InvestigationCase, EvidenceItem, CaseNote } 
 /* ── Ring type badge config (matches Ring Queue) ────────────────────── */
 
 const RING_TYPE_CONFIG: Record<RingType, { icon: string; label: string; bg: string }> = {
-  ADDRESS_FARM: { icon: "\u{1F3E0}", label: "ADDRESS FARM", bg: "bg-violet-500/15 text-violet-400" },
-  ACCOUNT_CLUSTER: { icon: "\u{1F3E6}", label: "ACCOUNT CLUSTER", bg: "bg-blue-500/15 text-blue-400" },
-  EIN_RECYCLER: { icon: "\u{1F522}", label: "EIN RECYCLER", bg: "bg-amber-500/15 text-amber-400" },
-  STRAW_COMPANY: { icon: "\u{1F47B}", label: "STRAW COMPANY", bg: "bg-red-500/15 text-red-400" },
-  THRESHOLD_GAMING: { icon: "\u{1F3AF}", label: "THRESHOLD GAMING", bg: "bg-emerald-500/15 text-emerald-400" },
+  ADDRESS_FARM: { icon: "\u{1F3E0}", label: "ADDRESS FARM", bg: "bg-[#7B1FA2]/15 text-[#CE93D8]" },
+  ACCOUNT_CLUSTER: { icon: "\u{1F3E6}", label: "ACCOUNT CLUSTER", bg: "bg-[#2196F3]/15 text-[#90CAF9]" },
+  EIN_RECYCLER: { icon: "\u{1F522}", label: "EIN RECYCLER", bg: "bg-[#FFB300]/15 text-[#FFB300]" },
+  STRAW_COMPANY: { icon: "\u{1F47B}", label: "STRAW COMPANY", bg: "bg-[#E53935]/15 text-[#EF9A9A]" },
+  THRESHOLD_GAMING: { icon: "\u{1F3AF}", label: "THRESHOLD GAMING", bg: "bg-[#43A047]/15 text-[#A5D6A7]" },
 };
 
 /* ── Status tab config ──────────────────────────────────────────────── */
@@ -26,18 +26,18 @@ const STATUS_TABS: { value: CaseStatus | "ALL"; label: string }[] = [
 ];
 
 const STATUS_BADGE: Record<CaseStatus, { label: string; bg: string }> = {
-  OPEN: { label: "OPEN", bg: "bg-sky-500/20 text-sky-400 border border-sky-500/30" },
-  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-amber-500/20 text-amber-400 border border-amber-500/30" },
-  REFERRED_TO_DOJ: { label: "REFERRED TO DOJ", bg: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" },
-  CLOSED: { label: "CLOSED", bg: "bg-slate-500/20 text-slate-400 border border-slate-500/30" },
+  OPEN: { label: "OPEN", bg: "bg-[#1565C0] text-[#90CAF9]" },
+  UNDER_REVIEW: { label: "UNDER REVIEW", bg: "bg-[#E65100] text-[#FFE0B2]" },
+  REFERRED_TO_DOJ: { label: "REFERRED TO DOJ", bg: "bg-[#1B5E20] text-[#C8E6C9]" },
+  CLOSED: { label: "CLOSED", bg: "bg-[#37474F] text-[#90A4AE]" },
 };
 
 const DOJ_STATUS_COLOR: Record<string, string> = {
-  "Pending Review": "text-amber-400",
-  "Under Investigation": "text-sky-400",
+  "Pending Review": "text-[#FFB300]",
+  "Under Investigation": "text-[#2196F3]",
   "Charges Filed": "text-critical",
   "Declined": "text-text-muted",
-  "Conviction": "text-emerald-400",
+  "Conviction": "text-[#43A047]",
 };
 
 /* ── Mock data: 10 realistic PPP fraud cases ────────────────────────── */

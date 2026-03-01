@@ -257,7 +257,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     exportSigmaAsPNG(
       sigmaRef.current,
       `fraudgraph-ring-${ring.ring_id}.png`,
-      "#0F1117"
+      "#263238"
     );
   }
 
@@ -309,13 +309,14 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
       const { default: Sigma } = await import("sigma");
       const { default: forceAtlas2 } = await import("graphology-layout-forceatlas2");
 
-      const graph = new Graph();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const graph = new Graph() as any;
 
       const centerNodeId = "shared_element";
       graph.addNode(centerNodeId, {
         label: ring.common_element.split(",")[0],
         size: 40,
-        color: "#C94B4B",
+        color: "#E53935",
         x: 0,
         y: 0,
         nodeType: "SharedElement",
@@ -329,7 +330,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         graph.addNode(member.member_id, {
           label: member.business_name,
           size: loanScale,
-          color: member.risk_score >= 90 ? "#C94B4B" : member.risk_score >= 80 ? "#D4733A" : "#2A6EBB",
+          color: member.risk_score >= 90 ? "#E53935" : member.risk_score >= 80 ? "#FFB300" : "#2196F3",
           x: Math.cos(angle) * radius,
           y: Math.sin(angle) * radius,
           nodeType: "Member",
@@ -337,7 +338,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
 
         graph.addEdge(member.member_id, centerNodeId, {
           type: "line",
-          color: "#C94B4B",
+          color: "#E53935",
           size: 3,
         });
 
@@ -346,7 +347,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
             try {
               graph.addEdge(member.member_id, other.member_id, {
                 type: "line",
-                color: "#4A4F6A",
+                color: "#546E7A",
                 size: 2,
               });
             } catch {
@@ -399,9 +400,9 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-64 bg-[#1A1D27]" />
-          <div className="h-4 w-96 bg-[#1A1D27]" />
-          <div className="h-[60vh] w-full bg-[#1A1D27]" />
+          <div className="h-8 w-64 bg-[#2C3539]" />
+          <div className="h-4 w-96 bg-[#2C3539]" />
+          <div className="h-[60vh] w-full bg-[#2C3539]" />
         </div>
       </div>
     );
@@ -410,7 +411,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   if (!ring) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <p className="text-[#8B90A8]">Ring not found</p>
+        <p className="text-[#90A4AE]">Ring not found</p>
       </div>
     );
   }
@@ -421,28 +422,28 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     <div className={cn("flex flex-col overflow-hidden", embedded ? "h-full" : "h-screen")}>
 
       {/* ── KPI Strip (RD-01 + RD-02) ─────────────────────────────────── */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#2A2D3E] bg-[#1A1D27] px-4">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#37474F] bg-[#2C3539] px-4">
         {/* Left: nav + identity */}
         <div className="flex items-center gap-3">
-          {!embedded && (<><Link href="/rings" className="text-xs text-[#4A4F6A] hover:text-[#E8EAF0] transition-colors">&larr; Rings</Link><div className="h-4 w-px bg-[#2A2D3E]" /></>)}
-          <span className="bg-slate-700/40 px-2 py-0.5 text-[11px] font-semibold text-slate-300 tracking-wide">
+          {!embedded && (<><Link href="/rings" className="text-xs text-[#546E7A] hover:text-[#ECEFF1] transition-colors">&larr; Rings</Link><div className="h-4 w-px bg-[#37474F]" /></>)}
+          <span className="bg-[#37474F]/40 px-2 py-0.5 text-[11px] font-semibold text-[#90A4AE] tracking-wide">
             {RING_TYPE_LABELS[ring.ring_type].toUpperCase()}
           </span>
-          <span className="font-mono text-xs text-[#8B90A8]">{ring.ring_id}</span>
-          <div className="h-4 w-px bg-[#2A2D3E]" />
+          <span className="font-mono text-xs text-[#90A4AE]">{ring.ring_id}</span>
+          <div className="h-4 w-px bg-[#37474F]" />
 
           {/* Key metrics */}
           <div className="flex items-center gap-4 text-xs">
-            <span className="text-[#8B90A8]">
-              <span className="text-[#4A4F6A] mr-1">Members</span>
-              <span className="font-semibold text-[#E8EAF0] tabular-nums">{ring.member_count}</span>
+            <span className="text-[#90A4AE]">
+              <span className="text-[#546E7A] mr-1">Members</span>
+              <span className="font-semibold text-[#ECEFF1] tabular-nums">{ring.member_count}</span>
             </span>
-            <span className="text-[#8B90A8]">
-              <span className="text-[#4A4F6A] mr-1">Exposure</span>
-              <span className="font-semibold text-[#E8EAF0] tabular-nums">{formatCurrency(ring.total_exposure)}</span>
+            <span className="text-[#90A4AE]">
+              <span className="text-[#546E7A] mr-1">Exposure</span>
+              <span className="font-semibold text-[#ECEFF1] tabular-nums">{formatCurrency(ring.total_exposure)}</span>
             </span>
-            <span className="text-[#8B90A8]">
-              <span className="text-[#4A4F6A] mr-1">Risk</span>
+            <span className="text-[#90A4AE]">
+              <span className="text-[#546E7A] mr-1">Risk</span>
               <span className={cn("font-bold tabular-nums", getRiskColor(ring.avg_risk_score))}>{ring.avg_risk_score}</span>
             </span>
           </div>
@@ -453,17 +454,17 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         <div className="flex items-center gap-2">
           <Link
             href={`/cases?ring=${ring.ring_id}`}
-            className="border border-[#2A6EBB] bg-[#2A6EBB]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2A6EBB] hover:bg-[#2A6EBB]/20 transition-colors"
+            className="border border-[#2196F3] bg-[#2196F3]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2196F3] hover:bg-[#2196F3]/20 transition-colors"
           >
             Open Case
           </Link>
-          <button onClick={handleExportGraph} className="border border-[#2A2D3E] bg-[#1E2130] px-3 py-1.5 text-[11px] font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0] transition-colors">
+          <button onClick={handleExportGraph} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
             Export PNG
           </button>
-          <button onClick={handleExportEvidence} className="border border-[#2A2D3E] bg-[#1E2130] px-3 py-1.5 text-[11px] font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0] transition-colors">
+          <button onClick={handleExportEvidence} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
             Evidence Package
           </button>
-          <button className="border border-[#2A2D3E] bg-[#1E2130] px-3 py-1.5 text-[11px] font-medium text-[#8B90A8] hover:bg-[#252840] hover:text-[#E8EAF0] transition-colors">
+          <button className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
             Dismiss
           </button>
           <button
@@ -472,11 +473,11 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
             className={cn(
               "flex items-center gap-1.5 border px-3 py-1.5 text-[11px] font-semibold transition-colors",
               invStatus === "running"
-                ? "cursor-not-allowed border-[#4A4F6A] bg-[#1A1D27] text-[#4A4F6A]"
+                ? "cursor-not-allowed border-[#546E7A] bg-[#2C3539] text-[#546E7A]"
                 : invStatus === "complete"
-                ? "border-[#2A9B6B] bg-[#2A9B6B]/10 text-[#2A9B6B] hover:bg-[#2A9B6B]/20"
+                ? "border-[#43A047] bg-[#43A047]/10 text-[#43A047] hover:bg-[#43A047]/20"
                 : invStatus === "error"
-                ? "border-[#C94B4B] bg-[#C94B4B]/10 text-[#C94B4B] hover:bg-[#C94B4B]/20"
+                ? "border-[#E53935] bg-[#E53935]/10 text-[#E53935] hover:bg-[#E53935]/20"
                 : "border-[#7B5EA7] bg-[#7B5EA7]/10 text-[#C4A9F0] hover:bg-[#7B5EA7]/20"
             )}
           >
@@ -507,7 +508,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
           </button>
           {onClose && (
 
-            <button onClick={onClose} className="ml-1 flex h-7 w-7 items-center justify-center border border-[#2A2D3E] text-[#4A4F6A] hover:bg-[#252840] hover:text-[#E8EAF0] transition-colors" title="Close">
+            <button onClick={onClose} className="ml-1 flex h-7 w-7 items-center justify-center border border-[#37474F] text-[#546E7A] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors" title="Close">
 
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
 
@@ -523,40 +524,40 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
 
         {/* ── Evidence Graph (RD-01: 62vh, dominant) ──────────────────── */}
         <div className="relative" style={{ height: embedded ? "70%" : "max(420px, 62vh)" }}>
-          <div className="absolute left-4 top-3 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
+          <div className="absolute left-4 top-3 z-10 border border-[#37474F] bg-[#2C3539]/95 px-3 py-2 backdrop-blur">
             <p className="text-label">Evidence Graph</p>
-            <p className="text-[10px] text-[#4A4F6A]">{ring.member_count} members &middot; Click node to inspect</p>
+            <p className="text-[10px] text-[#546E7A]">{ring.member_count} members &middot; Click node to inspect</p>
           </div>
-          <div className="absolute bottom-3 left-4 z-10 border border-[#2A2D3E] bg-[#1A1D27]/95 px-3 py-2 backdrop-blur">
+          <div className="absolute bottom-3 left-4 z-10 border border-[#37474F] bg-[#2C3539]/95 px-3 py-2 backdrop-blur">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3" style={{ backgroundColor: "#C94B4B" }} />
-                <span className="text-[10px] text-[#8B90A8]">Shared Element</span>
+                <div className="h-3 w-3" style={{ backgroundColor: "#E53935" }} />
+                <span className="text-[10px] text-[#90A4AE]">Shared Element</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3" style={{ backgroundColor: "#2A6EBB" }} />
-                <span className="text-[10px] text-[#8B90A8]">Member</span>
+                <div className="h-3 w-3" style={{ backgroundColor: "#2196F3" }} />
+                <span className="text-[10px] text-[#90A4AE]">Member</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3" style={{ backgroundColor: "#D4733A" }} />
-                <span className="text-[10px] text-[#8B90A8]">High Risk</span>
+                <div className="h-3 w-3" style={{ backgroundColor: "#FFB300" }} />
+                <span className="text-[10px] text-[#90A4AE]">High Risk</span>
               </div>
             </div>
           </div>
-          <div ref={graphContainerRef} className="h-full w-full bg-[#0F1117]" />
+          <div ref={graphContainerRef} className="h-full w-full bg-[#263238]" />
         </div>
 
         <div className={embedded ? "flex-1 min-h-0 overflow-y-auto" : ""}>
 
         {/* ── Investigation Panel (conditional) ───────────────────────── */}
         {invStatus !== "idle" && (
-          <div className="h-[340px] shrink-0 border-t border-[#2A2D3E]">
+          <div className="h-[340px] shrink-0 border-t border-[#37474F]">
             <InvestigationPanel status={invStatus} steps={invSteps} findings={invFindings} onClose={closeInvestigation} />
           </div>
         )}
 
         {/* ── Evidence Summary (print only) ────────────────────────── */}
-        <div data-print-show className="hidden print:block border-t border-[#2A2D3E] bg-white p-8 text-black">
+        <div data-print-show className="hidden print:block border-t border-[#37474F] bg-white p-8 text-black">
           <h2 className="text-xl font-bold mb-4">FraudGraph Evidence Package</h2>
           <div className="grid grid-cols-2 gap-2 text-sm mb-4">
             <p><strong>Ring ID:</strong> {ring.ring_id}</p>
@@ -574,23 +575,23 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
 
 
         {/* ── Member Table (below fold) ───────────────────────────────── */}
-        <div className="border-t border-[#2A2D3E]">
-          <div className="flex items-center justify-between border-b border-[#2A2D3E] bg-[#1A1D27] px-4 py-2">
+        <div className="border-t border-[#37474F]">
+          <div className="flex items-center justify-between border-b border-[#37474F] bg-[#2C3539] px-4 py-2">
             <p className="text-label">Ring Members</p>
-            <p className="text-[10px] text-[#4A4F6A]">{ring.member_count} entities</p>
+            <p className="text-[10px] text-[#546E7A]">{ring.member_count} entities</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#2A2D3E] bg-[#1A1D27] text-left">
-                  <th className="p-3 text-label">Business</th>
-                  <th className="p-3 text-label">Borrower</th>
-                  <th className="p-3 text-label">EIN</th>
-                  <th className="p-3 text-label text-right">Loan Amount</th>
-                  <th className="p-3 text-label">Loan Date</th>
-                  <th className="p-3 text-label">Lender</th>
-                  <th className="p-3 text-label text-right">Risk</th>
-                  <th className="p-3 text-label text-right">Flags</th>
+                <tr className="border-b border-[#37474F] bg-[#2C3539] text-left">
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C]">Business</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C]">Borrower</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C]">EIN</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C] text-right">Loan Amount</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C]">Loan Date</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C]">Lender</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C] text-right">Risk</th>
+                  <th className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C] text-right">Flags</th>
                 </tr>
               </thead>
               <tbody>
@@ -599,27 +600,27 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
                     key={member.member_id}
                     onClick={() => setSelectedMember(member)}
                     className={cn(
-                      "cursor-pointer border-b border-[#2A2D3E] transition-colors",
-                      selectedMember?.member_id === member.member_id ? "bg-[#1C2B4A]" : "bg-[#1E2130] hover:bg-[#252840]"
+                      "cursor-pointer border-b border-[#37474F] transition-colors h-[32px]",
+                      selectedMember?.member_id === member.member_id ? "bg-[#1E3A4A]" : "bg-[#1E292E] hover:bg-[#2F3D42]"
                     )}
                   >
-                    <td className="p-3">
-                      <span className="text-data font-medium text-[#E8EAF0]">{member.business_name}</span>
+                    <td className="px-3">
+                      <span className="text-[12px] font-medium text-[#ECEFF1]">{member.business_name}</span>
                     </td>
-                    <td className="p-3 text-data text-[#8B90A8]">{member.borrower_name}</td>
-                    <td className="p-3 font-mono text-data text-[#8B90A8]">{member.ein}</td>
-                    <td className="p-3 text-right">
-                      <span className={cn("text-data font-medium tabular-nums", member.loan_amount >= 145000 ? "text-[#C94B4B]" : "text-[#E8EAF0]")}>
+                    <td className="px-3 text-[12px] text-[#90A4AE]">{member.borrower_name}</td>
+                    <td className="px-3 font-mono text-[12px] text-[#90A4AE]">{member.ein}</td>
+                    <td className="px-3 text-right">
+                      <span className={cn("text-[12px] font-medium tabular-nums", member.loan_amount >= 145000 ? "text-[#E53935]" : "text-[#ECEFF1]")}>
                         {formatCurrency(member.loan_amount)}
                       </span>
                     </td>
-                    <td className="p-3 text-data text-[#8B90A8]">{formatDate(member.loan_date)}</td>
-                    <td className="p-3 text-data text-[#8B90A8]">{member.lender}</td>
-                    <td className="p-3 text-right">
-                      <span className={cn("text-data font-bold tabular-nums", getRiskColor(member.risk_score))}>{member.risk_score}</span>
+                    <td className="px-3 text-[12px] text-[#90A4AE]">{formatDate(member.loan_date)}</td>
+                    <td className="px-3 text-[12px] text-[#90A4AE]">{member.lender}</td>
+                    <td className="px-3 text-right">
+                      <span className={cn("text-[12px] font-bold tabular-nums", getRiskColor(member.risk_score))}>{member.risk_score}</span>
                     </td>
-                    <td className="p-3 text-right">
-                      <span className="text-data text-[#C94B4B]">{member.red_flags.length}</span>
+                    <td className="px-3 text-right">
+                      <span className="text-[12px] text-[#E53935]">{member.red_flags.length}</span>
                     </td>
                   </tr>
                 ))}
@@ -634,35 +635,35 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         )}
 
         {/* ── Context Panels (3-col grid below fold) ──────────────────── */}
-        <div className="grid grid-cols-3 gap-px border-t border-[#2A2D3E] bg-[#2A2D3E]">
+        <div className="grid grid-cols-3 gap-px border-t border-[#37474F] bg-[#37474F]">
           {/* Smoking Gun */}
-          <div className="bg-[#0F1117] p-4">
-            <div className="border-2 border-[#C94B4B] bg-[#C94B4B]/5 p-4">
+          <div className="bg-[#263238] p-4">
+            <div className="border-2 border-[#E53935] bg-[#E53935]/5 p-4">
               <div className="mb-3 flex items-center gap-2">
-                <div className="h-2.5 w-2.5 bg-[#C94B4B]" />
-                <span className="text-label text-[#C94B4B]">Smoking Gun</span>
+                <div className="h-2.5 w-2.5 bg-[#E53935]" />
+                <span className="text-label text-[#E53935]">Smoking Gun</span>
               </div>
               <p className="text-label mb-1">Shared Element</p>
-              <p className="text-data font-semibold text-[#E8EAF0]">{ring.common_element}</p>
-              <div className="my-3 h-px bg-[#2A2D3E]" />
+              <p className="text-data font-semibold text-[#ECEFF1]">{ring.common_element}</p>
+              <div className="my-3 h-px bg-[#37474F]" />
               <p className="text-label mb-1">Ring Type</p>
-              <p className="text-data text-[#E8EAF0]">{RING_TYPE_LABELS[ring.ring_type]}</p>
-              <div className="my-3 h-px bg-[#2A2D3E]" />
+              <p className="text-data text-[#ECEFF1]">{RING_TYPE_LABELS[ring.ring_type]}</p>
+              <div className="my-3 h-px bg-[#37474F]" />
               <p className="text-label mb-1">Property Record</p>
-              <p className="text-data leading-relaxed text-[#8B90A8]">{ring.common_element_detail}</p>
+              <p className="text-data leading-relaxed text-[#90A4AE]">{ring.common_element_detail}</p>
             </div>
           </div>
 
           {/* Shared Indicators */}
-          <div className="bg-[#0F1117] p-4">
-            <div className="border border-[#2A2D3E] bg-[#1A1D27] p-4 h-full">
+          <div className="bg-[#263238] p-4">
+            <div className="border border-[#37474F] bg-[#2C3539] p-4 h-full">
               <p className="text-label mb-3">Shared Indicators</p>
               <div className="space-y-3">
                 <IndicatorRow label="Address" value={ring.common_element.split(",")[0]} count={ring.member_count} />
                 <IndicatorRow label="Bank Acct" value="****7703" count={ring.members.filter((m) => m.bank_account_last4 === "7703").length} />
                 <IndicatorRow label="SSN" value="****4821" count={ring.members.filter((m) => m.ssn_last4 === "4821").length} />
               </div>
-              <div className="my-4 h-px bg-[#2A2D3E]" />
+              <div className="my-4 h-px bg-[#37474F]" />
               <p className="text-label mb-2">Ring Statistics</p>
               <div className="space-y-1.5">
                 <StatRow label="Total Exposure" value={formatCurrency(ring.total_exposure)} danger />
@@ -674,8 +675,8 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
           </div>
 
           {/* Timeline */}
-          <div className="bg-[#0F1117] p-4">
-            <div className="border border-[#2A2D3E] bg-[#1A1D27] p-4 h-full">
+          <div className="bg-[#263238] p-4">
+            <div className="border border-[#37474F] bg-[#2C3539] p-4 h-full">
               <p className="text-label mb-3">Detection Timeline</p>
               <div className="space-y-3">
                 <TimelineEntry time="Nov 14, 09:23" text="Ring detected by Louvain community algorithm" />
@@ -693,7 +694,7 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
       {selectedMember && (
         <div className="fixed right-0 top-0 z-50 flex h-screen">
           <div className="w-8 cursor-pointer bg-black/30 backdrop-blur-sm" onClick={() => setSelectedMember(null)} />
-          <div className="w-[360px] border-l border-[#2A2D3E] bg-[#1A1D27] shadow-2xl">
+          <div className="w-[360px] border-l border-[#37474F] bg-[#2C3539] shadow-2xl">
             <Borrower360
               member={selectedMember}
               notes={memberNotes[selectedMember.member_id] || ""}
@@ -731,11 +732,11 @@ function InvestigationPanel({
   const showFindings = status === "complete";
 
   return (
-    <div className="flex h-full bg-[#0A0C12]">
+    <div className="flex h-full bg-[#263238]">
       {/* Steps / timeline column */}
-      <div className={cn("flex flex-col overflow-hidden border-r border-[#2A2D3E]", showFindings && findings ? "w-[420px] shrink-0" : "flex-1")}>
+      <div className={cn("flex flex-col overflow-hidden border-r border-[#37474F]", showFindings && findings ? "w-[420px] shrink-0" : "flex-1")}>
         {/* Panel header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#2A2D3E] px-4 py-2.5">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#37474F] px-4 py-2.5">
           <div className="flex items-center gap-2.5">
             {status === "running" && (
               <svg className="h-3.5 w-3.5 animate-spin text-[#7B5EA7]" viewBox="0 0 24 24" fill="none">
@@ -744,21 +745,21 @@ function InvestigationPanel({
               </svg>
             )}
             {status === "complete" && (
-              <div className="flex h-3.5 w-3.5 items-center justify-center bg-[#2A9B6B]">
+              <div className="flex h-3.5 w-3.5 items-center justify-center bg-[#43A047]">
                 <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             )}
-            {status === "error" && <div className="h-3.5 w-3.5 bg-[#C94B4B]" />}
-            <span className="text-xs font-semibold text-[#E8EAF0]">AI Investigation</span>
-            <span className="text-[10px] text-[#4A4F6A]">
+            {status === "error" && <div className="h-3.5 w-3.5 bg-[#E53935]" />}
+            <span className="text-xs font-semibold text-[#ECEFF1]">AI Investigation</span>
+            <span className="text-[10px] text-[#546E7A]">
               {status === "running" && "Running…"}
               {status === "complete" && `${visibleSteps.length} steps complete`}
               {status === "error" && "Connection failed"}
             </span>
           </div>
-          <button onClick={onClose} className="text-[#4A4F6A] hover:text-[#E8EAF0]">
+          <button onClick={onClose} className="text-[#546E7A] hover:text-[#ECEFF1]">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -768,7 +769,7 @@ function InvestigationPanel({
         {/* Step timeline */}
         <div ref={stepsRef} className="flex-1 overflow-y-auto p-3 space-y-1">
           {visibleSteps.length === 0 && status === "running" && (
-            <div className="flex items-center gap-2 py-4 text-[#4A4F6A]">
+            <div className="flex items-center gap-2 py-4 text-[#546E7A]">
               <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -780,9 +781,9 @@ function InvestigationPanel({
             <InvStepItem key={i} step={s} />
           ))}
           {status === "error" && (
-            <div className="flex items-start gap-2 border border-[#C94B4B]/30 bg-[#C94B4B]/5 p-2">
-              <div className="mt-0.5 h-2 w-2 shrink-0 bg-[#C94B4B]" />
-              <span className="text-[11px] text-[#C94B4B]">
+            <div className="flex items-start gap-2 border border-[#E53935]/30 bg-[#E53935]/5 p-2">
+              <div className="mt-0.5 h-2 w-2 shrink-0 bg-[#E53935]" />
+              <span className="text-[11px] text-[#E53935]">
                 WebSocket connection failed. Is the backend running on localhost:8000?
               </span>
             </div>
@@ -798,7 +799,7 @@ function InvestigationPanel({
           ) : (
             <div className="p-4">
               <p className="text-label mb-2">Investigation Complete</p>
-              <pre className="whitespace-pre-wrap text-[11px] text-[#8B90A8]">{steps.find((s) => s.type === "complete")?.content}</pre>
+              <pre className="whitespace-pre-wrap text-[11px] text-[#90A4AE]">{steps.find((s) => s.type === "complete")?.content}</pre>
             </div>
           )}
         </div>
@@ -813,18 +814,18 @@ function InvStepItem({ step }: { step: InvStep }) {
   const isToolCall = step.type === "tool_call";
 
   return (
-    <div className={cn("flex items-start gap-2 border-l-2 py-1 pl-2", isToolCall ? "border-[#7B5EA7]" : "border-[#2A6EBB]")}>
+    <div className={cn("flex items-start gap-2 border-l-2 py-1 pl-2", isToolCall ? "border-[#7B5EA7]" : "border-[#2196F3]")}>
       <div className="mt-1.5 shrink-0">
-        {isToolCall ? <div className="h-1.5 w-1.5 bg-[#7B5EA7]" /> : <div className="h-1.5 w-1.5 bg-[#2A6EBB]" />}
+        {isToolCall ? <div className="h-1.5 w-1.5 bg-[#7B5EA7]" /> : <div className="h-1.5 w-1.5 bg-[#2196F3]" />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className={cn("text-[9px] font-semibold uppercase tracking-wider", isToolCall ? "text-[#7B5EA7]" : "text-[#2A6EBB]")}>
+          <span className={cn("text-[9px] font-semibold uppercase tracking-wider", isToolCall ? "text-[#7B5EA7]" : "text-[#2196F3]")}>
             {isToolCall ? (step.tool_name ?? "tool") : "finding"}
           </span>
-          <span className="text-[9px] text-[#4A4F6A]">step {step.step}</span>
+          <span className="text-[9px] text-[#546E7A]">step {step.step}</span>
         </div>
-        <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[#8B90A8]">{step.content}</p>
+        <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[#90A4AE]">{step.content}</p>
       </div>
     </div>
   );
@@ -833,31 +834,31 @@ function InvStepItem({ step }: { step: InvStep }) {
 /* ── Structured Findings Panel ───────────────────────────────────────────── */
 
 const TIER_COLORS: Record<string, string> = {
-  CRITICAL: "text-[#C94B4B] border-[#C94B4B] bg-[#C94B4B]/10",
-  HIGH: "text-[#D4733A] border-[#D4733A] bg-[#D4733A]/10",
-  MEDIUM: "text-[#D4B83A] border-[#D4B83A] bg-[#D4B83A]/10",
-  LOW: "text-[#2A9B6B] border-[#2A9B6B] bg-[#2A9B6B]/10",
+  CRITICAL: "text-[#E53935] border-[#E53935] bg-[#E53935]/10",
+  HIGH: "text-[#FFB300] border-[#FFB300] bg-[#FFB300]/10",
+  MEDIUM: "text-[#FFB300] border-[#FFB300] bg-[#FFB300]/10",
+  LOW: "text-[#43A047] border-[#43A047] bg-[#43A047]/10",
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  ESCALATE_TO_DOJ: "text-[#C94B4B]",
-  REFER_TO_DOJ: "text-[#C94B4B]",
-  ESCALATE_TO_SENIOR: "text-[#D4733A]",
-  FURTHER_INVESTIGATION: "text-[#D4B83A]",
-  OPEN_CASE: "text-[#D4733A]",
-  DISMISS: "text-[#2A9B6B]",
+  ESCALATE_TO_DOJ: "text-[#E53935]",
+  REFER_TO_DOJ: "text-[#E53935]",
+  ESCALATE_TO_SENIOR: "text-[#FFB300]",
+  FURTHER_INVESTIGATION: "text-[#FFB300]",
+  OPEN_CASE: "text-[#FFB300]",
+  DISMISS: "text-[#43A047]",
 };
 
 const SEVERITY_DOT: Record<string, string> = {
-  CRITICAL: "bg-[#C94B4B]",
-  HIGH: "bg-[#D4733A]",
-  MEDIUM: "bg-[#D4B83A]",
-  LOW: "bg-[#2A9B6B]",
+  CRITICAL: "bg-[#E53935]",
+  HIGH: "bg-[#FFB300]",
+  MEDIUM: "bg-[#FFB300]",
+  LOW: "bg-[#43A047]",
 };
 
 function FindingsPanel({ findings }: { findings: InvFindings }) {
-  const tierStyle = TIER_COLORS[findings.risk_tier] ?? "text-[#8B90A8] border-[#2A2D3E] bg-[#1A1D27]";
-  const actionColor = ACTION_COLORS[findings.recommended_action] ?? "text-[#8B90A8]";
+  const tierStyle = TIER_COLORS[findings.risk_tier] ?? "text-[#90A4AE] border-[#37474F] bg-[#2C3539]";
+  const actionColor = ACTION_COLORS[findings.recommended_action] ?? "text-[#90A4AE]";
 
   return (
     <div className="p-4 space-y-4">
@@ -865,39 +866,39 @@ function FindingsPanel({ findings }: { findings: InvFindings }) {
       <div className="flex items-start justify-between gap-4">
         <div className={cn("border px-3 py-1.5 text-sm font-bold", tierStyle)}>{findings.risk_tier}</div>
         <div className="text-right">
-          <p className="text-[10px] text-[#4A4F6A]">Recommended Action</p>
+          <p className="text-[10px] text-[#546E7A]">Recommended Action</p>
           <p className={cn("text-xs font-semibold", actionColor)}>{findings.recommended_action.replace(/_/g, " ")}</p>
         </div>
       </div>
 
       {/* Estimated amount */}
       {findings.estimated_fraud_amount > 0 && (
-        <div className="border border-[#C94B4B]/30 bg-[#C94B4B]/5 px-3 py-2">
-          <p className="text-[10px] text-[#4A4F6A]">Estimated Fraud Amount</p>
-          <p className="text-lg font-bold text-[#C94B4B]">{formatCurrency(findings.estimated_fraud_amount)}</p>
+        <div className="border border-[#E53935]/30 bg-[#E53935]/5 px-3 py-2">
+          <p className="text-[10px] text-[#546E7A]">Estimated Fraud Amount</p>
+          <p className="text-lg font-bold text-[#E53935]">{formatCurrency(findings.estimated_fraud_amount)}</p>
         </div>
       )}
 
       {/* Executive summary */}
-      <div className="border border-[#2A2D3E] bg-[#1A1D27] p-3">
+      <div className="border border-[#37474F] bg-[#2C3539] p-3">
         <p className="text-label mb-1.5">Executive Summary</p>
-        <p className="text-[12px] leading-relaxed text-[#C4C8DC]">{findings.executive_summary}</p>
+        <p className="text-[12px] leading-relaxed text-[#ECEFF1]">{findings.executive_summary}</p>
       </div>
 
       {/* Key findings */}
       {findings.key_findings && findings.key_findings.length > 0 && (
-        <div className="border border-[#2A2D3E] bg-[#1A1D27] p-3">
+        <div className="border border-[#37474F] bg-[#2C3539] p-3">
           <p className="text-label mb-2">Key Findings</p>
           <div className="space-y-2">
             {findings.key_findings.map((kf, i) => {
               const sev = (kf.severity ?? "").toUpperCase();
-              const dotColor = SEVERITY_DOT[sev] ?? "bg-[#4A4F6A]";
+              const dotColor = SEVERITY_DOT[sev] ?? "bg-[#546E7A]";
               return (
                 <div key={i} className="flex items-start gap-2">
                   <div className={cn("mt-1.5 h-1.5 w-1.5 shrink-0", dotColor)} />
                   <div>
-                    <p className="text-[11px] leading-snug text-[#C4C8DC]">{kf.finding}</p>
-                    {kf.data_source && <p className="mt-0.5 font-mono text-[9px] text-[#4A4F6A]">{kf.data_source}</p>}
+                    <p className="text-[11px] leading-snug text-[#ECEFF1]">{kf.finding}</p>
+                    {kf.data_source && <p className="mt-0.5 font-mono text-[9px] text-[#546E7A]">{kf.data_source}</p>}
                   </div>
                 </div>
               );
@@ -908,13 +909,13 @@ function FindingsPanel({ findings }: { findings: InvFindings }) {
 
       {/* Evidence citations */}
       {findings.evidence_citations && findings.evidence_citations.length > 0 && (
-        <div className="border border-[#2A2D3E] bg-[#1A1D27] p-3">
+        <div className="border border-[#37474F] bg-[#2C3539] p-3">
           <p className="text-label mb-2">Evidence Citations</p>
           <div className="space-y-1">
             {findings.evidence_citations.map((cite, i) => (
               <div key={i} className="flex items-start gap-1.5">
-                <span className="shrink-0 font-mono text-[9px] text-[#4A4F6A]">[{i + 1}]</span>
-                <span className="text-[11px] text-[#8B90A8]">{cite}</span>
+                <span className="shrink-0 font-mono text-[9px] text-[#546E7A]">[{i + 1}]</span>
+                <span className="text-[11px] text-[#90A4AE]">{cite}</span>
               </div>
             ))}
           </div>
@@ -939,12 +940,12 @@ function Borrower360({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-[#2A2D3E] px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[#37474F] px-4 py-3">
         <div>
-          <p className="text-sm font-semibold text-[#E8EAF0]">{member.borrower_name}</p>
-          <p className="text-[10px] text-[#4A4F6A]">{member.member_id}</p>
+          <p className="text-sm font-semibold text-[#ECEFF1]">{member.borrower_name}</p>
+          <p className="text-[10px] text-[#546E7A]">{member.member_id}</p>
         </div>
-        <button onClick={onClose} className="text-[#4A4F6A] hover:text-[#E8EAF0]">
+        <button onClick={onClose} className="text-[#546E7A] hover:text-[#ECEFF1]">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -953,12 +954,12 @@ function Borrower360({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center gap-3">
-          <span className={cn("flex h-14 w-14 items-center justify-center text-xl font-bold tabular-nums", getRiskColor(member.risk_score), "bg-slate-800")}>
+          <span className={cn("flex h-14 w-14 items-center justify-center text-xl font-bold tabular-nums", getRiskColor(member.risk_score), "bg-[#2C3539]")}>
             {member.risk_score}
           </span>
           <div>
-            <p className="text-sm font-semibold text-[#E8EAF0]">{member.business_name}</p>
-            <p className="text-xs text-[#8B90A8]">
+            <p className="text-sm font-semibold text-[#ECEFF1]">{member.business_name}</p>
+            <p className="text-xs text-[#90A4AE]">
               {member.program} &middot; EIN {member.ein}
             </p>
           </div>
@@ -982,9 +983,9 @@ function Borrower360({
           <PanelSection title="Other Businesses">
             <div className="space-y-1">
               {member.all_businesses.map((biz) => (
-                <div key={biz} className={cn("text-data", biz === member.business_name ? "text-[#4A4F6A]" : "text-[#E8EAF0]")}>
+                <div key={biz} className={cn("text-data", biz === member.business_name ? "text-[#546E7A]" : "text-[#ECEFF1]")}>
                   {biz}
-                  {biz === member.business_name && <span className="ml-1 text-[10px] text-[#4A4F6A]">(current)</span>}
+                  {biz === member.business_name && <span className="ml-1 text-[10px] text-[#546E7A]">(current)</span>}
                 </div>
               ))}
             </div>
@@ -994,9 +995,9 @@ function Borrower360({
         <PanelSection title="Risk Flags" danger>
           <div className="space-y-1.5">
             {member.red_flags.map((flag) => (
-              <div key={flag} className="flex items-start gap-2 border border-[#C94B4B]/20 bg-[#C94B4B]/5 px-2 py-1.5">
-                <div className="mt-1 h-1.5 w-1.5 shrink-0 bg-[#C94B4B]" />
-                <span className="text-data text-[#C94B4B]">{flag}</span>
+              <div key={flag} className="flex items-start gap-2 border border-[#E53935]/20 bg-[#E53935]/5 px-2 py-1.5">
+                <div className="mt-1 h-1.5 w-1.5 shrink-0 bg-[#E53935]" />
+                <span className="text-data text-[#E53935]">{flag}</span>
               </div>
             ))}
           </div>
@@ -1008,19 +1009,19 @@ function Borrower360({
             onChange={(e) => onNotesChange(e.target.value)}
             placeholder="Add notes about this borrower..."
             rows={4}
-            className="w-full border border-[#2A2D3E] bg-[#0F1117] p-2 text-data text-[#E8EAF0] placeholder-[#4A4F6A] focus:border-[#2A6EBB] focus:outline-none"
+            className="w-full border border-[#37474F] bg-[#263238] p-2 text-data text-[#ECEFF1] placeholder-[#546E7A] focus:border-[#2196F3] focus:outline-none"
           />
         </PanelSection>
       </div>
 
-      <div className="border-t border-[#2A2D3E] p-4 space-y-2">
+      <div className="border-t border-[#37474F] p-4 space-y-2">
         <Link
           href={`/entity/${member.member_id}`}
-          className="block w-full border border-[#2A6EBB] bg-[#2A6EBB]/10 px-3 py-2 text-center text-xs font-semibold text-[#2A6EBB] hover:bg-[#2A6EBB]/20"
+          className="block w-full border border-[#2196F3] bg-[#2196F3]/10 px-3 py-2 text-center text-xs font-semibold text-[#2196F3] hover:bg-[#2196F3]/20"
         >
           Open Full Entity Profile
         </Link>
-        <button className="w-full border border-[#2A2D3E] bg-[#1E2130] px-3 py-2 text-xs text-[#8B90A8] hover:bg-[#252840]">
+        <button className="w-full border border-[#37474F] bg-[#1E292E] px-3 py-2 text-xs text-[#90A4AE] hover:bg-[#2F3D42]">
           Flag for SAR Filing
         </button>
       </div>
@@ -1044,17 +1045,17 @@ function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; 
     composite >= 90 ? "CRITICAL" : composite >= 75 ? "HIGH" : composite >= 50 ? "MEDIUM" : "LOW";
   const severityColor =
     composite >= 90
-      ? "text-[#C94B4B]"
+      ? "text-[#E53935]"
       : composite >= 75
-      ? "text-[#D4733A]"
+      ? "text-[#FFB300]"
       : composite >= 50
-      ? "text-[#D4B83A]"
-      : "text-[#2A9B6B]";
+      ? "text-[#FFB300]"
+      : "text-[#43A047]";
 
   return (
-    <div className="border-t border-[#2A2D3E]">
-      <div className="bg-[#0F1117] p-4">
-        <div className="border border-[#2A2D3E] bg-[#1A1D27] p-4">
+    <div className="border-t border-[#37474F]">
+      <div className="bg-[#263238] p-4">
+        <div className="border border-[#37474F] bg-[#2C3539] p-4">
           {/* Header */}
           <div className="mb-4 flex items-center gap-3">
             <span className="text-label">Risk Score</span>
@@ -1063,7 +1064,7 @@ function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; 
           </div>
 
           {/* Divider */}
-          <div className="mb-3 h-px bg-[#2A2D3E]" />
+          <div className="mb-3 h-px bg-[#37474F]" />
 
           {/* Rows */}
           <div className="space-y-2.5">
@@ -1072,11 +1073,11 @@ function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; 
               return (
                 <div key={row.key} className="flex items-center gap-3">
                   {/* Label + weight */}
-                  <span className="w-12 shrink-0 text-[11px] font-semibold text-[#E8EAF0]">{row.label}</span>
-                  <span className="w-8 shrink-0 text-[10px] tabular-nums text-[#4A4F6A]">{row.weight}</span>
+                  <span className="w-12 shrink-0 text-[11px] font-semibold text-[#ECEFF1]">{row.label}</span>
+                  <span className="w-8 shrink-0 text-[10px] tabular-nums text-[#546E7A]">{row.weight}</span>
 
                   {/* Progress bar */}
-                  <div className="h-2 w-28 shrink-0 bg-slate-800">
+                  <div className="h-2 w-28 shrink-0 bg-[#2C3539]">
                     <div
                       className="h-full bg-[#14B8A6]"
                       style={{ width: `${score}%` }}
@@ -1084,7 +1085,7 @@ function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; 
                   </div>
 
                   {/* Sub-score */}
-                  <span className="w-8 shrink-0 text-[11px] font-bold tabular-nums text-[#E8EAF0]">{score}</span>
+                  <span className="w-8 shrink-0 text-[11px] font-bold tabular-nums text-[#ECEFF1]">{score}</span>
 
                   {/* Context: chips for rules, label for ML, hub for graph */}
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -1092,16 +1093,16 @@ function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; 
                       breakdown.firedRules.map((rule) => (
                         <span
                           key={rule}
-                          className="border border-[#C94B4B]/30 bg-[#C94B4B]/5 px-1.5 py-0.5 text-[9px] font-semibold text-[#C94B4B]"
+                          className="border border-[#E53935]/30 bg-[#E53935]/5 px-1.5 py-0.5 text-[9px] font-semibold text-[#E53935]"
                         >
                           {rule}
                         </span>
                       ))}
                     {row.key === "ml" && (
-                      <span className="text-[10px] text-[#8B90A8]">{breakdown.mlLabel}</span>
+                      <span className="text-[10px] text-[#90A4AE]">{breakdown.mlLabel}</span>
                     )}
                     {row.key === "graph" && (
-                      <span className="text-[10px] text-[#8B90A8]">
+                      <span className="text-[10px] text-[#90A4AE]">
                         Degree-{memberCount - 1} hub
                       </span>
                     )}
@@ -1120,8 +1121,8 @@ function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; 
 
 function PanelSection({ title, children, danger }: { title: string; children: React.ReactNode; danger?: boolean }) {
   return (
-    <div className={cn("border p-3", danger ? "border-[#C94B4B]/30 bg-[#C94B4B]/5" : "border-[#2A2D3E] bg-[#0F1117]")}>
-      <p className={cn("text-label mb-2", danger ? "text-[#C94B4B]" : "")}>{title}</p>
+    <div className={cn("border p-3", danger ? "border-[#E53935]/30 bg-[#E53935]/5" : "border-[#37474F] bg-[#263238]")}>
+      <p className={cn("text-label mb-2", danger ? "text-[#E53935]" : "")}>{title}</p>
       {children}
     </div>
   );
@@ -1130,8 +1131,8 @@ function PanelSection({ title, children, danger }: { title: string; children: Re
 function PanelField({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
   return (
     <div>
-      <p className="text-[10px] text-[#4A4F6A]">{label}</p>
-      <p className={cn("text-data font-medium", danger ? "text-[#C94B4B]" : "text-[#E8EAF0]")}>{value}</p>
+      <p className="text-[10px] text-[#546E7A]">{label}</p>
+      <p className={cn("text-data font-medium", danger ? "text-[#E53935]" : "text-[#ECEFF1]")}>{value}</p>
     </div>
   );
 }
@@ -1139,30 +1140,30 @@ function PanelField({ label, value, danger }: { label: string; value: string; da
 function StatRow({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[10px] text-[#4A4F6A]">{label}</span>
-      <span className={cn("text-data font-medium", danger ? "text-[#C94B4B]" : "text-[#E8EAF0]")}>{value}</span>
+      <span className="text-[10px] text-[#546E7A]">{label}</span>
+      <span className={cn("text-data font-medium", danger ? "text-[#E53935]" : "text-[#ECEFF1]")}>{value}</span>
     </div>
   );
 }
 
 function IndicatorRow({ label, value, count }: { label: string; value: string; count: number }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#2A2D3E] pb-2 last:border-0 last:pb-0">
+    <div className="flex items-center justify-between border-b border-[#37474F] pb-2 last:border-0 last:pb-0">
       <div>
-        <p className="text-[10px] text-[#4A4F6A]">{label}</p>
-        <p className="text-data text-[#C94B4B]">{value}</p>
+        <p className="text-[10px] text-[#546E7A]">{label}</p>
+        <p className="text-data text-[#E53935]">{value}</p>
       </div>
-      <span className="text-data font-bold text-[#C94B4B]">{count}x</span>
+      <span className="text-data font-bold text-[#E53935]">{count}x</span>
     </div>
   );
 }
 
 function TimelineEntry({ time, text }: { time: string; text: string }) {
   return (
-    <div className="flex gap-2 border-l-2 border-[#2A2D3E] pl-2">
+    <div className="flex gap-2 border-l-2 border-[#37474F] pl-2">
       <div>
-        <p className="text-[10px] text-[#4A4F6A]">{time}</p>
-        <p className="text-data text-[#8B90A8]">{text}</p>
+        <p className="text-[10px] text-[#546E7A]">{time}</p>
+        <p className="text-data text-[#90A4AE]">{text}</p>
       </div>
     </div>
   );

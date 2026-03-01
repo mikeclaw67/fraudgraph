@@ -1,4 +1,5 @@
-/* FraudGraph — Navigation sidebar with branding, labels, and teal active state */
+/* FraudGraph — Navigation sidebar with branding, labels, and active state.
+   Update when adding new navigation items or changing the sidebar layout. */
 "use client";
 
 import Link from "next/link";
@@ -15,17 +16,17 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside data-print-hide className="fixed left-0 top-0 z-40 flex h-screen w-[200px] flex-col border-r border-slate-700/50 bg-slate-950">
+    <aside data-print-hide className="fixed left-0 top-0 z-40 flex h-screen w-[200px] flex-col border-r border-[#37474F] bg-[#263238]">
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-slate-700/50 px-4">
-        <div className="flex h-7 w-7 items-center justify-center bg-sky-500/20">
-          <svg className="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="flex h-14 items-center gap-2.5 border-b border-[#37474F] px-4">
+        <div className="flex h-7 w-7 items-center justify-center bg-[#2196F3]/20">
+          <svg className="h-4 w-4 text-[#2196F3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-slate-100">FraudGraph</h1>
-          <p className="text-[9px] text-slate-500 tracking-wider">FRAUD DETECTION</p>
+          <h1 className="text-sm font-semibold text-[#ECEFF1]">FraudGraph</h1>
+          <p className="text-[9px] text-[#546E7A] tracking-wider">FRAUD DETECTION</p>
         </div>
       </div>
 
@@ -40,8 +41,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium transition-colors",
                 isActive
-                  ? "bg-sky-500/10 text-sky-400"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  ? "bg-[#2196F3]/10 text-[#2196F3]"
+                  : "text-[#90A4AE] hover:bg-[#2C3539] hover:text-[#ECEFF1]"
               )}
             >
               <item.icon className="h-[18px] w-[18px]" />
@@ -52,10 +53,10 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-700/50 px-4 py-3">
+      <div className="border-t border-[#37474F] px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 bg-emerald-400" />
-          <span className="text-[10px] text-slate-500">System Operational</span>
+          <div className="h-1.5 w-1.5 bg-[#43A047]" />
+          <span className="text-[10px] text-[#546E7A]">System Operational</span>
         </div>
       </div>
     </aside>

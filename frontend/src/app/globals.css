@@ -1,22 +1,23 @@
-/* FraudGraph — Government investigation tool design system */
+/* FraudGraph — Government investigation tool design system.
+   Update when changing the global color palette or typography scale. */
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg-shell: #0F1117;
-  --color-bg-panel: #1A1D27;
-  --color-bg-row: #1E2130;
-  --color-bg-row-hover: #252840;
-  --color-bg-selected: #1C2B4A;
-  --color-border: #2A2D3E;
-  --color-text-primary: #E8EAF0;
-  --color-text-secondary: #8B90A8;
-  --color-text-muted: #4A4F6A;
-  --color-accent: #2A6EBB;
-  --color-critical: #C94B4B;
-  --color-high: #D4733A;
-  --color-medium: #C9A227;
-  --color-low: #3E8E57;
-  --color-smoking-gun: #C94B4B;
+  --color-bg-shell: #263238;
+  --color-bg-panel: #2C3539;
+  --color-bg-row: #1E292E;
+  --color-bg-row-hover: #2F3D42;
+  --color-bg-selected: #1E3A4A;
+  --color-border: #37474F;
+  --color-text-primary: #ECEFF1;
+  --color-text-secondary: #90A4AE;
+  --color-text-muted: #546E7A;
+  --color-accent: #2196F3;
+  --color-critical: #E53935;
+  --color-high: #FFB300;
+  --color-medium: #FFB300;
+  --color-low: #43A047;
+  --color-smoking-gun: #E53935;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

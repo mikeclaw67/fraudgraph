@@ -1,11 +1,12 @@
-/* FraudGraph — Reusable badge components for severity and risk scores */
+/* FraudGraph — Reusable badge components for severity, status, risk scores, and rules.
+   Update when adding new badge variants or changing the Palantir color palette. */
 
 import { cn, severityBg, riskScoreBg, ruleDisplayName, statusDisplayName } from "@/lib/utils";
 import type { Severity, AlertStatus } from "@/lib/types";
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
   return (
-    <span className={cn("inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold", severityBg(severity))}>
+    <span className={cn("inline-flex items-center border px-2 py-0.5 text-[10px] uppercase font-semibold tracking-[0.5px]", severityBg(severity))}>
       {severity}
     </span>
   );
@@ -15,7 +16,7 @@ export function RiskScoreBadge({ score, size = "sm" }: { score: number; size?: "
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-lg font-bold tabular-nums",
+        "inline-flex items-center justify-center font-bold tabular-nums",
         riskScoreBg(score),
         size === "lg" ? "h-14 w-14 text-xl" : "h-8 min-w-[2rem] px-1.5 text-sm"
       )}
@@ -27,16 +28,19 @@ export function RiskScoreBadge({ score, size = "sm" }: { score: number; size?: "
 
 export function StatusBadge({ status }: { status: AlertStatus | string }) {
   const colors: Record<string, string> = {
-    NEW: "bg-sky-500/20 text-sky-400 border-sky-500/30",
-    REVIEWING: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    ESCALATED: "bg-red-500/20 text-red-400 border-red-500/30",
-    DISMISSED: "bg-slate-500/20 text-slate-400 border-slate-500/30",
-    RESOLVED: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    OPEN: "bg-sky-500/20 text-sky-400 border-sky-500/30",
-    IN_REVIEW: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    NEW: "bg-[#1565C0] text-[#90CAF9]",
+    REVIEWING: "bg-[#E65100] text-[#FFE0B2]",
+    UNDER_REVIEW: "bg-[#E65100] text-[#FFE0B2]",
+    ESCALATED: "bg-[#4A148C] text-[#E1BEE7]",
+    CASE_OPENED: "bg-[#4A148C] text-[#E1BEE7]",
+    DISMISSED: "bg-[#37474F] text-[#90A4AE]",
+    RESOLVED: "bg-[#1B5E20] text-[#C8E6C9]",
+    REFERRED: "bg-[#1B5E20] text-[#C8E6C9]",
+    OPEN: "bg-[#1565C0] text-[#90CAF9]",
+    IN_REVIEW: "bg-[#E65100] text-[#FFE0B2]",
   };
   return (
-    <span className={cn("inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium", colors[status] || colors.NEW)}>
+    <span className={cn("inline-flex items-center px-2 py-0.5 text-[10px] uppercase font-semibold tracking-[0.5px]", colors[status] || colors.NEW)}>
       {statusDisplayName(status)}
     </span>
   );
@@ -44,7 +48,7 @@ export function StatusBadge({ status }: { status: AlertStatus | string }) {
 
 export function RuleBadge({ rule }: { rule: string }) {
   return (
-    <span className="inline-flex items-center rounded-md border border-slate-600 bg-slate-800 px-2 py-0.5 text-xs text-slate-300">
+    <span className="inline-flex items-center border border-[#455A64] bg-[#2C3539] px-2 py-0.5 text-[10px] uppercase font-semibold tracking-[0.5px] text-[#90A4AE]">
       {ruleDisplayName(rule)}
     </span>
   );
