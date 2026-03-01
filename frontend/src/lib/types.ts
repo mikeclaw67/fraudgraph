@@ -1,7 +1,7 @@
 /* FraudGraph — Ring-first type definitions for fraud investigation platform */
 
 export type RingType = "ADDRESS_FARM" | "ACCOUNT_CLUSTER" | "EIN_RECYCLER" | "STRAW_COMPANY" | "THRESHOLD_GAMING";
-export type RingStatus = "NEW" | "UNDER_REVIEW" | "REFERRED" | "DISMISSED";
+export type RingStatus = "NEW" | "DETECTED" | "UNDER_REVIEW" | "CASE_OPENED" | "REFERRED" | "CLOSED" | "DISMISSED";
 export type CaseStatus = "OPEN" | "UNDER_REVIEW" | "REFERRED_TO_DOJ" | "CLOSED";
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 export type Schema = "ppp_loans" | "medicaid" | "procurement";

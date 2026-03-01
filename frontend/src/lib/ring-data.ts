@@ -149,7 +149,7 @@ const RING_DEFINITIONS: {
   member_count: number;
   total_exposure: number;
   avg_risk_score: number;
-  status: "NEW" | "UNDER_REVIEW" | "REFERRED" | "DISMISSED";
+  status: "NEW" | "DETECTED" | "UNDER_REVIEW" | "CASE_OPENED" | "REFERRED" | "CLOSED" | "DISMISSED";
   assigned_to: string | null;
   detected_at: string;
 }[] = [
