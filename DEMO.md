@@ -94,6 +94,8 @@ curl -s http://localhost:8000/api/config | python3 -m json.tool
 
 > "And this is the Foundry pattern — same pipeline, different ontology. We have PPP loans active right now, but we also support Medicaid claims fraud and government procurement fraud. One config swap changes the entire detection surface."
 
+> **If asked about Medicare generalization**: "It's the same graph. In 2025, federal prosecutors in South Florida charged Jorge Almansa with running an $11.4 million Medicare DME kickback ring — multiple provider entities at the same address, all routing payments to accounts he controlled. ADDR_REUSE and ACCOUNT_SHARE fire identically. The only additions are Claim, Beneficiary, and Physician node types — the detection logic doesn't change." *(US v. Almansa & Cruz, 0:25-cr-60142, S.D. Fla.)*
+
 ---
 
 ## Step 3: The Test Suite (45 seconds)
