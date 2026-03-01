@@ -238,8 +238,14 @@ class Neo4jClient:
 
         Returns {"nodes": [...], "edges": [...]} formatted for Sigma.js.
         """
+        id_field = {
+            "Borrower": "borrower_id",
+            "Business": "ein",
+            "Address": "address_hash",
+            "BankAccount": "account_key",
+        }.get(center_label, "borrower_id")
         query = f"""
-        MATCH path = (center:{center_label} {{borrower_id: $center_id}})-[*1..{depth}]-(connected)
+        MATCH path = (center:{center_label} {{{id_field}: $center_id}})-[*1..{depth}]-(connected)
         WITH nodes(path) AS ns, relationships(path) AS rs
         UNWIND ns AS n
         WITH COLLECT(DISTINCT n) AS nodes, COLLECT(DISTINCT rs) AS all_rels

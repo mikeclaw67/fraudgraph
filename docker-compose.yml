@@ -1,6 +1,6 @@
 # FraudGraph Docker Compose — single-command infrastructure for development.
-# Runs PostgreSQL 16, Neo4j 5 (with APOC), Redis 7, and the FastAPI backend.
-# Usage: docker compose up -d
+# Backend is in-memory and self-seeding — no depends_on or seed container needed.
+# Usage: make demo  (or: docker compose up -d)
 
 services:
   postgres:
@@ -62,18 +62,27 @@ services:
       FG_NEO4J_URI: bolt://neo4j:7687
       FG_NEO4J_PASSWORD: fraudgraph
       FG_REDIS_URL: redis://redis:6379/0
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      neo4j:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    # No depends_on — backend is in-memory and self-seeding at startup.
+    # Infrastructure services (postgres, neo4j, redis) are scaffolding
+    # for future sprints; backend does not block on them.
     volumes:
       - .:/app
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ../fraudgraph-frontend/frontend
+      dockerfile: Dockerfile
+    container_name: fraudgraph-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   pg_data:

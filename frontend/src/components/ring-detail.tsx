@@ -642,14 +642,29 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
                 <div className="h-2.5 w-2.5 bg-[#C94B4B]" />
                 <span className="text-label text-[#C94B4B]">Smoking Gun</span>
               </div>
-              <p className="text-label mb-1">Shared Element</p>
+              <p className="text-label mb-1">Common Element</p>
               <p className="text-data font-semibold text-[#E8EAF0]">{ring.common_element}</p>
               <div className="my-3 h-px bg-[#2A2D3E]" />
               <p className="text-label mb-1">Ring Type</p>
               <p className="text-data text-[#E8EAF0]">{RING_TYPE_LABELS[ring.ring_type]}</p>
               <div className="my-3 h-px bg-[#2A2D3E]" />
-              <p className="text-label mb-1">Property Record</p>
-              <p className="text-data leading-relaxed text-[#8B90A8]">{ring.common_element_detail}</p>
+              <p className="text-label mb-1">Key Facts</p>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {ring.common_element_detail
+                  .split(/\.\s+/)
+                  .map(s => s.replace(/\.$/, "").trim())
+                  .filter(Boolean)
+                  .map((fact, i) => (
+                    <span
+                      key={i}
+                      title={fact}
+                      className="inline-block bg-[#1E2130] border border-[#2A2D3E] px-2 py-0.5 text-[11px] text-[#8B90A8] leading-snug"
+                    >
+                      {fact.length > 52 ? fact.slice(0, 49) + "\u2026" : fact}
+                    </span>
+                  ))
+                }
+              </div>
             </div>
           </div>
 
