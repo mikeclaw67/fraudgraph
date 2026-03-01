@@ -88,6 +88,8 @@ curl -s http://localhost:8000/api/config | python3 -m json.tool
 
 > **Talking point**: "Three-layer detection. Rules catch the obvious fraud — address farms, EIN reuse, shell companies. ML catches statistical anomalies the rules miss. Graph analytics find network connections. The composite score weights all three: 40% rules, 35% ML, 25% graph. Every threshold is configurable per schema."
 
+> **If the audience is government / SBA**: "In 2021, federal prosecutors in Minnesota convicted Harold Kaeding for creating 4 shell companies at a PostNet box and applying for $2.18 million in PPP loans. The Kaeding ring would have scored CRITICAL on three FraudGraph rules simultaneously — ADDR_REUSE, STRAW_CO, and ACCOUNT_SHARE. An investigator using FraudGraph would have seen this cluster on day one. That PostNet box is exactly what you see in the Ring Detail view — we model it as the CMRA address pattern." *(US v. Kaeding, 0:21-cr-00169, D. Minnesota)*
+
 **Bonus** — show the schema generalization:
 
 > "And this is the Foundry pattern — same pipeline, different ontology. We have PPP loans active right now, but we also support Medicaid claims fraud and government procurement fraud. One config swap changes the entire detection surface."
