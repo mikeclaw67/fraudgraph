@@ -1,5 +1,5 @@
-/* ExposureChart — horizontal bar chart showing dollar exposure by ring type.
-   Update when design tokens change or ring type taxonomy expands. */
+/* FraudGraph — Exposure by ring type horizontal bar chart.
+   Update when adding new ring types or changing the color palette. */
 "use client";
 
 import {
@@ -29,7 +29,7 @@ const tooltipStyle = {
 export default function ExposureChart() {
   return (
     <div className="w-full h-[280px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={280}>
         <BarChart data={EXPOSURE_BY_TYPE} layout="vertical" margin={{ left: 4, right: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#37474F" horizontal={false} />
           <XAxis

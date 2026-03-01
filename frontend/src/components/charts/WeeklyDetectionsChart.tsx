@@ -1,5 +1,5 @@
-/* WeeklyDetectionsChart — line chart showing ring detections per week.
-   Update when design tokens change or detection cadence model changes. */
+/* FraudGraph — Weekly ring detections line chart (26-week rolling window).
+   Update when changing the time window or color palette. */
 "use client";
 
 import {
@@ -35,7 +35,7 @@ const tooltipStyle = {
 export default function WeeklyDetectionsChart() {
   return (
     <div className="w-full h-[280px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={280}>
         <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#37474F" />
           <XAxis

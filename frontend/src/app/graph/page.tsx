@@ -1,4 +1,5 @@
-/* FraudGraph — Full-screen Sigma.js WebGL graph explorer with side panel */
+/* FraudGraph — Full-screen Sigma.js WebGL graph explorer with side panel.
+   Update when adding new node types, edge types, or changing graph configuration. */
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -52,7 +53,8 @@ export default function GraphPage() {
       const { default: Sigma } = await import("sigma");
       const { default: forceAtlas2 } = await import("graphology-layout-forceatlas2");
 
-      const graph = new Graph();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const graph = new Graph() as any;
 
       // Add nodes
       nodes.forEach((node) => {
@@ -125,7 +127,7 @@ export default function GraphPage() {
   }, []);
 
   const NODE_TYPES = [
-    { type: "Borrower", color: "#2196F3" },
+    { type: "Borrower", color: "#6366f1" },
     { type: "Business", color: "#43A047" },
     { type: "Address", color: "#FFB300" },
     { type: "BankAccount", color: "#E53935" },
@@ -141,25 +143,25 @@ export default function GraphPage() {
     <div className="relative h-screen overflow-hidden">
       {/* Controls overlay */}
       <div className="absolute left-4 top-4 z-10 space-y-3">
-        <div className="border border-border bg-bg-panel/95 p-3 backdrop-blur">
-          <h2 className="mb-2 text-sm font-semibold text-text-primary">Graph Explorer</h2>
-          <p className="text-xs text-text-secondary">{nodes.length} nodes &middot; {edges.length} edges</p>
+        <div className="border border-[#37474F] bg-[#2C3539]/95 p-3 backdrop-blur">
+          <h2 className="mb-2 text-sm font-semibold text-[#ECEFF1]">Graph Explorer</h2>
+          <p className="text-xs text-[#90A4AE]">{nodes.length} nodes &middot; {edges.length} edges</p>
         </div>
 
         {/* Filters */}
-        <div className="border border-border bg-bg-panel/95 p-3 backdrop-blur">
-          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[1px] text-text-muted">Filters</h3>
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-text-primary">
+        <div className="border border-[#37474F] bg-[#2C3539]/95 p-3 backdrop-blur">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#90A4AE]">Filters</h3>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-[#90A4AE]">
             <input
               type="checkbox"
               checked={fraudOnly}
               onChange={(e) => setFraudOnly(e.target.checked)}
-              className="h-4 w-4 border-border-2 bg-bg-input"
+              className="h-4 w-4 border-[#455A64] bg-[#2C3539]"
             />
             Fraud connections only
           </label>
           <div className="mt-2">
-            <label className="text-xs text-text-secondary">Node limit: {nodeLimit}</label>
+            <label className="text-xs text-[#90A4AE]">Node limit: {nodeLimit}</label>
             <input
               type="range"
               min={50}
@@ -173,22 +175,22 @@ export default function GraphPage() {
         </div>
 
         {/* Legend */}
-        <div className="border border-border bg-bg-panel/95 p-3 backdrop-blur">
-          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[1px] text-text-muted">Node Types</h3>
+        <div className="border border-[#37474F] bg-[#2C3539]/95 p-3 backdrop-blur">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#90A4AE]">Node Types</h3>
           <div className="space-y-1.5">
             {NODE_TYPES.map(({ type, color }) => (
               <div key={type} className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-xs text-text-primary">{type}</span>
+                <span className="text-xs text-[#90A4AE]">{type}</span>
               </div>
             ))}
           </div>
-          <h3 className="mb-2 mt-3 text-[11px] font-semibold uppercase tracking-[1px] text-text-muted">Edge Types</h3>
+          <h3 className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wider text-[#90A4AE]">Edge Types</h3>
           <div className="space-y-1">
             {EDGE_TYPES.map((type) => (
               <div key={type} className="flex items-center gap-2">
-                <div className="h-px w-4 bg-text-muted" />
-                <span className="text-[10px] text-text-secondary">{type.replace(/_/g, " ")}</span>
+                <div className="h-px w-4 bg-[#546E7A]" />
+                <span className="text-[10px] text-[#90A4AE]">{type.replace(/_/g, " ")}</span>
               </div>
             ))}
           </div>
@@ -196,12 +198,12 @@ export default function GraphPage() {
       </div>
 
       {/* Sigma container */}
-      <div ref={containerRef} className="h-full w-full bg-bg-shell">
+      <div ref={containerRef} className="h-full w-full bg-[#263238]">
         {loading && (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-              <p className="text-sm text-text-secondary">Loading graph data...</p>
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#2196F3] border-t-transparent" />
+              <p className="text-sm text-[#90A4AE]">Loading graph data...</p>
             </div>
           </div>
         )}
@@ -210,15 +212,15 @@ export default function GraphPage() {
       {/* Side panel */}
       <div
         className={cn(
-          "absolute right-0 top-0 z-10 h-full w-80 transform border-l border-border bg-bg-panel/95 backdrop-blur transition-transform duration-300",
+          "absolute right-0 top-0 z-10 h-full w-80 transform border-l border-[#37474F] bg-[#2C3539]/95 backdrop-blur transition-transform duration-300",
           selectedNode ? "translate-x-0" : "translate-x-full"
         )}
       >
         {selectedNode && (
           <div className="p-4">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-text-primary">{selectedNode.label}</h3>
-              <button onClick={() => setSelectedNode(null)} className="text-text-secondary hover:text-text-primary">
+              <h3 className="text-lg font-semibold text-[#ECEFF1]">{selectedNode.label}</h3>
+              <button onClick={() => setSelectedNode(null)} className="text-[#90A4AE] hover:text-[#ECEFF1]">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -226,26 +228,26 @@ export default function GraphPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="border border-border bg-bg-row p-3">
-                <p className="text-xs text-text-muted">Node Type</p>
+              <div className="border border-[#37474F] bg-[#2C3539] p-3">
+                <p className="text-xs text-[#546E7A]">Node Type</p>
                 <div className="mt-1 flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: selectedNode.color }} />
-                  <span className="text-sm font-medium text-text-primary">{selectedNode.type}</span>
+                  <span className="text-sm font-medium text-[#ECEFF1]">{selectedNode.type}</span>
                 </div>
               </div>
-              <div className="border border-border bg-bg-row p-3">
-                <p className="text-xs text-text-muted">Node ID</p>
-                <p className="mt-1 font-mono text-xs text-text-primary">{selectedNode.id}</p>
+              <div className="border border-[#37474F] bg-[#2C3539] p-3">
+                <p className="text-xs text-[#546E7A]">Node ID</p>
+                <p className="mt-1 font-mono text-xs text-[#90A4AE]">{selectedNode.id}</p>
               </div>
-              <div className="border border-border bg-bg-row p-3">
-                <p className="text-xs text-text-muted">Node Size (Loan Amount)</p>
-                <p className="mt-1 text-sm text-text-primary">{selectedNode.size}</p>
+              <div className="border border-[#37474F] bg-[#2C3539] p-3">
+                <p className="text-xs text-[#546E7A]">Node Size (Loan Amount)</p>
+                <p className="mt-1 text-sm text-[#ECEFF1]">{selectedNode.size}</p>
               </div>
 
               {selectedNode.type === "Borrower" && (
                 <Link
                   href={`/entity/${selectedNode.id}`}
-                  className="block w-full bg-accent-dim px-3 py-2 text-center text-sm font-medium text-white hover:bg-accent"
+                  className="block w-full bg-[#2196F3] px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#2196F3]/80"
                 >
                   View Full Profile
                 </Link>

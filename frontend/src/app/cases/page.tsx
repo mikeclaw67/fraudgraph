@@ -8,11 +8,11 @@ import type { RingType, CaseStatus, InvestigationCase, EvidenceItem, CaseNote } 
 /* ── Ring type badge config (matches Ring Queue) ────────────────────── */
 
 const RING_TYPE_CONFIG: Record<RingType, { icon: string; label: string; bg: string }> = {
-  ADDRESS_FARM: { icon: "\u{1F3E0}", label: "ADDRESS FARM", bg: "bg-info/15 text-info" },
-  ACCOUNT_CLUSTER: { icon: "\u{1F3E6}", label: "ACCOUNT CLUSTER", bg: "bg-accent/15 text-accent" },
-  EIN_RECYCLER: { icon: "\u{1F522}", label: "EIN RECYCLER", bg: "bg-high/15 text-high" },
-  STRAW_COMPANY: { icon: "\u{1F47B}", label: "STRAW COMPANY", bg: "bg-critical/15 text-critical" },
-  THRESHOLD_GAMING: { icon: "\u{1F3AF}", label: "THRESHOLD GAMING", bg: "bg-success/15 text-success" },
+  ADDRESS_FARM: { icon: "\u{1F3E0}", label: "ADDRESS FARM", bg: "bg-[#7B1FA2]/15 text-[#CE93D8]" },
+  ACCOUNT_CLUSTER: { icon: "\u{1F3E6}", label: "ACCOUNT CLUSTER", bg: "bg-[#2196F3]/15 text-[#90CAF9]" },
+  EIN_RECYCLER: { icon: "\u{1F522}", label: "EIN RECYCLER", bg: "bg-[#FFB300]/15 text-[#FFB300]" },
+  STRAW_COMPANY: { icon: "\u{1F47B}", label: "STRAW COMPANY", bg: "bg-[#E53935]/15 text-[#EF9A9A]" },
+  THRESHOLD_GAMING: { icon: "\u{1F3AF}", label: "THRESHOLD GAMING", bg: "bg-[#43A047]/15 text-[#A5D6A7]" },
 };
 
 /* ── Status tab config ──────────────────────────────────────────────── */
@@ -33,11 +33,11 @@ const STATUS_BADGE: Record<CaseStatus, { label: string; bg: string }> = {
 };
 
 const DOJ_STATUS_COLOR: Record<string, string> = {
-  "Pending Review": "text-high",
-  "Under Investigation": "text-accent",
+  "Pending Review": "text-[#FFB300]",
+  "Under Investigation": "text-[#2196F3]",
   "Charges Filed": "text-critical",
   "Declined": "text-text-muted",
-  "Conviction": "text-low",
+  "Conviction": "text-[#43A047]",
 };
 
 /* ── Mock data: 10 realistic PPP fraud cases ────────────────────────── */
@@ -440,30 +440,30 @@ export default function CaseManagerPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left w-8" />
-              <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">CASE ID</th>
-              <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">RING TYPE</th>
+              <th className="text-label px-3 py-2.5 text-left font-medium w-8" />
+              <th className="text-label px-3 py-2.5 text-left font-medium">CASE ID</th>
+              <th className="text-label px-3 py-2.5 text-left font-medium">RING TYPE</th>
               <th
-                className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
+                className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
                 onClick={() => toggleSort("member_count")}
               >
                 MEMBERS{sortIndicator("member_count")}
               </th>
               <th
-                className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
+                className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
                 onClick={() => toggleSort("total_exposure")}
               >
                 EXPOSURE{sortIndicator("total_exposure")}
               </th>
-              <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">INVESTIGATOR</th>
+              <th className="text-label px-3 py-2.5 text-left font-medium">INVESTIGATOR</th>
               <th
-                className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-right cursor-pointer select-none hover:text-text-secondary"
+                className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
                 onClick={() => toggleSort("created_at")}
               >
                 DAYS OPEN{sortIndicator("created_at")}
               </th>
-              <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">STATUS</th>
-              <th className="text-[11px] uppercase font-semibold tracking-[1px] text-text-muted px-3 py-2.5 text-left">DOJ STATUS</th>
+              <th className="text-label px-3 py-2.5 text-left font-medium">STATUS</th>
+              <th className="text-label px-3 py-2.5 text-left font-medium">DOJ STATUS</th>
             </tr>
           </thead>
           <tbody>
@@ -541,48 +541,48 @@ function CaseRowGroup({
         )}
       >
         {/* Expand arrow */}
-        <td className="px-3 py-1.5 text-center">
+        <td className="px-3 py-2 text-center">
           <span className={cn("text-[10px] text-text-muted transition-transform inline-block", isExpanded && "rotate-90")}>
             &#9654;
           </span>
         </td>
 
         {/* Case ID */}
-        <td className="px-3 py-1.5">
-          <span className="text-xs text-accent font-medium">{caseData.case_id}</span>
+        <td className="px-3 py-2">
+          <span className="text-data text-accent font-medium">{caseData.case_id}</span>
         </td>
 
         {/* Ring Type */}
-        <td className="px-3 py-1.5">
-          <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-semibold tracking-[0.5px]", typeConfig.bg)}>
+        <td className="px-3 py-2">
+          <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold tracking-wide", typeConfig.bg)}>
             <span>{typeConfig.icon}</span>
             {typeConfig.label}
           </span>
         </td>
 
         {/* Members */}
-        <td className="px-3 py-1.5 text-right">
-          <span className="text-xs text-text-primary tabular-nums">{caseData.member_count}</span>
+        <td className="px-3 py-2 text-right">
+          <span className="text-data text-text-primary tabular-nums">{caseData.member_count}</span>
         </td>
 
         {/* Exposure */}
-        <td className="px-3 py-1.5 text-right">
-          <span className="text-xs text-text-primary tabular-nums font-medium">
+        <td className="px-3 py-2 text-right">
+          <span className="text-data text-text-primary tabular-nums font-medium">
             {formatCurrency(caseData.total_exposure)}
           </span>
         </td>
 
         {/* Investigator */}
-        <td className="px-3 py-1.5">
-          <span className="text-xs text-text-secondary">
+        <td className="px-3 py-2">
+          <span className="text-data text-text-secondary">
             {caseData.investigator || <span className="text-text-muted">&mdash;</span>}
           </span>
         </td>
 
         {/* Days Open */}
-        <td className="px-3 py-1.5 text-right">
+        <td className="px-3 py-2 text-right">
           <span className={cn(
-            "text-xs tabular-nums font-medium",
+            "text-data tabular-nums font-medium",
             days > 180 ? "text-critical" : days > 90 ? "text-high" : "text-text-primary"
           )}>
             {days}
@@ -590,20 +590,20 @@ function CaseRowGroup({
         </td>
 
         {/* Status */}
-        <td className="px-3 py-1.5">
-          <span className={cn("inline-flex py-0.5 px-2 text-[10px] uppercase font-semibold tracking-[0.5px]", statusConfig.bg)}>
+        <td className="px-3 py-2">
+          <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", statusConfig.bg)}>
             {statusConfig.label}
           </span>
         </td>
 
         {/* DOJ Status */}
-        <td className="px-3 py-1.5">
+        <td className="px-3 py-2">
           {caseData.doj_status ? (
-            <span className={cn("text-xs font-medium", dojColor)}>
+            <span className={cn("text-data font-medium", dojColor)}>
               {caseData.doj_status}
             </span>
           ) : (
-            <span className="text-xs text-text-muted">&mdash;</span>
+            <span className="text-data text-text-muted">&mdash;</span>
           )}
         </td>
       </tr>
@@ -725,7 +725,7 @@ function InlineExpansion({
           <div>
             <span className="text-label text-[10px]">CASE STATUS</span>
             <div className="mt-1">
-              <span className={cn("inline-flex py-0.5 px-2 text-[10px] uppercase font-semibold tracking-[0.5px]", STATUS_BADGE[caseData.status].bg)}>
+              <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", STATUS_BADGE[caseData.status].bg)}>
                 {STATUS_BADGE[caseData.status].label}
               </span>
             </div>

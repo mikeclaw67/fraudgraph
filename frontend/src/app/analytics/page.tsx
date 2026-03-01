@@ -2,9 +2,18 @@
 "use client";
 
 import { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { formatCurrency, cn } from "@/lib/utils";
-import ExposureChart from "@/components/charts/ExposureChart";
-import WeeklyDetectionsChart from "@/components/charts/WeeklyDetectionsChart";
+
+const ExposureChart = dynamic(() => import("@/components/charts/ExposureChart"), {
+  ssr: false,
+  loading: () => <div className="w-full h-[280px] bg-[#2C3539] animate-pulse" />,
+});
+
+const WeeklyDetectionsChart = dynamic(() => import("@/components/charts/WeeklyDetectionsChart"), {
+  ssr: false,
+  loading: () => <div className="w-full h-[280px] bg-[#2C3539] animate-pulse" />,
+});
 
 /* ------------------------------------------------------------------ */
 /*  Mock data — hardcoded                                             */
@@ -69,12 +78,12 @@ export default function AnalyticsPage() {
 
       {/* Main grid: 2 columns */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Exposure by Ring Type — bar chart  */}
+        {/* Exposure by Ring Type — bar chart (dynamic, ssr:false) */}
         <Panel title="Exposure by Ring Type">
           <ExposureChart />
         </Panel>
 
-        {/* Detection Timeline — line chart  */}
+        {/* Detection Timeline — line chart (dynamic, ssr:false) */}
         <Panel title="Rings Detected per Week (6 Months)">
           <WeeklyDetectionsChart />
         </Panel>

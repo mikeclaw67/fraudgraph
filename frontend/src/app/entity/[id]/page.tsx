@@ -1,4 +1,5 @@
-/* FraudGraph — Entity 360 Profile page with full borrower investigation view */
+/* FraudGraph — Entity 360 Profile page with full borrower investigation view.
+   Update when adding new entity data fields, risk components, or action buttons. */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -34,10 +35,10 @@ export default function EntityPage() {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-64 bg-bg-panel" />
-          <div className="h-4 w-96 bg-bg-panel" />
+          <div className="h-8 w-64 bg-[#2C3539]" />
+          <div className="h-4 w-96 bg-[#2C3539]" />
           <div className="grid grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <div key={i} className="h-40 bg-bg-panel" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-40 bg-[#2C3539]" />)}
           </div>
         </div>
       </div>
@@ -47,7 +48,7 @@ export default function EntityPage() {
   if (!entity) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <p className="text-text-secondary">Entity not found</p>
+        <p className="text-[#90A4AE]">Entity not found</p>
       </div>
     );
   }
@@ -65,22 +66,22 @@ export default function EntityPage() {
         <div className="flex items-start gap-4">
           <RiskScoreBadge score={topScore} size="lg" />
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">{attr.borrower_name}</h1>
-            <p className="text-sm text-text-secondary">{attr.business_name} &middot; {attr.ein}</p>
-            <p className="mt-1 text-xs text-text-muted">{entity.entity_id}</p>
+            <h1 className="text-2xl font-bold text-[#ECEFF1]">{attr.borrower_name}</h1>
+            <p className="text-sm text-[#90A4AE]">{attr.business_name} &middot; {attr.ein}</p>
+            <p className="mt-1 text-xs text-[#546E7A]">{entity.entity_id}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="bg-bg-row px-3 py-1 text-xs text-text-primary">
+          <span className="bg-[#2C3539] px-3 py-1 text-xs text-[#90A4AE]">
             {entity.alert_count} alert{entity.alert_count !== 1 ? "s" : ""}
           </span>
-          <button className="bg-critical px-3 py-1.5 text-xs font-medium text-white hover:bg-critical">
+          <button className="bg-[#E53935] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#E53935]/80">
             Escalate
           </button>
-          <button className="bg-accent-dim px-3 py-1.5 text-xs font-medium text-white hover:bg-accent">
+          <button className="bg-[#2196F3] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#2196F3]/80">
             Open Case
           </button>
-          <button className="border border-border-2 bg-bg-row px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-bg-row-hover">
+          <button className="border border-[#455A64] bg-[#2C3539] px-3 py-1.5 text-xs font-medium text-[#90A4AE] hover:bg-[#37474F]">
             Dismiss
           </button>
         </div>
@@ -116,12 +117,12 @@ export default function EntityPage() {
               {alerts
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .map((alert) => (
-                  <div key={alert.alert_id} className="flex items-start gap-3 border-l-2 border-border pl-4">
+                  <div key={alert.alert_id} className="flex items-start gap-3 border-l-2 border-[#37474F] pl-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <SeverityBadge severity={alert.severity} />
                         <StatusBadge status={alert.status} />
-                        <span className="text-xs text-text-muted">{formatDateTime(alert.created_at)}</span>
+                        <span className="text-xs text-[#546E7A]">{formatDateTime(alert.created_at)}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {alert.fired_rules.map((r) => <RuleBadge key={r} rule={r} />)}
@@ -140,14 +141,14 @@ export default function EntityPage() {
             {allRules.length > 0 ? (
               <div className="space-y-3">
                 {allRules.map((rule) => (
-                  <div key={rule} className="flex items-center gap-2 border border-critical/20 bg-critical/5 p-2">
-                    <div className="h-2 w-2 rounded-full bg-critical" />
+                  <div key={rule} className="flex items-center gap-2 border border-[#E53935]/20 bg-[#E53935]/5 p-2">
+                    <div className="h-2 w-2 rounded-full bg-[#E53935]" />
                     <RuleBadge rule={rule} />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-text-muted">No rules fired</p>
+              <p className="text-sm text-[#546E7A]">No rules fired</p>
             )}
           </Card>
 
@@ -157,18 +158,18 @@ export default function EntityPage() {
               <ScoreBar label="ML Anomaly" value={topScore * 0.35} max={35} />
               <ScoreBar label="Graph Centrality" value={topScore * 0.25} max={25} />
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-              <span className="text-sm font-medium text-text-primary">Composite Score</span>
+            <div className="mt-4 flex items-center justify-between border-t border-[#37474F] pt-3">
+              <span className="text-sm font-medium text-[#90A4AE]">Composite Score</span>
               <span className={cn("text-lg font-bold", riskScoreColor(topScore))}>{Math.round(topScore)}</span>
             </div>
           </Card>
 
           <Card title="Quick Actions">
             <div className="space-y-2">
-              <Link href={`/graph?entity=${entity.entity_id}`} className="block w-full border border-border-2 bg-bg-row px-3 py-2 text-center text-sm text-text-primary hover:bg-bg-row-hover">
+              <Link href={`/graph?entity=${entity.entity_id}`} className="block w-full border border-[#455A64] bg-[#2C3539] px-3 py-2 text-center text-sm text-[#90A4AE] hover:bg-[#37474F]">
                 View in Graph
               </Link>
-              <button className="w-full border border-border-2 bg-bg-row px-3 py-2 text-sm text-text-primary hover:bg-bg-row-hover">
+              <button className="w-full border border-[#455A64] bg-[#2C3539] px-3 py-2 text-sm text-[#90A4AE] hover:bg-[#37474F]">
                 Export Report
               </button>
             </div>
@@ -181,8 +182,8 @@ export default function EntityPage() {
 
 function Card({ title, children, danger }: { title: string; children: React.ReactNode; danger?: boolean }) {
   return (
-    <div className={cn("border p-4", danger ? "border-critical/30 bg-critical/5" : "border-border bg-bg-panel")}>
-      <h3 className={cn("mb-3 text-[11px] font-semibold uppercase tracking-[1px]", danger ? "text-critical" : "text-text-muted")}>{title}</h3>
+    <div className={cn("border p-4", danger ? "border-[#E53935]/30 bg-[#E53935]/5" : "border-[#37474F] bg-[#2C3539]")}>
+      <h3 className={cn("mb-3 text-sm font-semibold uppercase tracking-wider", danger ? "text-[#E53935]" : "text-[#90A4AE]")}>{title}</h3>
       {children}
     </div>
   );
@@ -191,19 +192,19 @@ function Card({ title, children, danger }: { title: string; children: React.Reac
 function Field({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className={cn("text-sm font-medium", highlight ? "text-critical" : "text-text-primary")}>{value}</p>
+      <p className="text-xs text-[#546E7A]">{label}</p>
+      <p className={cn("text-sm font-medium", highlight ? "text-[#E53935]" : "text-[#ECEFF1]")}>{value}</p>
     </div>
   );
 }
 
 function ConnectionCard({ title, value, sub, danger }: { title: string; value: string; sub?: string; danger?: boolean }) {
   return (
-    <div className={cn("border p-3", danger ? "border-critical/30 bg-critical/5" : "border-border bg-bg-panel")}>
-      <p className={cn("text-xs font-semibold uppercase tracking-wider", danger ? "text-critical" : "text-text-muted")}>{title}</p>
-      <p className="mt-1 text-sm font-medium text-text-primary break-words">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-text-muted">{sub}</p>}
-      {danger && <p className="mt-1 text-[10px] font-medium text-critical">SHARED INDICATOR</p>}
+    <div className={cn("border p-3", danger ? "border-[#E53935]/30 bg-[#E53935]/5" : "border-[#37474F] bg-[#2C3539]")}>
+      <p className={cn("text-xs font-semibold uppercase tracking-wider", danger ? "text-[#E53935]" : "text-[#546E7A]")}>{title}</p>
+      <p className="mt-1 text-sm font-medium text-[#ECEFF1] break-words">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-[#546E7A]">{sub}</p>}
+      {danger && <p className="mt-1 text-[10px] font-medium text-[#E53935]">SHARED INDICATOR</p>}
     </div>
   );
 }
@@ -213,11 +214,11 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
   return (
     <div>
       <div className="flex items-center justify-between text-xs">
-        <span className="text-text-secondary">{label}</span>
-        <span className="text-text-primary">{Math.round(value)}/{max}</span>
+        <span className="text-[#90A4AE]">{label}</span>
+        <span className="text-[#90A4AE]">{Math.round(value)}/{max}</span>
       </div>
-      <div className="mt-1 h-1.5 w-full bg-bg-row">
-        <div className="h-1.5 bg-accent" style={{ width: `${pct}%` }} />
+      <div className="mt-1 h-1.5 w-full bg-[#2C3539]">
+        <div className="h-1.5 bg-[#2196F3]" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

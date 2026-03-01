@@ -1,4 +1,5 @@
-/* FraudGraph — Alert Queue page with filterable table, bulk actions, and real-time WebSocket updates */
+/* FraudGraph — Alert Queue page with filterable table, bulk actions, and real-time WebSocket updates.
+   Update when adding new alert severity levels, statuses, or bulk action types. */
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -78,35 +79,35 @@ export default function AlertsPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Alert Queue</h1>
-          <p className="mt-1 text-sm text-text-secondary">
+          <h1 className="text-2xl font-bold text-[#ECEFF1]">Alert Queue</h1>
+          <p className="mt-1 text-sm text-[#90A4AE]">
             {stats.total} alerts &middot; {stats.critical} critical &middot; {stats.high} high &middot; {stats.newCount} new
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-success" />
-          <span className="text-xs text-text-muted">Live</span>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-[#43A047]" />
+          <span className="text-xs text-[#546E7A]">Live</span>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="mb-4 flex flex-wrap items-center gap-3 border border-border bg-bg-panel p-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3 border border-[#37474F] bg-[#2C3539] p-3">
         <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-text-secondary">Severity</label>
+          <label className="text-xs font-medium text-[#90A4AE]">Severity</label>
           <select
             value={severityFilter}
             onChange={(e) => { setSeverityFilter(e.target.value as Severity | "ALL"); setPage(1); }}
-            className="border border-border-2 bg-bg-input px-2 py-1 text-sm text-text-primary focus:border-accent focus:outline-none"
+            className="border border-[#455A64] bg-[#2C3539] px-2 py-1 text-sm text-[#ECEFF1] focus:border-[#2196F3] focus:outline-none"
           >
             {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-text-secondary">Status</label>
+          <label className="text-xs font-medium text-[#90A4AE]">Status</label>
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as AlertStatus | "ALL"); setPage(1); }}
-            className="border border-border-2 bg-bg-input px-2 py-1 text-sm text-text-primary focus:border-accent focus:outline-none"
+            className="border border-[#455A64] bg-[#2C3539] px-2 py-1 text-sm text-[#ECEFF1] focus:border-[#2196F3] focus:outline-none"
           >
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
@@ -115,42 +116,42 @@ export default function AlertsPage() {
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-text-secondary">{selectedIds.size} selected</span>
-            <button className="bg-accent-dim px-3 py-1 text-xs font-medium text-white hover:bg-accent">Assign</button>
-            <button className="bg-border px-3 py-1 text-xs font-medium text-text-primary hover:bg-bg-row-hover">Dismiss</button>
-            <button className="bg-critical px-3 py-1 text-xs font-medium text-white hover:bg-critical">Escalate</button>
+            <span className="text-xs text-[#90A4AE]">{selectedIds.size} selected</span>
+            <button className="bg-[#2196F3] px-3 py-1 text-xs font-medium text-white hover:bg-[#2196F3]/80">Assign</button>
+            <button className="bg-[#37474F] px-3 py-1 text-xs font-medium text-[#ECEFF1] hover:bg-[#455A64]">Dismiss</button>
+            <button className="bg-[#E53935] px-3 py-1 text-xs font-medium text-white hover:bg-[#E53935]/80">Escalate</button>
           </div>
         )}
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden border border-border bg-bg-panel">
+      <div className="overflow-hidden border border-[#37474F] bg-[#2C3539]">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left text-[11px] font-semibold uppercase tracking-[1px] text-text-muted">
-              <th className="px-3 py-2">
+            <tr className="border-b border-[#37474F] text-left text-[11px] uppercase font-semibold tracking-[1px] text-[#78909C] bg-[#2C3539]">
+              <th className="px-3 py-1.5">
                 <input
                   type="checkbox"
                   checked={selectedIds.size === alerts.length && alerts.length > 0}
                   onChange={toggleAll}
-                  className="h-4 w-4 border-border-2 bg-bg-input"
+                  className="h-4 w-4 border-[#455A64] bg-[#2C3539]"
                 />
               </th>
-              <th className="px-3 py-2">Borrower</th>
-              <th className="px-3 py-2">Alert Type</th>
-              <th className="px-3 py-2">Risk Score</th>
-              <th className="px-3 py-2">Severity</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Created</th>
+              <th className="px-3 py-1.5">Borrower</th>
+              <th className="px-3 py-1.5">Alert Type</th>
+              <th className="px-3 py-1.5">Risk Score</th>
+              <th className="px-3 py-1.5">Severity</th>
+              <th className="px-3 py-1.5">Status</th>
+              <th className="px-3 py-1.5">Created</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => (
-                <tr key={i} className="border-b border-border">
+                <tr key={i} className="border-b border-[#37474F] h-[32px]">
                   {Array.from({ length: 7 }).map((_, j) => (
-                    <td key={j} className="px-3 py-1">
-                      <div className="h-4 animate-pulse bg-bg-panel" />
+                    <td key={j} className="px-3">
+                      <div className="h-4 animate-pulse bg-[#2C3539]" />
                     </td>
                   ))}
                 </tr>
@@ -159,20 +160,20 @@ export default function AlertsPage() {
               alerts.map((alert) => (
                 <tr
                   key={alert.alert_id}
-                  className="h-8 border-b border-border transition-colors hover:bg-bg-row-hover"
+                  className="border-b border-[#37474F] transition-colors hover:bg-[#2F3D42] h-[32px]"
                 >
                   <td className="px-3">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(alert.alert_id)}
                       onChange={() => toggleSelect(alert.alert_id)}
-                      className="h-4 w-4 border-border-2 bg-bg-input"
+                      className="h-4 w-4 border-[#455A64] bg-[#2C3539]"
                     />
                   </td>
                   <td className="px-3">
                     <Link
                       href={`/entity/${alert.entity_id}`}
-                      className="text-xs font-medium text-accent hover:text-accent hover:underline"
+                      className="text-[12px] font-medium text-[#2196F3] hover:text-[#90CAF9] hover:underline"
                     >
                       {alert.entity_id}
                     </Link>
@@ -185,7 +186,7 @@ export default function AlertsPage() {
                   <td className="px-3"><RiskScoreBadge score={alert.risk_score} /></td>
                   <td className="px-3"><SeverityBadge severity={alert.severity} /></td>
                   <td className="px-3"><StatusBadge status={alert.status} /></td>
-                  <td className="px-3 text-xs text-text-secondary">{formatDateTime(alert.created_at)}</td>
+                  <td className="px-3 text-[12px] text-[#90A4AE]">{formatDateTime(alert.created_at)}</td>
                 </tr>
               ))
             )}
@@ -195,19 +196,19 @@ export default function AlertsPage() {
 
       {/* Pagination */}
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-sm text-text-secondary">Page {page} of {totalPages}</p>
+        <p className="text-sm text-[#90A4AE]">Page {page} of {totalPages}</p>
         <div className="flex gap-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="border border-border bg-bg-row px-3 py-1 text-sm text-text-primary hover:bg-bg-row-hover disabled:opacity-50"
+            className="border border-[#37474F] bg-[#2C3539] px-3 py-1 text-sm text-[#90A4AE] hover:bg-[#37474F] disabled:opacity-50"
           >
             Previous
           </button>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="border border-border bg-bg-row px-3 py-1 text-sm text-text-primary hover:bg-bg-row-hover disabled:opacity-50"
+            className="border border-[#37474F] bg-[#2C3539] px-3 py-1 text-sm text-[#90A4AE] hover:bg-[#37474F] disabled:opacity-50"
           >
             Next
           </button>
