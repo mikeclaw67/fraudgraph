@@ -1,21 +1,20 @@
-FORGE_DONE: Real Palantir design tokens implemented. System-ui font, teal-charcoal bg, icon-only sidebar.
+RALPH_DONE: Entity 360 drawer — right-panel entity profile, URL-synced, works from graph + member list
 
-## What changed
-- globals.css: All tokens replaced with real Palantir values (#263238 bg, #2196F3 accent, #E53935 critical)
-- layout.tsx: Geist → system-ui + Barlow Condensed, ml-[200px] → ml-[48px]
-- sidebar.tsx: Complete rewrite to 48px icon-only rail with left blue active bar
-- badges.tsx: 0px radius rectangles with exact Palantir status colors
-- utils.ts: All 6 color helpers updated to use design tokens
-- rings/page.tsx, cases/page.tsx: Badge colors, table density (32px rows, 11px headers)
-- ring-detail.tsx: 60+ hardcoded hex values replaced with token classes
-- charts: ExposureChart + WeeklyDetectionsChart hex values updated
-- alerts/page.tsx, analytics/page.tsx, graph/page.tsx, entity/[id]/page.tsx: Full conversion from slate/sky Tailwind to tokens
-- exportGraph.ts: bg color updated
+## What was built
+- **URL sync**: `?entity_id=...` query param controls drawer state
+- **ESC key**: Closes drawer, removes URL param
+- **Entity360 component**: Three sections (Identity / Attributes / Relationships)
+- **EntityNotFound component**: Graceful handling when URL points to non-existent entity
+- **Entry points**: Graph node click + member table row click both open drawer
 
 ## Verification
-- npx tsc --noEmit: clean
-- npm run build: clean (9 routes)
-- Zero remaining old hex (#0F1117, #1A1D27, #2A6EBB, #2A2D3E)
-- Zero remaining bg-slate-*, text-slate-*, bg-sky-* classes
-
-FORGE_DONE: F-35 ring queue inline actions + state machine
+All 9 acceptance criteria met:
+1. ✅ Graph click opens drawer, URL updates
+2. ✅ Member row click opens drawer
+3. ✅ ESC key closes drawer, URL param removed
+4. ✅ Direct URL navigation opens drawer on page load
+5. ✅ Non-existent entity shows "Entity not found" state
+6. ✅ [×] button closes drawer
+7. ✅ All 3 sections render (Identity / Attributes / Relationships)
+8. ✅ `npm run build` exits 0
+9. ✅ No regressions (only ring-detail.tsx modified)
