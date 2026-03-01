@@ -1,48 +1,64 @@
-# ITERATION_DONE: Sprint2-RingDetail
+# ITERATION_DONE: UI-05-RingActions
 
-## Commit: bac80a9 (sprint-frontend)
-## Date: 2026-03-01 ~02:40 AM EST
-
----
-
-## Gate Question Answers
-
-### 1. Sigma.js canvas resize
-Sigma.js v2+ accepts a container DOM element in its constructor: `new Sigma(graph, containerElement, options)`. It uses an internal ResizeObserver to track the container dimensions — the canvas responds to CSS container sizing automatically. **No explicit pixel width/height props needed.** The current implementation just uses `<div ref={graphContainerRef} className="h-full w-full" />` and Sigma fills it. This means RD-01 layout restructuring is pure CSS — no ResizeObserver wrapper needed.
-
-### 2. Smoking gun data schema
-The smoking gun field on the FraudRing object consists of:
-- `common_element: string` — raw text (e.g., "123 Main St, Milwaukee WI 53202")
-- `common_element_detail: string` — prose paragraph
-
-Both are **raw text strings, NOT structured JSON** with typed red-flag fields. Per-member `red_flags: string[]` exists but that's per-member, not ring-level structured smoking gun data.
-
-**RD-03 verdict: SKIPPED.** Cannot convert prose to structured chips without a data schema change. Flagged to PM.
+## Commits:
+- Backend: c6c8826 (main) — /Users/mikeclaw/Projects/fraudgraph
+- Frontend: ef3605c (sprint-frontend) — /Users/mikeclaw/Projects/fraudgraph-frontend
+## Date: 2026-03-01 ~02:55 AM EST
 
 ---
 
-## What changed:
+## Backend: backend/api/ring_actions.py ✅
 
-### RD-01 — Restructure Layout ✅
-- KPI strip (56px): ← Back, ring type badge, ring ID, members, exposure, risk score (heat-mapped via `getRiskColor()`), status badge
-- Evidence graph: `max(420px, 62vh)`, full width, dominant above-fold
-- Verified: graph fully visible at 1440×900 without scrolling (56px KPI + 558px graph = 614px total, within 900px viewport)
-- Below-fold: member table (full width) + 3-column context grid (smoking gun, indicators, timeline)
-- Borrower360: fixed right-side overlay with backdrop dismiss
-- Sigma.js: uses CSS container sizing, no code change needed
+### 5 Endpoints
+- POST /api/rings/{ring_id}/actions/review → NEW → UNDER_REVIEW
+- POST /api/rings/{ring_id}/actions/open-case → UNDER_REVIEW → CASE_OPENED
+- POST /api/rings/{ring_id}/actions/dismiss → any pre-terminal → DISMISSED (requires reason)
+- POST /api/rings/{ring_id}/actions/refer → CASE_OPENED → REFERRED
+- POST /api/rings/{ring_id}/actions/assign → sets assignee_id (any non-terminal)
 
-### RD-02 — Persistent Actions ✅
-- Open Case, Export, Dismiss, Run Investigation in KPI strip top-right
-- Always visible without scrolling
-- Bottom action bar removed entirely
-- Investigation button retains all 4 states (idle/running/complete/error)
+### Guards
+- Terminal state check: 409 if REFERRED/CLOSED/DISMISSED
+- Dismiss: 400 if reason missing/empty
+- State transition validation (e.g., can't review a CASE_OPENED ring)
 
-### RD-03 — Smoking Gun Chips ❌ SKIPPED
-- Data is text blob, not structured JSON
-- **Flagged to PM: need structured red-flag schema on FraudRing to implement**
+### Audit
+- Every action writes to in-memory audit log: ring_id, action, user, timestamp, payload
 
-### Bundle ✅
-- `getRiskColor()` applied to KPI strip risk score + member table risk column
-- No new accent colors introduced
+### Registration
+- Router registered in main.py under api_prefix
+- py_compile passes
 
-## Build: ✅ `npm run build` passes (Next.js 16.1.6, 0 errors)
+---
+
+## Frontend: Ring Queue Row Actions ✅
+
+### Hover Actions
+- 150ms opacity transition on row hover
+- Contextual per status:
+  - NEW/DETECTED: [REVIEW] [DISMISS]
+  - UNDER_REVIEW: [OPEN CASE] [ASSIGN] [DISMISS]
+  - CASE_OPENED: [REFER TO DOJ] [ASSIGN] [DISMISS]
+  - Terminal: read-only badge, no buttons
+
+### Button Spec (exact match)
+- Height: 24px (h-6)
+- Background: #1A1D27
+- Border-radius: 0px (global * rule)
+- Text: uppercase, 10px, font-semibold, tracking-wider
+
+### Optimistic UI
+- Status badge flips immediately on click
+- API fires in background
+- On error: reverts to prior state + inline red error toast (4s auto-clear)
+
+### Input Flows
+- Dismiss: inline text input replaces action buttons, Enter or OK to confirm
+- Assign: inline investigator_id input, same pattern
+- Escape to cancel
+
+### Type Updates
+- RingStatus expanded: NEW | DETECTED | UNDER_REVIEW | CASE_OPENED | REFERRED | CLOSED | DISMISSED
+- STATUS_CONFIG expanded for all 7 states
+- ring-data.ts status literal updated
+
+## Build: ✅ npm run build passes (Next.js 16.1.6, 0 errors)
