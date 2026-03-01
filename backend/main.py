@@ -95,3 +95,7 @@ async def get_config():
             "graph": settings.weight_graph,
         },
     }
+
+# Wire investigation router
+from backend.api.investigate import router as investigate_router
+app.include_router(investigate_router, prefix=settings.api_prefix)

@@ -1,34 +1,36 @@
-# Current Task: Sprint 1, Iteration 1
+# Sprint 5: Real SBA PPP Data Pipeline
 
-## Do ONE thing: Generate the mock data
+## Context
+Scout found real SBA PPP loan data (public domain, data.sba.gov).
+Full research + transform code in:
+/Users/mikeclaw/.openclaw/workspace/vault/research/findings/2026-02-28-sba-ppp-live-data-sprint5.md
 
-Create data/generate.py that generates 50,000 realistic PPP/EIDL loan records.
+Read that file first — it has the CSV schema, transform code, Cypher queries, all of it.
 
-### Requirements
-- Use Faker for realistic names, addresses, EINs
-- Output to data/loans.json
-- Exactly these fields per record:
-  borrower_id, borrower_name, ssn_last4, business_name, ein, business_address,
-  business_city, business_state, business_zip, employee_count, business_age_months,
-  loan_program (PPP or EIDL), loan_amount, loan_date (2020-04-01 to 2021-03-31),
-  lender_name, bank_routing, bank_account, naics_code, industry,
-  fraud_label (bool), fraud_type (str or null)
+## Tasks (in order)
 
-### Seed these fraud archetypes (~5% fraud rate total):
-1. address_farm: 400 records — 8 addresses × 50 businesses each
-2. ein_recycler: 300 records — 100 EINs × 3 businesses each
-3. straw_company: 500 records — employee_count=0, age<6mo, amount>$100K
-4. network_cluster: 350 records — 35 routing numbers × 10 businesses each
-5. threshold_gamer: 450 records — loan_amount $145,000-$149,999
-6. ~48,000 clean records with realistic noise
+### S5-1: data/ppp_importer.py
+- SBA CSV -> internal JSON transform (code in findings file, paste it in directly)
+- Demo slice extraction: pulls 5K rows guaranteed to contain real fraud rings
+- CLI: python data/ppp_importer.py --input public_150k_plus_240930.csv --output data/ppp_demo.json --demo-slice
 
-### Done when:
-- data/generate.py exists and runs without errors
-- python3 data/generate.py outputs 50000 records to data/loans.json
-- Print a summary: total records, fraud count, fraud rate, archetype breakdown
-- Run bash verify.sh and it passes
+### S5-2: scripts/load_real_data.sh
+- Downloads $150K+ CSV from data.sba.gov (curl, resumable)
+- Runs ppp_importer.py to generate demo slice
+- Runs seed.py to load into PostgreSQL + Neo4j
+- One command: bash scripts/load_real_data.sh
 
-## When complete, write to progress.md:
-Line 1: ITERATION_DONE
-Line 2: what was built
-Line 3: what the next iteration should do
+### S5-3: backend/graph/ring_queries.py
+- Real Cypher ring detection queries (in findings file)
+- Functions: detect_address_rings(), detect_lender_rings(), detect_ceiling_violations()
+- Returns ring objects matching the FraudRing schema
+
+### S5-4: Wire /api/rings to Neo4j
+- Replace mock ring data in backend/api/rings.py
+- Use ring_queries.py against live Neo4j
+- Return real rings sorted by exposure
+
+### S5-5: git add -A && git commit -m "feat: Sprint 5 — real SBA PPP data pipeline" && git push origin main
+
+## Done Signal
+Write RALPH_DONE to progress.md, then push to GitHub.
