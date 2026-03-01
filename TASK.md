@@ -1,28 +1,19 @@
-# Task: Rebuild FraudGraph Frontend — Ring-First Architecture
+# Task: Ring Detail Page (/rings/[id])
 
-## Read first:
-- /Users/mikeclaw/Projects/fraudgraph-frontend/REDESIGN.md (full spec)
-- /Users/mikeclaw/Projects/fraudgraph/PRODUCT_SPEC.md (product context)
-- /Users/mikeclaw/Projects/fraudgraph-frontend/CLAUDE.md (project context)
+Read CLAUDE.md and REDESIGN.md first.
+Working in worktree: /Users/mikeclaw/Projects/fraudgraph-ring-detail (branch: sprint-ring-detail)
 
-## What to build:
-A government fraud investigation platform with 4 pages:
-1. Ring Queue — triage table sorted by dollar exposure, with ring type badges and smoking gun preview
-2. Ring Detail — smoking gun callout box, member table, Sigma.js evidence graph, case actions
-3. Active Cases — case management with status tabs, evidence checklists
-4. Analytics — aggregate stats for agency leadership
+Build ONLY: frontend/src/app/rings/[id]/page.tsx
+Three-panel layout:
+LEFT (280px): Smoking gun callout box — bright red border, shows the shared evidence (address/account/EIN), property record context
+CENTER: Ring members table — all businesses in ring, shared element shown in red on each row, click row opens right panel
+RIGHT (360px, slides in): Borrower 360 panel — loan details, other rings, risk flags, notes field
+BELOW table: Sigma.js evidence graph — ring members as nodes around central shared-address node, node size = loan amount
+BOTTOM: Action bar — [Open Full Case] [Export Evidence Package] [Dismiss Ring]
 
-## Visual design (non-negotiable):
-- Background: #0F1117, Panels: #1A1D27, Accent: #2A6EBB, Critical: #C94B4B
-- NO rounded corners (border-radius 0-2px max), NO gradients, NO shadows
-- Dense tabular layout, 12px data text, 11px uppercase labels
-- This is a government investigation tool, not a SaaS app
+Colors: bg #0F1117, panels #1A1D27, accent #2A6EBB, smoking gun #C94B4B with red border
+Zero rounded corners, dense layout
+Use mock data for ring id "ring-001"
 
-## Tech stack:
-- Next.js 15 (app router), Tailwind CSS, TypeScript
-- Sigma.js for graph visualization (already in package.json)
-- Recharts for analytics charts
-
-## Start small — build Ring Queue page first, verify it works, then move to Ring Detail.
-## Write progress to progress.md after each page. Write RALPH_DONE when all 4 pages are done.
-## Run: cd /Users/mikeclaw/Projects/fraudgraph-frontend/frontend && npm run build to verify.
+When done: git add -A && git commit -m "feat: Ring Detail page" && git push origin sprint-ring-detail
+Then write "ITERATION_DONE: Ring Detail" to progress.md
