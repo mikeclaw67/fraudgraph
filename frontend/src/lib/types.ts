@@ -48,6 +48,7 @@ export interface FraudRing {
   detected_at: string;
   updated_at: string;
   riskBreakdown?: RiskBreakdown;
+  case_id?: string | null;
 }
 
 export interface CaseNote {

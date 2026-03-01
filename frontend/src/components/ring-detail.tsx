@@ -6,9 +6,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/badges";
+import { CaseTimeline } from "@/components/case-timeline";
 import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
 import { exportSigmaAsPNG } from "@/lib/exportGraph";
-import type { FraudRing, RingMember, RingType, RiskBreakdown } from "@/lib/types";
+import {
+  getRing,
+  getInvestigationCase,
+  createRingCase,
+  updateCaseStatus,
+  addCaseNote,
+  downloadReferralPackage,
+} from "@/lib/api";
+import type { FraudRing, RingMember, RingType, RiskBreakdown, InvestigationCase, CaseStatus } from "@/lib/types";
 
 /* ── Investigation types ─────────────────────────────────────────────────── */
 
@@ -181,6 +190,10 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sigmaRef = useRef<any>(null);
 
+  /* ── Case state ────────────────────────────────────────────────────── */
+  const [caseData, setCaseData] = useState<InvestigationCase | null>(null);
+  const [caseLoading, setCaseLoading] = useState(false);
+
   /* ── Investigation state ─────────────────────────────────────────────── */
   const [invStatus, setInvStatus] = useState<InvStatus>("idle");
   const [invSteps, setInvSteps] = useState<InvStep[]>([]);
@@ -262,7 +275,102 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   }
 
   function handleExportEvidence() {
-    window.print();
+    if (caseData) {
+      downloadReferralPackage(caseData.case_id);
+    } else {
+      window.print();
+    }
+  }
+
+  /* ── Case actions ──────────────────────────────────────────────────── */
+
+  async function handleOpenCase() {
+    if (!ring || caseLoading) return;
+    setCaseLoading(true);
+    try {
+      const res = await createRingCase(ring.ring_id);
+      setCaseData(res.case);
+      setRing((prev) => prev ? { ...prev, case_id: res.case.case_id, status: "CASE_OPENED" } : prev);
+    } catch {
+      /* If API unavailable, create mock case locally */
+      const now = new Date().toISOString();
+      const mockCase: InvestigationCase = {
+        case_id: `CASE-${Date.now()}`,
+        ring_type: ring.ring_type,
+        ring_ids: [ring.ring_id],
+        common_element: ring.common_element,
+        member_count: ring.member_count,
+        total_exposure: ring.total_exposure,
+        investigator: "You",
+        status: "OPEN",
+        doj_status: null,
+        last_updated: now,
+        created_at: now,
+        notes: [],
+        evidence_checklist: [],
+        audit_trail: [
+          { action: "CASE_OPENED", actor: "You", timestamp: now, details: `Case created from ring ${ring.ring_id}` },
+        ],
+      };
+      setCaseData(mockCase);
+      setRing((prev) => prev ? { ...prev, case_id: mockCase.case_id, status: "CASE_OPENED" } : prev);
+    } finally {
+      setCaseLoading(false);
+    }
+  }
+
+  async function handleCaseStatusChange(newStatus: CaseStatus) {
+    if (!caseData) return;
+    try {
+      const res = await updateCaseStatus(caseData.case_id, newStatus);
+      setCaseData(res.case);
+    } catch {
+      /* Offline — update locally */
+      const now = new Date().toISOString();
+      setCaseData((prev) => prev ? {
+        ...prev,
+        status: newStatus,
+        last_updated: now,
+        audit_trail: [
+          ...prev.audit_trail,
+          { action: "STATUS_CHANGE", actor: "You", timestamp: now, details: `Status changed to ${newStatus}` },
+        ],
+      } : prev);
+    }
+  }
+
+  async function handleAddCaseNote(content: string) {
+    if (!caseData || !content.trim()) return;
+    try {
+      const res = await addCaseNote(caseData.case_id, content);
+      setCaseData(res.case);
+    } catch {
+      const now = new Date().toISOString();
+      setCaseData((prev) => prev ? {
+        ...prev,
+        last_updated: now,
+        notes: [
+          ...prev.notes,
+          { id: `note-${Date.now()}`, author: "You", timestamp: now, content },
+        ],
+        audit_trail: [
+          ...prev.audit_trail,
+          { action: "NOTE_ADDED", actor: "You", timestamp: now, details: content },
+        ],
+      } : prev);
+    }
+  }
+
+  function handleRefer() {
+    if (caseData) {
+      handleCaseStatusChange("REFERRED_TO_DOJ");
+    }
+  }
+
+  function handleDismiss() {
+    if (caseData) {
+      handleCaseStatusChange("CLOSED");
+    }
   }
 
   /* Cleanup WS on unmount */
@@ -272,13 +380,41 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     };
   }, []);
 
+  /* ── Load ring (API → fallback to mock) then load case if attached ── */
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    const timer = setTimeout(() => {
-      setRing(generateMockRing(ringId));
+    setCaseData(null);
+
+    async function load() {
+      let loadedRing: FraudRing;
+      try {
+        const res = await getRing(ringId);
+        loadedRing = res.ring;
+      } catch {
+        /* API unavailable — use mock data */
+        loadedRing = generateMockRing(ringId);
+      }
+      if (cancelled) return;
+      setRing(loadedRing);
       setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+
+      /* If ring has an attached case, load it */
+      if (loadedRing.case_id) {
+        setCaseLoading(true);
+        try {
+          const caseRes = await getInvestigationCase(loadedRing.case_id);
+          if (!cancelled) setCaseData(caseRes.case);
+        } catch {
+          /* Case load failed — remain in ring-only mode */
+        } finally {
+          if (!cancelled) setCaseLoading(false);
+        }
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
   }, [ringId]);
 
   useEffect(() => {
@@ -429,7 +565,9 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
           <span className="bg-[#37474F]/40 px-2 py-0.5 text-[11px] font-semibold text-[#90A4AE] tracking-wide">
             {RING_TYPE_LABELS[ring.ring_type].toUpperCase()}
           </span>
-          <span className="font-mono text-xs text-[#90A4AE]">{ring.ring_id}</span>
+          <span className="font-mono text-xs text-[#90A4AE]">
+            {caseData ? caseData.case_id : ring.ring_id}
+          </span>
           <div className="h-4 w-px bg-[#37474F]" />
 
           {/* Key metrics */}
@@ -447,25 +585,45 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
               <span className={cn("font-bold tabular-nums", getRiskColor(ring.avg_risk_score))}>{ring.avg_risk_score}</span>
             </span>
           </div>
-          <StatusBadge status={ring.status} />
+          <StatusBadge status={caseData ? caseData.status : ring.status} />
         </div>
 
         {/* Right: persistent actions (RD-02) */}
         <div className="flex items-center gap-2">
-          <Link
-            href={`/cases?ring=${ring.ring_id}`}
-            className="border border-[#2196F3] bg-[#2196F3]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2196F3] hover:bg-[#2196F3]/20 transition-colors"
-          >
-            Open Case
-          </Link>
+          {!caseData ? (
+            <button
+              onClick={handleOpenCase}
+              disabled={caseLoading}
+              className="border border-[#2196F3] bg-[#2196F3]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2196F3] hover:bg-[#2196F3]/20 transition-colors disabled:opacity-50"
+            >
+              {caseLoading ? "Opening…" : "Open Case"}
+            </button>
+          ) : (
+            <span className="border border-[#43A047]/40 bg-[#43A047]/10 px-3 py-1.5 text-[11px] font-semibold text-[#43A047]">
+              {caseData.case_id}
+            </span>
+          )}
+          {caseData && (
+            <button
+              onClick={handleRefer}
+              disabled={caseData.status === "REFERRED_TO_DOJ"}
+              className="border border-[#E53935] bg-[#E53935]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E53935] hover:bg-[#E53935]/20 transition-colors disabled:opacity-40"
+            >
+              {caseData.status === "REFERRED_TO_DOJ" ? "Referred" : "Refer to DOJ"}
+            </button>
+          )}
           <button onClick={handleExportGraph} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
             Export PNG
           </button>
           <button onClick={handleExportEvidence} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
-            Evidence Package
+            {caseData ? "Referral Package" : "Evidence Package"}
           </button>
-          <button className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
-            Dismiss
+          <button
+            onClick={caseData ? handleDismiss : undefined}
+            disabled={caseData?.status === "CLOSED"}
+            className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors disabled:opacity-40"
+          >
+            {caseData?.status === "CLOSED" ? "Dismissed" : "Dismiss"}
           </button>
           <button
             onClick={startInvestigation}
@@ -674,16 +832,31 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
             </div>
           </div>
 
-          {/* Timeline */}
+          {/* Timeline — Case Timeline when case attached, Detection Timeline otherwise */}
           <div className="bg-[#263238] p-4">
             <div className="border border-[#37474F] bg-[#2C3539] p-4 h-full">
-              <p className="text-label mb-3">Detection Timeline</p>
-              <div className="space-y-3">
-                <TimelineEntry time="Nov 14, 09:23" text="Ring detected by Louvain community algorithm" />
-                <TimelineEntry time="Nov 14, 09:23" text="5 members linked via shared address" />
-                <TimelineEntry time="Nov 14, 09:24" text="Risk scoring complete — avg 86.8" />
-                <TimelineEntry time="Nov 14, 09:24" text="Alert generated — awaiting triage" />
-              </div>
+              {caseData ? (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-label">Case Timeline</p>
+                    <span className="text-[10px] text-[#546E7A]">
+                      {caseData.audit_trail.length + caseData.notes.length} events
+                    </span>
+                  </div>
+                  <CaseTimeline auditTrail={caseData.audit_trail} notes={caseData.notes} />
+                  <CaseNoteInput onSubmit={handleAddCaseNote} />
+                </>
+              ) : (
+                <>
+                  <p className="text-label mb-3">Detection Timeline</p>
+                  <div className="space-y-3">
+                    <TimelineEntry time="Nov 14, 09:23" text="Ring detected by Louvain community algorithm" />
+                    <TimelineEntry time="Nov 14, 09:23" text="5 members linked via shared address" />
+                    <TimelineEntry time="Nov 14, 09:24" text="Risk scoring complete — avg 86.8" />
+                    <TimelineEntry time="Nov 14, 09:24" text="Alert generated — awaiting triage" />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1154,6 +1327,35 @@ function IndicatorRow({ label, value, count }: { label: string; value: string; c
         <p className="text-data text-[#E53935]">{value}</p>
       </div>
       <span className="text-data font-bold text-[#E53935]">{count}x</span>
+    </div>
+  );
+}
+
+function CaseNoteInput({ onSubmit }: { onSubmit: (content: string) => void }) {
+  const [value, setValue] = useState("");
+
+  function handleSubmit() {
+    if (!value.trim()) return;
+    onSubmit(value.trim());
+    setValue("");
+  }
+
+  return (
+    <div className="mt-3 flex gap-2">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        placeholder="Add a note…"
+        className="flex-1 border border-[#37474F] bg-[#263238] px-2 py-1.5 text-[11px] text-[#ECEFF1] placeholder-[#546E7A] focus:border-[#2196F3] focus:outline-none"
+      />
+      <button
+        onClick={handleSubmit}
+        className="border border-[#2196F3] bg-[#2196F3]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2196F3] hover:bg-[#2196F3]/20 transition-colors"
+      >
+        Add
+      </button>
     </div>
   );
 }
