@@ -64,3 +64,24 @@ RALPH_DONE
 - Case audit trail is in-memory list — move to `AuditEntry` PostgreSQL model
 - CORS is wide open (`*`) — restrict in production
 FORGE_DONE: Investigation agent backend complete. Demo fallback wired.
+
+## Backend Seeding — Sprint 7
+
+ITERATION_DONE: Backend seeding — 5 demo fraud rings seeded to PostgreSQL
+
+### What Was Built
+
+**data/seed_demo.py** — Demo seeder with 5 curated fraud rings:
+- RING-001: Identity Theft Network ($2.1M, 12 entities, CRITICAL) — triggers EIN_REUSE + ADDR_REUSE + NEW_EIN
+- RING-002: Shell Company Cluster ($1.48M, 8 entities, CRITICAL) — triggers STRAW_CO + ACCOUNT_SHARE + NEW_EIN
+- RING-003: Invoice Factoring Scheme ($890K, 15 entities, HIGH) — triggers THRESHOLD_GAME + ADDR_REUSE
+- RING-004: Benefits Double-Dipping ($340K, 6 entities, MEDIUM) — triggers EIN_REUSE
+- RING-005: Address Cycling Ring ($175K, 4 entities, LOW) — triggers ADDR_REUSE
+
+**backend/api/rings.py** — GET /api/rings (list all rings), GET /api/rings/{ring_id}
+**backend/db/models.py** — FraudRing SQLAlchemy model added
+**backend/main.py** — rings router registered + auto-seed on startup via lifespan
+**tests/test_seed_demo.py** — 22 tests: ring structure, entity counts, detection triggers, integration
+
+### Test Results
+57 passed, 6 skipped (agent scenarios — pre-existing). Zero regressions.
