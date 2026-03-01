@@ -1,11 +1,11 @@
-# FORGE_DONE: Visual polish complete
+RALPH_DONE: Risk score breakdown panel — sub-scores + fired rule chips in Ring Detail.
 
-## Fixes applied (sprint-frontend):
-- Bug 1: Analytics charts — wrapped ResponsiveContainer in explicit-height div to fix height-0 measurement during SSR. Both bar chart and line chart now render with visible colored data.
-- Bug 2: Ring Queue TYPE column — removed bg-slate-700/40 card background and stacked layout. Now flat inline icon + uppercase label, no border-radius, no card.
-- Bug 3: Ring Detail graph — center node 18→40, member nodes 6-16→14-36, labelSize 11→14, labelThreshold 6→4, edges proportionally thicker. Graph fills canvas with evidence, not dots in space.
+## Changes
+- `types.ts`: Added `RiskBreakdown` interface, optional `riskBreakdown` on `FraudRing`
+- `ring-data.ts`: Added `riskBreakdown` data to first 5 rings (ring_001–ring_005) with realistic sub-scores and fired rules
+- `ring-detail.tsx`: Added `riskBreakdown` to `generateMockRing()`, built `ScoreBreakdown` component with 3 rows (Rules 40% / ML 35% / Graph 25%), progress bars (#14B8A6 teal), fired rule chips, ML label, and degree-N hub. Placed between member table and context panels. Gracefully renders nothing when `riskBreakdown` is undefined.
 
-## Verification:
-- tsc --noEmit: clean
-- npm run build: clean
-- Screenshots: /tmp/screenshot-analytics.png, /tmp/screenshot-rings.png, /tmp/screenshot-ring-detail.png
+## Verification
+- `tsc --noEmit`: clean
+- `npm run build`: clean, exits 0
+- Rings without riskBreakdown: panel simply doesn't render (no crash)

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/badges";
 import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
 import { exportSigmaAsPNG } from "@/lib/exportGraph";
-import type { FraudRing, RingMember, RingType } from "@/lib/types";
+import type { FraudRing, RingMember, RingType, RiskBreakdown } from "@/lib/types";
 
 /* ── Investigation types ─────────────────────────────────────────────────── */
 
@@ -160,6 +160,13 @@ function generateMockRing(id: string): FraudRing {
     assigned_to: null,
     detected_at: "2025-11-14T09:23:17Z",
     updated_at: "2025-11-14T09:23:17Z",
+    riskBreakdown: {
+      rules: 88,
+      ml: 78,
+      graph: 74,
+      firedRules: ["ADDR_REUSE", "STRAW_CO", "ACCOUNT_SHARE"],
+      mlLabel: "Isolation Forest anomaly",
+    },
   };
 }
 
@@ -621,6 +628,11 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
           </div>
         </div>
 
+        {/* ── Score Breakdown (between member table and context panels) ── */}
+        {ring.riskBreakdown && (
+          <ScoreBreakdown breakdown={ring.riskBreakdown} memberCount={ring.member_count} />
+        )}
+
         {/* ── Context Panels (3-col grid below fold) ──────────────────── */}
         <div className="grid grid-cols-3 gap-px border-t border-[#2A2D3E] bg-[#2A2D3E]">
           {/* Smoking Gun */}
@@ -1011,6 +1023,94 @@ function Borrower360({
         <button className="w-full border border-[#2A2D3E] bg-[#1E2130] px-3 py-2 text-xs text-[#8B90A8] hover:bg-[#252840]">
           Flag for SAR Filing
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Score Breakdown Panel ────────────────────────────────────────────────── */
+
+const SCORE_ROWS: { key: "rules" | "ml" | "graph"; label: string; weight: string }[] = [
+  { key: "rules", label: "Rules", weight: "40%" },
+  { key: "ml", label: "ML", weight: "35%" },
+  { key: "graph", label: "Graph", weight: "25%" },
+];
+
+function ScoreBreakdown({ breakdown, memberCount }: { breakdown: RiskBreakdown; memberCount: number }) {
+  const composite = Math.round(
+    breakdown.rules * 0.4 + breakdown.ml * 0.35 + breakdown.graph * 0.25
+  );
+  const severity =
+    composite >= 90 ? "CRITICAL" : composite >= 75 ? "HIGH" : composite >= 50 ? "MEDIUM" : "LOW";
+  const severityColor =
+    composite >= 90
+      ? "text-[#C94B4B]"
+      : composite >= 75
+      ? "text-[#D4733A]"
+      : composite >= 50
+      ? "text-[#D4B83A]"
+      : "text-[#2A9B6B]";
+
+  return (
+    <div className="border-t border-[#2A2D3E]">
+      <div className="bg-[#0F1117] p-4">
+        <div className="border border-[#2A2D3E] bg-[#1A1D27] p-4">
+          {/* Header */}
+          <div className="mb-4 flex items-center gap-3">
+            <span className="text-label">Risk Score</span>
+            <span className={cn("text-lg font-bold tabular-nums", severityColor)}>{composite}</span>
+            <span className={cn("text-[10px] font-semibold tracking-wider", severityColor)}>{severity}</span>
+          </div>
+
+          {/* Divider */}
+          <div className="mb-3 h-px bg-[#2A2D3E]" />
+
+          {/* Rows */}
+          <div className="space-y-2.5">
+            {SCORE_ROWS.map((row) => {
+              const score = breakdown[row.key];
+              return (
+                <div key={row.key} className="flex items-center gap-3">
+                  {/* Label + weight */}
+                  <span className="w-12 shrink-0 text-[11px] font-semibold text-[#E8EAF0]">{row.label}</span>
+                  <span className="w-8 shrink-0 text-[10px] tabular-nums text-[#4A4F6A]">{row.weight}</span>
+
+                  {/* Progress bar */}
+                  <div className="h-2 w-28 shrink-0 bg-slate-800">
+                    <div
+                      className="h-full bg-[#14B8A6]"
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
+
+                  {/* Sub-score */}
+                  <span className="w-8 shrink-0 text-[11px] font-bold tabular-nums text-[#E8EAF0]">{score}</span>
+
+                  {/* Context: chips for rules, label for ML, hub for graph */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {row.key === "rules" &&
+                      breakdown.firedRules.map((rule) => (
+                        <span
+                          key={rule}
+                          className="border border-[#C94B4B]/30 bg-[#C94B4B]/5 px-1.5 py-0.5 text-[9px] font-semibold text-[#C94B4B]"
+                        >
+                          {rule}
+                        </span>
+                      ))}
+                    {row.key === "ml" && (
+                      <span className="text-[10px] text-[#8B90A8]">{breakdown.mlLabel}</span>
+                    )}
+                    {row.key === "graph" && (
+                      <span className="text-[10px] text-[#8B90A8]">
+                        Degree-{memberCount - 1} hub
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

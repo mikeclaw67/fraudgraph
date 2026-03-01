@@ -26,6 +26,14 @@ export interface RingMember {
   all_businesses: string[];
 }
 
+export interface RiskBreakdown {
+  rules: number;
+  ml: number;
+  graph: number;
+  firedRules: string[];
+  mlLabel: string;
+}
+
 export interface FraudRing {
   ring_id: string;
   ring_type: RingType;
@@ -39,6 +47,7 @@ export interface FraudRing {
   assigned_to: string | null;
   detected_at: string;
   updated_at: string;
+  riskBreakdown?: RiskBreakdown;
 }
 
 export interface CaseNote {
