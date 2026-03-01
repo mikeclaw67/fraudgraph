@@ -1,66 +1,34 @@
-# Task: F-18 — Palantir Visual Parity — Real Design Tokens
+# F-35: Ring Queue — Inline Actions + State Machine
 
-Read CLAUDE.md first. This is NOT a minor polish — the entire color system was wrong.
+## What to build
+Each ring row in the Ring Queue (/rings) needs inline action buttons visible on hover.
+The ring state machine: NEW → UNDER REVIEW → REFERRED → DISMISSED
 
-## Context
-We analyzed 79 frames from 3 real Palantir demos. Our color scheme was wrong:
-- Background #0F1117 looks like GitHub dark mode / generic SaaS
-- Real Palantir uses #263238 (desaturated teal-charcoal — blue-steel)
-- Our font Inter makes it look like Linear/Notion — real Palantir uses system-ui for data
-- Our accent blue #2A6EBB is too dim — real is #2196F3
-- The sidebar MUST be icon-only (no text labels, ever)
+## Exact UI
+- On row hover: show 3 action buttons on the right side of the row
+  - [Open Case] → moves ring to UNDER REVIEW, fills Investigator column with "You"
+  - [Refer] → moves ring to REFERRED (only if UNDER REVIEW)  
+  - [Dismiss ▾] → dropdown with reason codes: DUPLICATE, INSUFFICIENT_EVIDENCE, FALSE_POSITIVE, OUT_OF_JURISDICTION
+- Status badge updates immediately (optimistic UI)
+- Dismissed rings get a strikethrough on the smoking gun text + dimmed row opacity (0.4)
+- Action buttons: 0px radius, 11px uppercase, 22px height — same Palantir token system
 
-## Token file (source of truth)
-/Users/mikeclaw/Projects/fraudgraph/qa/reference/PALANTIR_DESIGN_TOKENS.md
-Read this file completely before touching any CSS.
+## State lives in component state (no backend call needed)
+Use React useState with a map of ringId → status. Initialize from the ring's current status field.
 
-## What to Change
+## Acceptance criteria
+- [ ] Hover a NEW row → 3 buttons appear
+- [ ] Click "Open Case" → badge flips to UNDER REVIEW, investigator shows "You", buttons change to [Refer] [Dismiss]
+- [ ] Click "Dismiss" → dropdown appears with 4 reason codes
+- [ ] Selecting a reason → badge flips to DISMISSED, row dims to opacity-40
+- [ ] Dismissed rings still appear in list (just dimmed) unless ALL filter is deselected
+- [ ] tsc --noEmit clean, npm run build clean
 
-### 1. globals.css / tailwind.config.ts
-Replace all custom colors with the design tokens:
---bg-primary:   #263238
---bg-panel:     #2C3539
---bg-sidebar:   #1A1F23
---accent:       #2196F3
---critical:     #E53935
---text-1:       #ECEFF1
---text-2:       #90A4AE
---border-1:     #37474F
+## Files to touch
+- frontend/src/app/rings/page.tsx — add hover state, action buttons, status state machine
 
-### 2. Font
-Replace Inter with system-ui stack for data:
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif
-Add Barlow Condensed (from Google Fonts) for headings/display only.
-
-### 3. Sidebar
-REMOVE all text labels. Icon only. 48px wide.
-Add left 3px blue bar on active item.
-Background: #1A1F23
-
-### 4. Table rows
-32px height, 12px font, 11px uppercase headers with letter-spacing: 1px.
-
-### 5. Badges/status pills
-0px border-radius (rectangles, not pills).
-Use exact colors from token file.
-
-### 6. Apply globally — every page
-/rings, /rings/[id], /cases, /analytics
-
-## Verification
-After implementing: tsc --noEmit and npm run build — zero errors.
-git add -A && git commit -m "feat: Palantir visual parity — real design tokens from demo analysis" && git push origin sprint-frontend
-
-Write to progress.md: FORGE_DONE: Real Palantir design tokens implemented. System-ui font, teal-charcoal bg, icon-only sidebar.
-
-## Done When
-- [ ] All colors match design tokens (teal-charcoal #263238 bg, not #0F1117)
-- [ ] Font is system-ui, not Inter
-- [ ] Sidebar is icon-only, 48px wide, 3px left blue bar on active
-- [ ] Tables: 32px rows, 12px font, 11px uppercase headers
-- [ ] Badges: 0px border-radius (rectangles)
-- [ ] All 4 pages updated (/rings, /rings/[id], /cases, /analytics)
-- [ ] tsc --noEmit passes clean
-- [ ] npm run build passes clean
-- [ ] Committed + pushed to sprint-frontend
-- [ ] FORGE_DONE written to progress.md
+## Done
+tsc --noEmit passes, npm run build passes.
+git add -A && git commit -m "feat: F-35 ring queue inline actions + state machine (NEW→UNDER_REVIEW→REFERRED→DISMISSED)" && git push origin sprint-frontend
+Write to /Users/mikeclaw/Projects/fraudgraph-frontend/progress.md:
+FORGE_DONE: F-35 ring queue inline actions + state machine

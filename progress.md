@@ -17,3 +17,5 @@ FORGE_DONE: Real Palantir design tokens implemented. System-ui font, teal-charco
 - npm run build: clean (9 routes)
 - Zero remaining old hex (#0F1117, #1A1D27, #2A6EBB, #2A2D3E)
 - Zero remaining bg-slate-*, text-slate-*, bg-sky-* classes
+
+FORGE_DONE: F-35 ring queue inline actions + state machine
