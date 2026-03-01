@@ -4,7 +4,7 @@
    Direct /rings/[id] URL renders full-page detail (handled by [id]/page.tsx). */
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { RingDetailContent } from "@/components/ring-detail";
 import { FRAUD_RINGS } from "@/lib/ring-data";

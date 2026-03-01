@@ -66,7 +66,6 @@ export function generateMockEntity(id: string): Entity {
   const name = pick(NAMES);
   const business = pick(BUSINESSES);
   const state = pick(STATES);
-  const _score = rand(20, 95);
   const numAlerts = rand(1, 5);
   return {
     entity_id: id,
