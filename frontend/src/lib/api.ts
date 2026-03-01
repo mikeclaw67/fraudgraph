@@ -1,0 +1,129 @@
+/* FraudGraph — API client for all backend communication */
+
+import type {
+  AlertsResponse,
+  EntityResponse,
+  EntitySearchResponse,
+  GraphResponse,
+  CasesResponse,
+  Case,
+  CaseCreate,
+  CaseUpdate,
+  Severity,
+  AlertStatus,
+} from "./types";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...init?.headers },
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}: ${await res.text()}`);
+  }
+  return res.json();
+}
+
+/* --- Alerts --- */
+
+export interface AlertFilters {
+  page?: number;
+  page_size?: number;
+  severity?: Severity | "ALL";
+  status?: AlertStatus | "ALL";
+  sort_by?: string;
+  sort_order?: "asc" | "desc";
+}
+
+export async function getAlerts(filters: AlertFilters = {}): Promise<AlertsResponse> {
+  const params = new URLSearchParams();
+  if (filters.page) params.set("page", String(filters.page));
+  if (filters.page_size) params.set("page_size", String(filters.page_size));
+  if (filters.severity && filters.severity !== "ALL") params.set("severity", filters.severity);
+  if (filters.status && filters.status !== "ALL") params.set("status", filters.status);
+  if (filters.sort_by) params.set("sort_by", filters.sort_by);
+  if (filters.sort_order) params.set("sort_order", filters.sort_order);
+  const qs = params.toString();
+  return fetchJSON<AlertsResponse>(`/api/alerts${qs ? `?${qs}` : ""}`);
+}
+
+/* --- Entities --- */
+
+export async function getEntity(entityId: string): Promise<EntityResponse> {
+  return fetchJSON<EntityResponse>(`/api/entity/${encodeURIComponent(entityId)}`);
+}
+
+export async function searchEntities(q: string, page = 1): Promise<EntitySearchResponse> {
+  const params = new URLSearchParams({ q, page: String(page) });
+  return fetchJSON<EntitySearchResponse>(`/api/entity?${params}`);
+}
+
+/* --- Graph --- */
+
+export interface GraphFilters {
+  node_type?: string;
+  limit?: number;
+  fraud_only?: boolean;
+}
+
+export async function getGraph(filters: GraphFilters = {}): Promise<GraphResponse> {
+  const params = new URLSearchParams();
+  if (filters.node_type) params.set("node_type", filters.node_type);
+  if (filters.limit) params.set("limit", String(filters.limit));
+  if (filters.fraud_only) params.set("fraud_only", "true");
+  const qs = params.toString();
+  return fetchJSON<GraphResponse>(`/api/graph${qs ? `?${qs}` : ""}`);
+}
+
+/* --- Cases --- */
+
+export async function getCases(
+  status?: string,
+  page = 1,
+  page_size = 50
+): Promise<CasesResponse> {
+  const params = new URLSearchParams({ page: String(page), page_size: String(page_size) });
+  if (status) params.set("status", status);
+  return fetchJSON<CasesResponse>(`/api/cases?${params}`);
+}
+
+export async function getCase(caseId: string): Promise<{ case: Case }> {
+  return fetchJSON<{ case: Case }>(`/api/cases/${encodeURIComponent(caseId)}`);
+}
+
+export async function createCase(data: CaseCreate): Promise<{ case: Case }> {
+  return fetchJSON<{ case: Case }>("/api/cases", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCase(caseId: string, data: CaseUpdate): Promise<{ case: Case }> {
+  return fetchJSON<{ case: Case }>(`/api/cases/${encodeURIComponent(caseId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/* --- WebSocket --- */
+
+export function connectAlertWebSocket(onMessage: (alert: unknown) => void): WebSocket | null {
+  if (typeof window === "undefined") return null;
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws/alerts";
+  const ws = new WebSocket(wsUrl);
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      onMessage(data);
+    } catch {
+      // ignore non-JSON messages
+    }
+  };
+  return ws;
+}
+
+/* --- SWR fetcher --- */
+
+export const swrFetcher = <T>(path: string): Promise<T> => fetchJSON<T>(path);
