@@ -47,7 +47,7 @@ export default function RingQueuePage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [statusFilter, setStatusFilter] = useState<RingStatus | "ALL">("ALL");
   const [isMobile, setIsMobile] = useState(false);
-  const detailKeyRef = useRef(0);
+  const [detailKey, setDetailKey] = useState(0);
 
   /* ── Responsive: detect mobile ─────────────────────────────────────── */
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function RingQueuePage() {
       router.push(`/rings/${ringId}`);
       return;
     }
-    detailKeyRef.current += 1;
+    setDetailKey(k => k + 1);
     setSelectedRingId(ringId);
     window.history.pushState({ ringId }, "", `/rings/${ringId}`);
   }, [isMobile, router]);
@@ -80,7 +80,7 @@ export default function RingQueuePage() {
       const path = window.location.pathname;
       const match = path.match(/^\/rings\/(.+)$/);
       if (match) {
-        detailKeyRef.current += 1;
+        setDetailKey(k => k + 1);
         setSelectedRingId(match[1]);
       } else {
         setSelectedRingId(null);
@@ -379,7 +379,7 @@ export default function RingQueuePage() {
       >
         {selectedRingId && (
           <RingDetailContent
-            key={detailKeyRef.current}
+            key={detailKey}
             ringId={selectedRingId}
             onClose={closeDetail}
             embedded
