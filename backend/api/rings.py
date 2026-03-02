@@ -48,8 +48,36 @@ async def list_rings(
 
 @router.get("/{ring_id}")
 async def get_ring(ring_id: str) -> dict[str, Any]:
-    """Return a single fraud ring with its entity details."""
+    """Return a single fraud ring with its entity details and members."""
+    from backend.api.entities import _entity_store
+    
     for ring in _ring_store:
         if ring.get("id") == ring_id:
-            return {"ring": ring}
+            # Build members array from entity UUIDs
+            members = []
+            for entity_id in ring.get("entities", []):
+                entity = _entity_store.get(entity_id)
+                if entity:
+                    members.append({
+                        "member_id": entity.get("borrower_id"),
+                        "business_name": entity.get("business_name", ""),
+                        "ein": entity.get("ein", ""),
+                        "borrower_name": entity.get("borrower_name", ""),
+                        "loan_amount": entity.get("loan_amount", 0),
+                        "loan_date": entity.get("loan_date", ""),
+                        "lender": entity.get("lender_name", ""),
+                        "status": "FUNDED",
+                        "risk_score": entity.get("risk_score", 0),
+                        "notes": None,
+                        "red_flags": entity.get("red_flags", []),
+                        "ssn_last4": entity.get("ssn_last4", ""),
+                        "bank_account_last4": entity.get("bank_account", "")[-4:] if entity.get("bank_account") else "",
+                        "program": entity.get("loan_program", "PPP"),
+                        "employee_count": entity.get("employee_count", 0),
+                        "business_age_months": entity.get("business_age_months", 0),
+                        "all_businesses": [entity.get("business_name", "")],
+                    })
+            
+            # Return ring with members
+            return {"ring": {**ring, "members": members}}
     return {"error": "Ring not found", "ring_id": ring_id}
