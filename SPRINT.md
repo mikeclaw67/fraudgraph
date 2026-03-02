@@ -1,19 +1,18 @@
 # FraudGraph Sprint Board
 
-Updated: 2026-03-01 18:15
+Updated: 2026-03-01 19:15
 Source of truth for what's in flight.
 
 ## 🔴 IN PROGRESS
 | # | Story | Owner | Status |
 |---|-------|-------|--------|
-| F-Case | Case Model Implementation (backend + frontend) | Forge | Shipped, awaiting Pixel |
+| F-34 | Investigation Agent Streaming UI | Forge | Queued |
 
 ## 🟡 TODO — Current Sprint
 
 | # | Story | Priority | Acceptance Criteria |
 |---|-------|----------|---------------------|
 | F-36 | Entity 360 Drawer | P1 | Click graph node → right-side panel with entity profile, URL sync, ESC closes |
-| F-34 | Investigation Agent Streaming UI | P0 | Stream panel in Ring Detail showing investigation steps in real-time |
 | F-37 | Graph PNG Export + Referral Package | P1 | Export ring/case as ZIP with graph PNG + findings + evidence checklist |
 
 ## ✅ DONE
