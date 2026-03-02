@@ -7,10 +7,16 @@ import type { AuditEntry, CaseNote } from "@/lib/types";
 
 const ACTION_ICONS: Record<string, { color: string; label: string }> = {
   CASE_OPENED: { color: "bg-[#2196F3]", label: "Case Opened" },
+  CASE_CREATED: { color: "bg-[#2196F3]", label: "Case Created" },
+  CASE_UPDATED: { color: "bg-[#FFB300]", label: "Case Updated" },
   STATUS_CHANGE: { color: "bg-[#FFB300]", label: "Status Change" },
   NOTE_ADDED: { color: "bg-[#90A4AE]", label: "Note Added" },
   REFERRED_TO_DOJ: { color: "bg-[#E53935]", label: "Referred to DOJ" },
   EVIDENCE_ADDED: { color: "bg-[#43A047]", label: "Evidence Added" },
+  CHECKLIST_UPDATED: { color: "bg-[#43A047]", label: "Checklist Updated" },
+  SUBMITTED_FOR_REVIEW: { color: "bg-[#7B5EA7]", label: "Submitted for Review" },
+  REVIEW_APPROVED: { color: "bg-[#43A047]", label: "Review Approved" },
+  REVIEW_RETURNED: { color: "bg-[#FFB300]", label: "Review Returned" },
   DISMISSED: { color: "bg-[#546E7A]", label: "Dismissed" },
   ASSIGNED: { color: "bg-[#7B5EA7]", label: "Assigned" },
 };

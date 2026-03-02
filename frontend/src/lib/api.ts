@@ -13,6 +13,7 @@ import type {
   AlertStatus,
   FraudRing,
   InvestigationCase,
+  ChecklistStatus,
 } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -150,6 +151,52 @@ export async function updateCaseStatus(
 export function downloadReferralPackage(caseId: string): void {
   const url = `${API}/api/cases/${encodeURIComponent(caseId)}/referral-package`;
   window.open(url, "_blank");
+}
+
+/* --- Checklist --- */
+
+export async function updateChecklistItem(
+  caseId: string,
+  itemKey: string,
+  status: ChecklistStatus,
+  completedBy: string = "investigator",
+  notes?: string
+): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(
+    `/api/cases/${encodeURIComponent(caseId)}/checklist/${encodeURIComponent(itemKey)}`,
+    { method: "PATCH", body: JSON.stringify({ status, completed_by: completedBy, notes: notes ?? null }) }
+  );
+}
+
+/* --- Review loop --- */
+
+export async function submitForReview(
+  caseId: string,
+  reviewer: string = "senior_investigator"
+): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(
+    `/api/cases/${encodeURIComponent(caseId)}/submit-review`,
+    { method: "POST", body: JSON.stringify({ reviewer }) }
+  );
+}
+
+export async function approveCase(
+  caseId: string
+): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(
+    `/api/cases/${encodeURIComponent(caseId)}/approve`,
+    { method: "POST" }
+  );
+}
+
+export async function returnCase(
+  caseId: string,
+  notes: string
+): Promise<{ case: InvestigationCase }> {
+  return fetchJSON<{ case: InvestigationCase }>(
+    `/api/cases/${encodeURIComponent(caseId)}/return`,
+    { method: "POST", body: JSON.stringify({ notes }) }
+  );
 }
 
 /* --- WebSocket --- */

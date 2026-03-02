@@ -105,8 +105,14 @@ class Case(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    reviewer: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    review_status: Mapped[str] = mapped_column(String(32), nullable=False, default="NONE")
+    review_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sar_filed: Mapped[bool] = mapped_column(Boolean, default=False)
+
     alerts: Mapped[list["AlertRecord"]] = relationship(back_populates="case")
     audit_entries: Mapped[list["AuditEntry"]] = relationship(back_populates="case")
+    checklist_items: Mapped[list["CaseChecklistItem"]] = relationship(back_populates="case")
 
 
 class AuditEntry(Base):
@@ -125,6 +131,28 @@ class AuditEntry(Base):
     )
 
     case: Mapped["Case"] = relationship(back_populates="audit_entries")
+
+
+class CaseChecklistItem(Base):
+    """Evidence checklist item for a case — gates referral submission."""
+    __tablename__ = "case_checklist_items"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("cases.id", ondelete="CASCADE"), nullable=False
+    )
+    item_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    label: Mapped[str] = mapped_column(String(256), nullable=False)
+    required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING")
+    completed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    case: Mapped["Case"] = relationship(back_populates="checklist_items")
 
 
 class FraudRing(Base):
