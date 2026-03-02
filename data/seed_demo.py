@@ -119,7 +119,7 @@ def _build_ring_001() -> tuple[dict, list[dict]]:
         ))
 
     ring = {
-        "id": "RING-001",
+        "id": "ring_001",
         "name": "Identity Theft Network",
         "type": "IDENTITY_THEFT",
         "status": "ACTIVE",
@@ -173,7 +173,7 @@ def _build_ring_002() -> tuple[dict, list[dict]]:
         ))
 
     ring = {
-        "id": "RING-002",
+        "id": "ring_002",
         "name": "Shell Company Cluster",
         "type": "SHELL_COMPANY",
         "status": "ACTIVE",
@@ -238,7 +238,7 @@ def _build_ring_003() -> tuple[dict, list[dict]]:
         ))
 
     ring = {
-        "id": "RING-003",
+        "id": "ring_003",
         "name": "Invoice Factoring Scheme",
         "type": "INVOICE_FACTORING",
         "status": "MONITORING",
@@ -299,7 +299,7 @@ def _build_ring_004() -> tuple[dict, list[dict]]:
         ))
 
     ring = {
-        "id": "RING-004",
+        "id": "ring_004",
         "name": "Benefits Double-Dipping",
         "type": "BENEFITS_FRAUD",
         "status": "MONITORING",
@@ -348,7 +348,7 @@ def _build_ring_005() -> tuple[dict, list[dict]]:
         ))
 
     ring = {
-        "id": "RING-005",
+        "id": "ring_005",
         "name": "Address Cycling Ring",
         "type": "ADDRESS_CYCLING",
         "status": "RESOLVED",
