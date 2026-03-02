@@ -125,16 +125,16 @@ def _build_ring_001() -> tuple[dict, list[dict]]:
         "common_element": "1847 Commerce Blvd Suite 400, Miami FL 33131",
         "common_element_detail": "Commercial mail forwarding facility. 12 businesses filed PPP loans from this single mailbox address within 72 hours.",
         "status": "ACTIVE",
-        "riskScore": 94,
-        "totalExposure": 2_100_000,
-        "entityCount": 12,
+        "risk_score": 94,
+        "total_exposure": 2_100_000,
+        "entity_count": 12,
         "member_count": 12,
         "avg_risk_score": 94,
         "assigned_to": None,
         "detected_at": "2024-11-15T08:30:00Z",
         "updated_at": "2025-01-10T14:22:00Z",
-        "createdAt": "2024-11-15T08:30:00Z",
-        "riskBreakdown": {
+        "created_at": "2024-11-15T08:30:00Z",
+        "risk_breakdown": {
             "rules": 88,
             "ml": 78,
             "graph": 74,
@@ -191,10 +191,10 @@ def _build_ring_002() -> tuple[dict, list[dict]]:
         "name": "Shell Company Cluster",
         "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
-        "riskScore": 91,
-        "totalExposure": 1_480_000,
-        "entityCount": 8,
-        "createdAt": "2024-12-03T14:15:00Z",
+        "risk_score": 91,
+        "total_exposure": 1_480_000,
+        "entity_count": 8,
+        "created_at": "2024-12-03T14:15:00Z",
     }
     return ring, entities
 
@@ -256,10 +256,10 @@ def _build_ring_003() -> tuple[dict, list[dict]]:
         "name": "Invoice Factoring Scheme",
         "ring_type": "ACCOUNT_CLUSTER",
         "status": "MONITORING",
-        "riskScore": 78,
-        "totalExposure": 890_000,
-        "entityCount": 15,
-        "createdAt": "2025-01-20T11:45:00Z",
+        "risk_score": 78,
+        "total_exposure": 890_000,
+        "entity_count": 15,
+        "created_at": "2025-01-20T11:45:00Z",
     }
     return ring, entities
 
@@ -317,10 +317,10 @@ def _build_ring_004() -> tuple[dict, list[dict]]:
         "name": "Benefits Double-Dipping",
         "ring_type": "THRESHOLD_GAMING",
         "status": "MONITORING",
-        "riskScore": 62,
-        "totalExposure": 340_000,
-        "entityCount": 6,
-        "createdAt": "2025-02-10T09:20:00Z",
+        "risk_score": 62,
+        "total_exposure": 340_000,
+        "entity_count": 6,
+        "created_at": "2025-02-10T09:20:00Z",
     }
     return ring, entities
 
@@ -366,10 +366,10 @@ def _build_ring_005() -> tuple[dict, list[dict]]:
         "name": "Address Cycling Ring",
         "ring_type": "ADDRESS_FARM",
         "status": "RESOLVED",
-        "riskScore": 45,
-        "totalExposure": 175_000,
-        "entityCount": 4,
-        "createdAt": "2025-03-01T16:00:00Z",
+        "risk_score": 45,
+        "total_exposure": 175_000,
+        "entity_count": 4,
+        "created_at": "2025-03-01T16:00:00Z",
     }
     return ring, entities
 
@@ -535,10 +535,10 @@ def _build_procurement_ring_001() -> tuple[dict, list[dict]]:
         "name": "IT Kickback Cluster — GSA",
         "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
-        "riskScore": 97,
-        "totalExposure": 9_000_000,
-        "entityCount": 7,
-        "createdAt": "2025-06-10T08:00:00Z",
+        "risk_score": 97,
+        "total_exposure": 9_000_000,
+        "entity_count": 7,
+        "created_at": "2025-06-10T08:00:00Z",
         "schema": "procurement",
     }
     return ring, entities
@@ -572,10 +572,10 @@ def _build_procurement_ring_002() -> tuple[dict, list[dict]]:
         "name": "Bid Rotation Ring",
         "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
-        "riskScore": 84,
-        "totalExposure": 7_400_000,
-        "entityCount": 4,
-        "createdAt": "2025-07-22T14:30:00Z",
+        "risk_score": 84,
+        "total_exposure": 7_400_000,
+        "entity_count": 4,
+        "created_at": "2025-07-22T14:30:00Z",
         "schema": "procurement",
     }
     return ring, entities
@@ -612,10 +612,10 @@ def _build_procurement_ring_003() -> tuple[dict, list[dict]]:
         "name": "Invoice Inflation Ring",
         "ring_type": "ACCOUNT_CLUSTER",
         "status": "MONITORING",
-        "riskScore": 72,
-        "totalExposure": 8_000_000,
-        "entityCount": 2,
-        "createdAt": "2025-08-05T10:15:00Z",
+        "risk_score": 72,
+        "total_exposure": 8_000_000,
+        "entity_count": 2,
+        "created_at": "2025-08-05T10:15:00Z",
         "schema": "procurement",
     }
     return ring, entities

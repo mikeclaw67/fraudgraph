@@ -106,3 +106,61 @@ async def get_ring(ring_id: str) -> dict[str, Any]:
             return {"ring": enriched_ring}
     return {"error": "Ring not found", "ring_id": ring_id}
 
+
+
+@router.post("/{ring_id}/case")
+async def create_ring_case(ring_id: str) -> dict[str, Any]:
+    """Create an investigation case for a ring."""
+    from backend.api.cases import _case_store
+    import uuid
+    from datetime import datetime, timezone
+    
+    # Find the ring
+    ring = None
+    for r in _ring_store:
+        if r.get("id") == ring_id:
+            ring = r
+            break
+    
+    if not ring:
+        return {"error": "Ring not found", "ring_id": ring_id}
+    
+    # Create case
+    case_id = f"CASE-{uuid.uuid4().hex[:8].upper()}"
+    case = {
+        "case_id": case_id,
+        "ring_id": ring_id,
+        "title": f"Investigation: {ring.get('name', 'Unknown Ring')}",
+        "description": f"Fraud ring with ${ring.get('total_exposure', 0):,.0f} exposure",
+        "status": "OPEN",
+        "priority": "HIGH",
+        "assigned_to": None,
+        "fraud_type": ring.get("ring_type", "UNKNOWN"),
+        "alert_ids": [],
+        "total_exposure": ring.get("total_exposure", 0),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "checklist": [
+            {"key": "IDENTITY_VERIFIED", "label": "Identity verified", "status": "PENDING"},
+            {"key": "ENTITY_CONFIRMED", "label": "Entity confirmed", "status": "PENDING"},
+            {"key": "BANK_CONFIRMED", "label": "Bank account confirmed", "status": "PENDING"},
+            {"key": "PAYROLL_REVIEWED", "label": "Payroll reviewed", "status": "PENDING"},
+            {"key": "EXPOSURE_CONFIRMED", "label": "Exposure confirmed", "status": "PENDING"},
+            {"key": "GRAPH_COMPLETE", "label": "Graph analysis complete", "status": "PENDING"},
+            {"key": "RING_MEMBERS_ID", "label": "Ring members identified", "status": "PENDING"},
+        ],
+        "reviewer": None,
+        "review_status": "NONE",
+        "review_notes": None,
+        "audit_trail": [
+            {
+                "action": "CASE_CREATED",
+                "actor": "investigator",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "details": f"Case created for {ring.get('name', 'unknown ring')}",
+            }
+        ],
+    }
+    
+    _case_store.append(case)
+    return {"case": case}
