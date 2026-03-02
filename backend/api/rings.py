@@ -78,6 +78,31 @@ async def get_ring(ring_id: str) -> dict[str, Any]:
                         "all_businesses": [entity.get("business_name", "")],
                     })
             
-            # Return ring with members
-            return {"ring": {**ring, "members": members}}
+            # Compute avg_risk_score from members
+            avg_risk = 0
+            if members:
+                avg_risk = int(sum(m.get("risk_score", 0) for m in members) / len(members))
+            
+            # Enrich ring response with computed/default fields
+            enriched_ring = {
+                **ring,
+                "member_count": len(members),
+                "avg_risk_score": ring.get("avg_risk_score", avg_risk),
+                "members": members,
+            }
+            
+            # Ensure common_element field exists
+            if "common_element" not in enriched_ring:
+                enriched_ring["common_element"] = f"{len(members)} entities linked to {enriched_ring.get('name', 'fraud ring')}"
+            if "common_element_detail" not in enriched_ring:
+                enriched_ring["common_element_detail"] = f"Detected {enriched_ring.get('createdAt', 'recently')}"
+            if "detected_at" not in enriched_ring:
+                enriched_ring["detected_at"] = enriched_ring.get("createdAt", "2024-01-01T00:00:00Z")
+            if "updated_at" not in enriched_ring:
+                enriched_ring["updated_at"] = enriched_ring.get("createdAt", "2024-01-01T00:00:00Z")
+            if "assigned_to" not in enriched_ring:
+                enriched_ring["assigned_to"] = None
+            
+            return {"ring": enriched_ring}
     return {"error": "Ring not found", "ring_id": ring_id}
+

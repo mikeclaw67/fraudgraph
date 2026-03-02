@@ -122,11 +122,25 @@ def _build_ring_001() -> tuple[dict, list[dict]]:
         "id": "ring_001",
         "name": "Identity Theft Network",
         "ring_type": "ADDRESS_FARM",
+        "common_element": "1847 Commerce Blvd Suite 400, Miami FL 33131",
+        "common_element_detail": "Commercial mail forwarding facility. 12 businesses filed PPP loans from this single mailbox address within 72 hours.",
         "status": "ACTIVE",
         "riskScore": 94,
         "totalExposure": 2_100_000,
         "entityCount": 12,
+        "member_count": 12,
+        "avg_risk_score": 94,
+        "assigned_to": None,
+        "detected_at": "2024-11-15T08:30:00Z",
+        "updated_at": "2025-01-10T14:22:00Z",
         "createdAt": "2024-11-15T08:30:00Z",
+        "riskBreakdown": {
+            "rules": 88,
+            "ml": 78,
+            "graph": 74,
+            "firedRules": ["ADDR_REUSE", "STRAW_CO", "ACCOUNT_SHARE"],
+            "mlLabel": "Isolation Forest anomaly"
+        }
     }
     return ring, entities
 
