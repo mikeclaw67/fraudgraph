@@ -65,6 +65,19 @@ export interface EvidenceItem {
   auto_populated: boolean;
 }
 
+export type ChecklistStatus = "PENDING" | "COMPLETE" | "NA";
+export type ReviewStatus = "NONE" | "UNDER_REVIEW" | "APPROVED" | "RETURNED";
+
+export interface ChecklistItem {
+  item_key: string;
+  label: string;
+  required: boolean;
+  status: ChecklistStatus;
+  completed_by: string | null;
+  completed_at: string | null;
+  notes: string | null;
+}
+
 export interface AuditEntry {
   action: string;
   actor: string;
@@ -87,6 +100,11 @@ export interface InvestigationCase {
   notes: CaseNote[];
   evidence_checklist: EvidenceItem[];
   audit_trail: AuditEntry[];
+  reviewer?: string | null;
+  review_status?: ReviewStatus;
+  review_notes?: string | null;
+  sar_filed?: boolean;
+  checklist?: ChecklistItem[];
 }
 
 export interface GraphNode {

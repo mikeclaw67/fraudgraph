@@ -8,15 +8,20 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { StatusBadge } from "@/components/badges";
 import { CaseTimeline } from "@/components/case-timeline";
+import { EvidenceChecklistPanel, STANDARD_CHECKLIST } from "@/components/case-checklist";
 import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
-import { exportSigmaAsPNG, captureSigmaAsPNGDataUrl } from "@/lib/exportGraph";
-import { exportReferralPackage } from "@/lib/exportPackage";
+import { exportSigmaAsPNG } from "@/lib/exportGraph";
 import {
   getRing,
   getInvestigationCase,
   createRingCase,
   updateCaseStatus,
   addCaseNote,
+  downloadReferralPackage,
+  updateChecklistItem,
+  submitForReview,
+  approveCase,
+  returnCase,
 } from "@/lib/api";
 import type { FraudRing, RingMember, RingType, RiskBreakdown, InvestigationCase, CaseStatus } from "@/lib/types";
 
@@ -198,9 +203,6 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   const [caseData, setCaseData] = useState<InvestigationCase | null>(null);
   const [caseLoading, setCaseLoading] = useState(false);
 
-  /* ── Export state ────────────────────────────────────────────────────── */
-  const [exporting, setExporting] = useState(false);
-
   /* ── Investigation state ─────────────────────────────────────────────── */
   const [invStatus, setInvStatus] = useState<InvStatus>("idle");
   const [invSteps, setInvSteps] = useState<InvStep[]>([]);
@@ -281,14 +283,11 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     );
   }
 
-  async function handleExportEvidence() {
-    if (!ring || !sigmaRef.current) return;
-    setExporting(true);
-    try {
-      const pngDataUrl = await captureSigmaAsPNGDataUrl(sigmaRef.current);
-      await exportReferralPackage(ring, invFindings, pngDataUrl);
-    } finally {
-      setExporting(false);
+  function handleExportEvidence() {
+    if (caseData) {
+      downloadReferralPackage(caseData.case_id);
+    } else {
+      window.print();
     }
   }
 
@@ -321,6 +320,11 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         audit_trail: [
           { action: "CASE_OPENED", actor: "You", timestamp: now, details: `Case created from ring ${ring.ring_id}` },
         ],
+        reviewer: null,
+        review_status: "NONE",
+        review_notes: null,
+        sar_filed: false,
+        checklist: STANDARD_CHECKLIST.map((i) => ({ ...i })),
       };
       setCaseData(mockCase);
       setRing((prev) => prev ? { ...prev, case_id: mockCase.case_id, status: "CASE_OPENED" } : prev);
@@ -380,6 +384,85 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   function handleDismiss() {
     if (caseData) {
       handleCaseStatusChange("CLOSED");
+    }
+  }
+
+  /* ── Checklist + review handlers ────────────────────────────────────── */
+
+  async function handleToggleChecklistItem(itemKey: string) {
+    if (!caseData) return;
+    const item = caseData.checklist?.find((i) => i.item_key === itemKey);
+    if (!item) return;
+    const newStatus = item.status === "COMPLETE" ? "PENDING" : "COMPLETE";
+    try {
+      const res = await updateChecklistItem(caseData.case_id, itemKey, newStatus, "investigator");
+      setCaseData(res.case);
+    } catch {
+      const now = new Date().toISOString();
+      setCaseData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          last_updated: now,
+          checklist: (prev.checklist ?? []).map((i) =>
+            i.item_key === itemKey
+              ? { ...i, status: newStatus, completed_by: newStatus === "COMPLETE" ? "investigator" : null, completed_at: newStatus === "COMPLETE" ? now : null }
+              : i
+          ),
+          audit_trail: [...prev.audit_trail, { action: "CHECKLIST_UPDATED", actor: "investigator", timestamp: now, details: `${itemKey} → ${newStatus}` }],
+        };
+      });
+    }
+  }
+
+  async function handleSubmitReview() {
+    if (!caseData) return;
+    try {
+      const res = await submitForReview(caseData.case_id);
+      setCaseData(res.case);
+    } catch {
+      const now = new Date().toISOString();
+      setCaseData((prev) => prev ? {
+        ...prev,
+        review_status: "UNDER_REVIEW",
+        reviewer: "senior_investigator",
+        last_updated: now,
+        audit_trail: [...prev.audit_trail, { action: "SUBMITTED_FOR_REVIEW", actor: "investigator", timestamp: now, details: "Submitted for senior review" }],
+      } : prev);
+    }
+  }
+
+  async function handleApproveCase() {
+    if (!caseData) return;
+    try {
+      const res = await approveCase(caseData.case_id);
+      setCaseData(res.case);
+    } catch {
+      const now = new Date().toISOString();
+      setCaseData((prev) => prev ? {
+        ...prev,
+        review_status: "APPROVED",
+        status: "REFERRED_TO_DOJ",
+        last_updated: now,
+        audit_trail: [...prev.audit_trail, { action: "REVIEW_APPROVED", actor: "senior_investigator", timestamp: now, details: "Case approved and referred to DOJ" }],
+      } : prev);
+    }
+  }
+
+  async function handleReturnCase(notes: string) {
+    if (!caseData) return;
+    try {
+      const res = await returnCase(caseData.case_id, notes);
+      setCaseData(res.case);
+    } catch {
+      const now = new Date().toISOString();
+      setCaseData((prev) => prev ? {
+        ...prev,
+        review_status: "RETURNED",
+        review_notes: notes,
+        last_updated: now,
+        audit_trail: [...prev.audit_trail, { action: "REVIEW_RETURNED", actor: "senior_investigator", timestamp: now, details: `Returned: ${notes}` }],
+      } : prev);
     }
   }
 
@@ -665,17 +748,18 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
           {caseData && (
             <button
               onClick={handleRefer}
-              disabled={caseData.status === "REFERRED_TO_DOJ"}
+              disabled={caseData.status === "REFERRED_TO_DOJ" || caseData.review_status !== "APPROVED"}
               className="border border-[#E53935] bg-[#E53935]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E53935] hover:bg-[#E53935]/20 transition-colors disabled:opacity-40"
+              title={caseData.review_status !== "APPROVED" && caseData.status !== "REFERRED_TO_DOJ" ? "Complete checklist and get review approval first" : undefined}
             >
-              {caseData.status === "REFERRED_TO_DOJ" ? "Referred" : "Refer to DOJ"}
+              {caseData.status === "REFERRED_TO_DOJ" ? "Referred" : caseData.review_status === "APPROVED" ? "Refer to DOJ" : "Review Required"}
             </button>
           )}
           <button onClick={handleExportGraph} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
             Export PNG
           </button>
-          <button onClick={handleExportEvidence} disabled={exporting} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors disabled:opacity-40">
-            {exporting ? "Exporting..." : caseData ? "Referral Package" : "Evidence Package"}
+          <button onClick={handleExportEvidence} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
+            {caseData ? "Referral Package" : "Evidence Package"}
           </button>
           <button
             onClick={caseData ? handleDismiss : undefined}
@@ -852,6 +936,23 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         {/* ── Score Breakdown (between member table and context panels) ── */}
         {ring.risk_breakdown && (
           <ScoreBreakdown breakdown={ring.risk_breakdown} memberCount={ring.member_count} />
+        )}
+
+        {/* ── Evidence Checklist (gates referral) ─────────────────────── */}
+        {caseData && caseData.checklist && caseData.checklist.length > 0 && (
+          <EvidenceChecklistPanel
+            checklist={caseData.checklist}
+            reviewStatus={caseData.review_status ?? "NONE"}
+            reviewer={caseData.reviewer ?? null}
+            reviewNotes={caseData.review_notes ?? null}
+            totalExposure={ring.total_exposure}
+            memberCount={ring.member_count}
+            riskScore={ring.avg_risk_score}
+            onToggleItem={handleToggleChecklistItem}
+            onSubmitReview={handleSubmitReview}
+            onApprove={handleApproveCase}
+            onReturn={handleReturnCase}
+          />
         )}
 
         {/* ── Context Panels (3-col grid below fold) ──────────────────── */}

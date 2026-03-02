@@ -44,5 +44,15 @@ If build fails: fix it before doing anything else.
 1. npx tsc --noEmit passes clean
 2. npm run build passes clean
 3. git add -A && git commit && git push
-4. Write ITERATION_DONE: <what was built> to progress.md
+4. Write FORGE_DONE: <what was built> to progress.md
 5. openclaw system event --text "Done: <summary>" --mode now
+
+## After FORGE_DONE: Wake Pixel Immediately
+
+Don't make Pixel wait 15 minutes. After writing FORGE_DONE, message Pixel:
+
+openclaw sessions send --agent agent:pm:main --message "Forge finished. Story shipped. Pick next task."
+
+This triggers Pixel immediately instead of waiting for the next cron cycle.
+
+If agent-to-agent messaging isn't available, ignore this. But if it works, it shrinks 15-min latency to seconds.
