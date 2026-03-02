@@ -56,3 +56,42 @@ export function exportSigmaAsPNG(
   sigma.on("afterRender", onAfterRender);
   sigma.refresh(); // Force a fresh render to populate WebGL buffers
 }
+
+/**
+ * Capture the Sigma.js graph as a PNG data URL (no download triggered).
+ * Same afterRender + synchronous drawImage pattern as exportSigmaAsPNG.
+ */
+export function captureSigmaAsPNGDataUrl(
+  sigma: SigmaExportable,
+  bgColor = "#263238",
+): Promise<string> {
+  return new Promise((resolve) => {
+    const onAfterRender = () => {
+      sigma.removeListener("afterRender", onAfterRender);
+
+      const canvases = sigma.getCanvases();
+      const container = sigma.getContainer();
+      const w = container.offsetWidth;
+      const h = container.offsetHeight;
+
+      const offscreen = document.createElement("canvas");
+      offscreen.width = w;
+      offscreen.height = h;
+      const ctx = offscreen.getContext("2d")!;
+
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, w, h);
+
+      const LAYER_ORDER = ["edges", "edgeLabels", "nodes", "labels"];
+      LAYER_ORDER.forEach((layer) => {
+        const canvas = canvases[layer];
+        if (canvas) ctx.drawImage(canvas, 0, 0, w, h);
+      });
+
+      resolve(offscreen.toDataURL("image/png"));
+    };
+
+    sigma.on("afterRender", onAfterRender);
+    sigma.refresh();
+  });
+}

@@ -9,14 +9,14 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/badges";
 import { CaseTimeline } from "@/components/case-timeline";
 import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
-import { exportSigmaAsPNG } from "@/lib/exportGraph";
+import { exportSigmaAsPNG, captureSigmaAsPNGDataUrl } from "@/lib/exportGraph";
+import { exportReferralPackage } from "@/lib/exportPackage";
 import {
   getRing,
   getInvestigationCase,
   createRingCase,
   updateCaseStatus,
   addCaseNote,
-  downloadReferralPackage,
 } from "@/lib/api";
 import type { FraudRing, RingMember, RingType, RiskBreakdown, InvestigationCase, CaseStatus } from "@/lib/types";
 
@@ -198,6 +198,9 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
   const [caseData, setCaseData] = useState<InvestigationCase | null>(null);
   const [caseLoading, setCaseLoading] = useState(false);
 
+  /* ── Export state ────────────────────────────────────────────────────── */
+  const [exporting, setExporting] = useState(false);
+
   /* ── Investigation state ─────────────────────────────────────────────── */
   const [invStatus, setInvStatus] = useState<InvStatus>("idle");
   const [invSteps, setInvSteps] = useState<InvStep[]>([]);
@@ -278,11 +281,14 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
     );
   }
 
-  function handleExportEvidence() {
-    if (caseData) {
-      downloadReferralPackage(caseData.case_id);
-    } else {
-      window.print();
+  async function handleExportEvidence() {
+    if (!ring || !sigmaRef.current) return;
+    setExporting(true);
+    try {
+      const pngDataUrl = await captureSigmaAsPNGDataUrl(sigmaRef.current);
+      await exportReferralPackage(ring, invFindings, pngDataUrl);
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -668,8 +674,8 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
           <button onClick={handleExportGraph} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
             Export PNG
           </button>
-          <button onClick={handleExportEvidence} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors">
-            {caseData ? "Referral Package" : "Evidence Package"}
+          <button onClick={handleExportEvidence} disabled={exporting} className="border border-[#37474F] bg-[#1E292E] px-3 py-1.5 text-[11px] font-medium text-[#90A4AE] hover:bg-[#2F3D42] hover:text-[#ECEFF1] transition-colors disabled:opacity-40">
+            {exporting ? "Exporting..." : caseData ? "Referral Package" : "Evidence Package"}
           </button>
           <button
             onClick={caseData ? handleDismiss : undefined}
