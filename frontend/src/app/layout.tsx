@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className={`${barlowCondensed.variable} font-sans antialiased bg-bg-shell text-text-primary`}>
         <Sidebar />
-        <main className="ml-[48px] min-h-screen">{children}</main>
+        <main className="ml-[140px] min-h-screen">{children}</main>
       </body>
     </html>
   );
