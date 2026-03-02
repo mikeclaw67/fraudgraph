@@ -1,23 +1,25 @@
 # FraudGraph Sprint Board
 
-Updated: 2026-03-01 19:15
+Updated: 2026-03-02 07:15
 Source of truth for what's in flight.
 
 ## 🔴 IN PROGRESS
 | # | Story | Owner | Status |
 |---|-------|-------|--------|
-| F-34 | Investigation Agent Streaming UI | Forge | Queued |
+| S1 | Schema Switcher (PPP → Medicaid → Procurement) | Forge | Active |
 
-## 🟡 TODO — Current Sprint
+## 🟡 TODO — Next Sprint
 
 | # | Story | Priority | Acceptance Criteria |
 |---|-------|----------|---------------------|
-| F-36 | Entity 360 Drawer | P1 | Click graph node → right-side panel with entity profile, URL sync, ESC closes |
-| F-37 | Graph PNG Export + Referral Package | P1 | Export ring/case as ZIP with graph PNG + findings + evidence checklist |
+| S2 | Command Center aggregate view | P3 | Agency leadership dashboard |
 
-## ✅ DONE
+## ✅ DONE — Sprint S7
 | # | Story | Commit | Sprint |
 |---|-------|--------|--------|
+| F-37 | Graph PNG Export + Referral Package ZIP | 57cb42c | S7 |
+| F-34 | Investigation Agent Streaming UI | (on main) | S6 |
+| F-36 | Entity 360 Drawer | 75ae3df | S6 |
 | F-Case | Case Model | 19696d8 | S6 |
 | F-35 | Ring Queue inline actions | 250052f | S5 |
 | F-18 | Palantir visual parity | 90e3315 | S5 |
