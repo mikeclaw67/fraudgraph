@@ -1,35 +1,24 @@
-ITERATION_DONE: F-34 Unblock — WebSocket backend fix + critical UX (row affordances, nav labels)
+# FraudGraph Frontend — Progress
 
-## What was built (F-34)
-- **docker-compose.yml**: Fixed frontend build context (`../fraudgraph-frontend/frontend` -> `./frontend`)
-- **DEMO_QUICK.md**: Updated to 3-step startup: (1) make demo, (2) wait 10s, (3) open localhost:3000
-- **Sidebar nav labels**: Widened from 48px to 140px, added text labels (Rings, Cases, Analytics, Schema) + "FraudGraph" logo text + "Online" status label
-- **Row affordances**: Added persistent chevron-right icons on every ring queue row, enhanced hover state with left-border accent highlight + brighter bg, `group` class for coordinated hover transitions
-- **Layout sync**: Updated `ml-[48px]` -> `ml-[140px]` in layout.tsx, notification toast position updated
+**Status:** FORGE_DONE — S1 Schema Switcher complete
 
-## Verification
-- `npx tsc --noEmit` — 0 errors
-- `npm run build` — exits 0, all routes compile
+## Just Shipped
+- **S1: Schema Switcher** ✅
+  - /schema page with 3-domain cards (PPP, Medicaid, Procurement)
+  - Entity types panel, ring examples table, smoking gun callout
+  - Sidebar navigation wired
+  - Domain color coding, smooth tab switching
+  - Build passes clean
 
----
+- **S2: Investigation Workflow** (d0caa9f) ✅
+  - EvidenceChecklistPanel + ReviewerPanel
+  - Merged to main
 
-RALPH_DONE: Entity 360 drawer — right-panel entity profile, URL-synced, works from graph + member list
+- **F-34: Investigation Agent Streaming UI** ✅
+- **F-36: Entity 360 Drawer** ✅
+- **F-37: Graph PNG export + Referral Package** ✅
 
-## What was built
-- **URL sync**: `?entity_id=...` query param controls drawer state
-- **ESC key**: Closes drawer, removes URL param
-- **Entity360 component**: Three sections (Identity / Attributes / Relationships)
-- **EntityNotFound component**: Graceful handling when URL points to non-existent entity
-- **Entry points**: Graph node click + member table row click both open drawer
-
-## Verification
-All 9 acceptance criteria met:
-1. ✅ Graph click opens drawer, URL updates
-2. ✅ Member row click opens drawer
-3. ✅ ESC key closes drawer, URL param removed
-4. ✅ Direct URL navigation opens drawer on page load
-5. ✅ Non-existent entity shows "Entity not found" state
-6. ✅ [×] button closes drawer
-7. ✅ All 3 sections render (Identity / Attributes / Relationships)
-8. ✅ `npm run build` exits 0
-9. ✅ No regressions (only ring-detail.tsx modified)
+## Infrastructure
+- Next.js 15 frontend on :3000 ✅
+- All routes working ✅
+- jszip dependency added for package export
