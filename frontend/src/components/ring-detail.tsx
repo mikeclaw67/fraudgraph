@@ -850,8 +850,8 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
         </div>
 
         {/* ── Score Breakdown (between member table and context panels) ── */}
-        {ring.riskBreakdown && (
-          <ScoreBreakdown breakdown={ring.riskBreakdown} memberCount={ring.member_count} />
+        {ring.risk_breakdown && (
+          <ScoreBreakdown breakdown={ring.risk_breakdown} memberCount={ring.member_count} />
         )}
 
         {/* ── Context Panels (3-col grid below fold) ──────────────────── */}

@@ -103,6 +103,8 @@ async def get_ring(ring_id: str) -> dict[str, Any]:
             if "assigned_to" not in enriched_ring:
                 enriched_ring["assigned_to"] = None
             
+            # Map 'id' to 'ring_id' for frontend compatibility
+            enriched_ring["ring_id"] = enriched_ring.pop("id", None)
             return {"ring": enriched_ring}
     return {"error": "Ring not found", "ring_id": ring_id}
 
