@@ -1,14 +1,13 @@
-# Frontend: Case Model Integration
+# F-34: Investigation Agent Streaming UI
 
-Ring Detail becomes Case Workspace.
+## Story
+Stream panel in Ring Detail showing investigation steps in real-time.
 
-On mount: GET /api/rings/{id}; if has case_id, GET /api/cases/{id}
-If no case: show "Open Case" button → POST /api/rings/{id}/case
-Load case data, use case status not ring status
-All actions update case (AddNote, Refer, Dismiss)
-New: Case Timeline component (action log)
-Export button: GET /api/cases/{id}/referral-package → ZIP
+## Acceptance Criteria
+- [ ] Ring Detail page includes streaming panel component
+- [ ] Investigation agent steps render in real-time as they complete
+- [ ] Clear visual distinction between steps (pending, running, complete)
+- [ ] Panel integrates cleanly with existing Ring Detail layout
 
-Files: update rings/[id]/page.tsx, ring-detail.tsx, new case-timeline.tsx
-
-Done: tsc clean, build clean, commit
+## Done Condition
+FORGE_DONE: F-34 Investigation Agent Streaming UI — Stream panel renders agent steps in real-time within Ring Detail.
