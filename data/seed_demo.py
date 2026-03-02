@@ -425,3 +425,220 @@ def seed_demo_data() -> dict[str, Any]:
         "graph_nodes": len(graph_data["nodes"]),
         "graph_edges": len(graph_data["edges"]),
     }
+
+
+# ---------------------------------------------------------------------------
+# Procurement fraud rings
+# ---------------------------------------------------------------------------
+
+def _make_procurement_entity(
+    *,
+    entity_type: str,
+    vendor_name: str = "",
+    person_name: str = "",
+    uei: str = "",
+    contract_number: str = "",
+    award_amount: float = 0.0,
+    sole_source: bool = False,
+    naics: str = "541519",
+    bank_routing: str = "",
+    bank_account: str = "",
+    fraud_type: str = "procurement_fraud",
+) -> dict[str, Any]:
+    """Build a procurement entity record."""
+    return {
+        "entity_id": str(uuid.uuid4()),
+        "entity_type": entity_type,
+        "vendor_name": vendor_name,
+        "person_name": person_name,
+        "uei": uei or f"{''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=12))}",
+        "contract_number": contract_number,
+        "award_amount": award_amount,
+        "sole_source": sole_source,
+        "naics": naics,
+        "bank_routing": bank_routing or f"{random.randint(100000000, 999999999)}",
+        "bank_account": bank_account or f"{random.randint(10000000, 9999999999)}",
+        "fraud_label": True,
+        "fraud_type": fraud_type,
+    }
+
+
+def _build_procurement_ring_001() -> tuple[dict, list[dict]]:
+    """IT-RING-001: IT Kickback Cluster — GSA (canonical Madison Jr. pattern).
+
+    3 shell IT vendors with same registered agent awarded $9M in sole-source
+    GSA contracts. 1 GSA contracting officer received $630K in wire transfers.
+    All invoices routed through 2 bank accounts opened 48h before each award.
+    """
+    shared_routing_1 = "091000019"
+    shared_routing_2 = "091000020"
+    shared_acct_1 = "8820001001"
+    shared_acct_2 = "8820001002"
+
+    entities: list[dict] = []
+
+    # 3 vendor entities (shell IT companies)
+    vendors = [
+        ("Apex Federal Solutions LLC", "GSA-IT-2023-0042", 3_300_000.0),
+        ("Meridian GovTech Inc", "GSA-IT-2023-0078", 2_100_000.0),
+        ("Patriot Digital Services Corp", "GSA-IT-2023-0115", 3_600_000.0),
+    ]
+    for i, (vname, cnum, amount) in enumerate(vendors):
+        entities.append(_make_procurement_entity(
+            entity_type="Vendor",
+            vendor_name=vname,
+            uei=f"APEX{'0' * 8}"[:12] if i == 0 else f"MRDN{'0' * 8}"[:12] if i == 1 else f"PTRT{'0' * 8}"[:12],
+            contract_number=cnum,
+            award_amount=amount,
+            sole_source=True,
+            bank_routing=shared_routing_1 if i < 2 else shared_routing_2,
+            bank_account=shared_acct_1 if i < 2 else shared_acct_2,
+            fraud_type="kickback_scheme",
+        ))
+
+    # 1 person entity (GSA contracting officer — insider)
+    entities.append(_make_procurement_entity(
+        entity_type="Person",
+        person_name="Marcus Eady",
+        award_amount=630_000.0,
+        bank_routing=shared_routing_1,
+        bank_account="8820009999",
+        fraud_type="insider_link",
+    ))
+
+    # 3 contract entities
+    for i, (vname, cnum, amount) in enumerate(vendors):
+        entities.append(_make_procurement_entity(
+            entity_type="Contract",
+            vendor_name=vname,
+            contract_number=cnum,
+            award_amount=amount,
+            sole_source=True,
+        ))
+
+    ring = {
+        "id": "IT-RING-001",
+        "name": "IT Kickback Cluster — GSA",
+        "type": "KICKBACK_SCHEME",
+        "status": "ACTIVE",
+        "riskScore": 97,
+        "totalExposure": 9_000_000,
+        "entityCount": 7,
+        "createdAt": "2025-06-10T08:00:00Z",
+        "schema": "procurement",
+    }
+    return ring, entities
+
+
+def _build_procurement_ring_002() -> tuple[dict, list[dict]]:
+    """IT-RING-002: Bid Rotation Ring — 4 vendors, coordinated bids.
+
+    4 vendors take turns winning sole-source awards in a rotating pattern.
+    """
+    entities: list[dict] = []
+
+    vendors = [
+        ("Sentinel IT Group LLC", "GSA-IT-2024-0201", 1_800_000.0),
+        ("Keystone Federal Tech Inc", "GSA-IT-2024-0202", 2_200_000.0),
+        ("Vanguard Systems Corp", "GSA-IT-2024-0203", 1_500_000.0),
+        ("Summit Digital Partners LLC", "GSA-IT-2024-0204", 1_900_000.0),
+    ]
+    for vname, cnum, amount in vendors:
+        entities.append(_make_procurement_entity(
+            entity_type="Vendor",
+            vendor_name=vname,
+            contract_number=cnum,
+            award_amount=amount,
+            sole_source=True,
+            fraud_type="bid_rotation",
+        ))
+
+    ring = {
+        "id": "IT-RING-002",
+        "name": "Bid Rotation Ring",
+        "type": "BID_ROTATION",
+        "status": "ACTIVE",
+        "riskScore": 84,
+        "totalExposure": 7_400_000,
+        "entityCount": 4,
+        "createdAt": "2025-07-22T14:30:00Z",
+        "schema": "procurement",
+    }
+    return ring, entities
+
+
+def _build_procurement_ring_003() -> tuple[dict, list[dict]]:
+    """IT-RING-003: Invoice Inflation — 2 vendors, same registered agent.
+
+    Invoices at 3x market rate for commodity IT services.
+    """
+    shared_routing = "061000052"
+    shared_acct = "7730005500"
+
+    entities: list[dict] = []
+
+    vendors = [
+        ("Ironclad Tech Services LLC", "GSA-IT-2024-0310", 4_200_000.0),
+        ("Fortress Digital Solutions Inc", "GSA-IT-2024-0311", 3_800_000.0),
+    ]
+    for vname, cnum, amount in vendors:
+        entities.append(_make_procurement_entity(
+            entity_type="Vendor",
+            vendor_name=vname,
+            contract_number=cnum,
+            award_amount=amount,
+            sole_source=False,
+            bank_routing=shared_routing,
+            bank_account=shared_acct,
+            fraud_type="invoice_inflation",
+        ))
+
+    ring = {
+        "id": "IT-RING-003",
+        "name": "Invoice Inflation Ring",
+        "type": "INVOICE_INFLATION",
+        "status": "MONITORING",
+        "riskScore": 72,
+        "totalExposure": 8_000_000,
+        "entityCount": 2,
+        "createdAt": "2025-08-05T10:15:00Z",
+        "schema": "procurement",
+    }
+    return ring, entities
+
+
+PROCUREMENT_RING_BUILDERS = [
+    _build_procurement_ring_001,
+    _build_procurement_ring_002,
+    _build_procurement_ring_003,
+]
+
+
+def seed_procurement_rings() -> list[dict]:
+    """Build all 3 procurement fraud rings and return them.
+
+    Returns list of ring dicts with embedded entity IDs.
+    """
+    rings: list[dict] = []
+    for builder in PROCUREMENT_RING_BUILDERS:
+        ring, entities = builder()
+        ring["entities"] = [e["entity_id"] for e in entities]
+        rings.append(ring)
+    return rings
+
+
+def seed_ppp_rings() -> list[dict]:
+    """Build all 5 PPP fraud rings (existing behavior)."""
+    rings, _ = build_all_rings()
+    return rings
+
+
+if __name__ == "__main__":
+    import sys
+
+    schema = sys.argv[1] if len(sys.argv) > 1 else "all"
+    if schema in ("all", "ppp"):
+        seed_ppp_rings()
+    if schema in ("all", "procurement"):
+        seed_procurement_rings()
+    print(f"Seeded {schema} rings.")

@@ -81,6 +81,7 @@ export const SCHEMAS: DomainSchema[] = [
       { name: "Contract", icon: "📑", count: 3_210 },
       { name: "Invoice", icon: "💵", count: 41_870 },
       { name: "Bank Account", icon: "🏦", count: 6_340 },
+      { name: "Person", icon: "🕵️", count: 47 },
     ],
     relationshipTypes: [
       "AWARDED_TO",
@@ -91,11 +92,12 @@ export const SCHEMAS: DomainSchema[] = [
       "SHARED_OFFICER",
     ],
     ringExamples: [
+      { id: "IT-RING-001", name: "IT Kickback Cluster — GSA", exposure: "$9.0M", members: 5 },
       { id: "P-3001", name: "Bid Rigging Triad — DoD IT", exposure: "$34.1M", members: 6 },
       { id: "P-3045", name: "Invoice Inflation Ring — GSA", exposure: "$12.7M", members: 8 },
       { id: "P-3089", name: "Shell Vendor Carousel — VA", exposure: "$9.3M", members: 11 },
     ],
     smokingGun:
-      "6 vendors with the same registered agent won 14 sequential sole-source contracts worth $34.1M — all invoices routed through 2 bank accounts opened within 48 hours of each award.",
+      "3 IT vendors with the same registered agent were awarded $9M in sole-source GSA contracts — all invoices routed through 2 bank accounts opened 48 hours before each award. 1 GSA contracting officer received $630K in wire transfers.",
   },
 ];
