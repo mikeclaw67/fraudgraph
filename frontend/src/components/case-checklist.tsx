@@ -53,7 +53,7 @@ export function EvidenceChecklistPanel({
 }: ChecklistPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const completed = checklist.filter((i) => i.status === "COMPLETE").length;
+  const completed = (checklist ?? []).filter((i) => i.status === "COMPLETE").length;
   const requiredItems = checklist.filter((i) => i.required);
   const requiredComplete = requiredItems.filter((i) => i.status === "COMPLETE").length;
   const allRequiredDone = requiredComplete === requiredItems.length;

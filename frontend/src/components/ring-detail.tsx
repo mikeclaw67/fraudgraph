@@ -1003,10 +1003,10 @@ export function RingDetailContent({ ringId, onClose, embedded }: { ringId: strin
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-label">Case Timeline</p>
                     <span className="text-[10px] text-[#546E7A]">
-                      {caseData.audit_trail.length + (caseData.notes?.length ?? 0)} events
+                      {(caseData.audit_trail?.length ?? 0) + (caseData.notes?.length ?? 0)} events
                     </span>
                   </div>
-                  <CaseTimeline auditTrail={caseData.audit_trail} notes={caseData.notes} />
+                  <CaseTimeline auditTrail={caseData.audit_trail ?? []} notes={caseData.notes} />
                   <CaseNoteInput onSubmit={handleAddCaseNote} />
                 </>
               ) : (

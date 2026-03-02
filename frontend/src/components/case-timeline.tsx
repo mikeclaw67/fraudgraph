@@ -51,24 +51,28 @@ export function CaseTimeline({
     detail: string;
   }[] = [];
 
-  for (const entry of auditTrail) {
-    items.push({
-      type: "audit",
-      timestamp: entry.timestamp,
-      actor: entry.actor,
-      action: entry.action,
-      detail: entry.details,
-    });
+  if (auditTrail) {
+    for (const entry of auditTrail) {
+      items.push({
+        type: "audit",
+        timestamp: entry.timestamp,
+        actor: entry.actor,
+        action: entry.action,
+        detail: entry.details,
+      });
+    }
   }
 
-  for (const note of notes) {
-    items.push({
-      type: "note",
-      timestamp: note.timestamp,
-      actor: note.author,
-      action: "NOTE_ADDED",
-      detail: note.content,
-    });
+  if (notes) {
+    for (const note of notes) {
+      items.push({
+        type: "note",
+        timestamp: note.timestamp,
+        actor: note.author,
+        action: "NOTE_ADDED",
+        detail: note.content,
+      });
+    }
   }
 
   /* Sort newest-first */
