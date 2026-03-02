@@ -4,11 +4,26 @@ You know the flow. Here are the commands.
 
 ---
 
-## Start
+## Start (3 Steps)
+
+```bash
+# 1. Start everything (backend + frontend + infra)
+make demo
+
+# 2. Wait ~10 seconds for backend to boot and seed demo data
+
+# 3. Open the UI
+open http://localhost:3000
+```
+
+Backend API docs: http://localhost:8000/docs
+
+### Alternative: local dev (no Docker)
 
 ```bash
 docker compose up -d postgres neo4j redis
-uvicorn backend.main:app --reload --port 8000
+uvicorn backend.main:app --reload --port 8000 &
+cd frontend && npm run dev
 ```
 
 ## 1. Health + Config

@@ -275,6 +275,7 @@ export default function RingQueuePage() {
                         DATE{sortIndicator("detected_at")}
                       </th>
                       <th className="w-0" />
+                      <th className="w-6" />
                     </>
                   ) : (
                     <>
@@ -307,6 +308,7 @@ export default function RingQueuePage() {
                         DETECTED{sortIndicator("detected_at")}
                       </th>
                       <th className="w-0" />
+                      <th className="w-6" />
                     </>
                   )}
                 </tr>
@@ -327,11 +329,11 @@ export default function RingQueuePage() {
                       onMouseEnter={() => setHoveredRingId(ring.ring_id)}
                       onMouseLeave={() => { setHoveredRingId(null); setDismissDropdownId(null); }}
                       className={cn(
-                        "border-b border-border cursor-pointer transition-colors",
+                        "group border-b border-border cursor-pointer transition-all duration-100",
                         isDismissed && "opacity-40",
                         isSelected
                           ? "bg-bg-selected border-l-2 border-l-accent"
-                          : "bg-bg-row hover:bg-bg-row-hover"
+                          : "bg-bg-row hover:bg-[#33444A] border-l-2 border-l-transparent hover:border-l-[#4A9FD9]/50"
                       )}
                     >
                       {isOpen ? (
@@ -377,6 +379,9 @@ export default function RingQueuePage() {
                                 onToggleDismiss={setDismissDropdownId}
                               />
                             )}
+                          </td>
+                          <td className="w-6 px-1 py-2 text-center">
+                            <ChevronRight className="h-3.5 w-3.5 text-text-muted group-hover:text-accent transition-colors" />
                           </td>
                         </>
                       ) : (
@@ -440,6 +445,9 @@ export default function RingQueuePage() {
                               />
                             )}
                           </td>
+                          <td className="w-6 px-1 py-2 text-center">
+                            <ChevronRight className="h-3.5 w-3.5 text-text-muted group-hover:text-accent transition-colors" />
+                          </td>
                         </>
                       )}
                     </tr>
@@ -462,7 +470,7 @@ export default function RingQueuePage() {
       </div>
 
       {/* ── Notification Toast (bottom-left) ─────────────────────────── */}
-      <div className="fixed bottom-4 left-[64px] z-50 flex items-center gap-2 bg-[#E53935] px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
+      <div className="fixed bottom-4 left-[156px] z-50 flex items-center gap-2 bg-[#E53935] px-3 py-1.5 text-white text-xs font-semibold shadow-lg">
         <span>5 Issues</span>
         <button className="ml-1 text-white/70 hover:text-white">&times;</button>
       </div>
@@ -577,5 +585,13 @@ function StatCard({ label, value, highlight }: { label: string; value: string; h
         {value}
       </div>
     </div>
+  );
+}
+
+function ChevronRight({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+    </svg>
   );
 }

@@ -1,4 +1,4 @@
-/* FraudGraph — 48px icon-only navigation rail, Palantir visual parity.
+/* FraudGraph — 140px labeled navigation rail, Palantir visual parity.
    Update when adding/removing nav items or changing sidebar layout. */
 "use client";
 
@@ -7,8 +7,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/rings", label: "Ring Queue", icon: RingIcon },
-  { href: "/cases", label: "Case Manager", icon: FolderIcon },
+  { href: "/rings", label: "Rings", icon: RingIcon },
+  { href: "/cases", label: "Cases", icon: FolderIcon },
   { href: "/analytics", label: "Analytics", icon: ChartIcon },
   { href: "/schema", label: "Schema", icon: SchemaIcon },
 ];
@@ -19,12 +19,12 @@ export function Sidebar() {
   return (
     <aside
       data-print-hide
-      className="fixed left-0 top-0 z-40 flex h-screen w-[48px] flex-col items-center border-r border-[#2E3B40] bg-[#1A1F23]"
+      className="fixed left-0 top-0 z-40 flex h-screen w-[140px] flex-col border-r border-[#2E3B40] bg-[#1A1F23]"
     >
-      {/* Logo — shield icon only */}
-      <div className="flex items-center justify-center py-4">
+      {/* Logo */}
+      <div className="flex items-center gap-2 px-4 py-4">
         <svg
-          className="h-5 w-5 text-[#4A9FD9]"
+          className="h-5 w-5 shrink-0 text-[#4A9FD9]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -36,9 +36,10 @@ export function Sidebar() {
             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
           />
         </svg>
+        <span className="text-[11px] font-semibold tracking-wider text-[#4A9FD9] uppercase">FraudGraph</span>
       </div>
 
-      {/* Navigation — icon-only with active left border */}
+      {/* Navigation — icon + label with active left border */}
       <nav className="w-full space-y-0.5 py-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
@@ -46,23 +47,24 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              title={item.label}
               className={cn(
-                "flex h-[40px] w-full items-center justify-center transition-colors",
+                "flex h-[36px] w-full items-center gap-2.5 px-4 transition-colors",
                 isActive
                   ? "border-l-[3px] border-l-[#4A9FD9] bg-[#4A9FD9]/10 text-[#4A9FD9]"
-                  : "border-l-[3px] border-l-transparent text-[#78909C] hover:text-[#B0BEC5]"
+                  : "border-l-[3px] border-l-transparent text-[#78909C] hover:text-[#B0BEC5] hover:bg-[#1E292E]"
               )}
             >
-              <item.icon className="h-[18px] w-[18px]" />
+              <item.icon className="h-[16px] w-[16px] shrink-0" />
+              <span className="text-[11px] font-medium uppercase tracking-wider">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer — status dot only */}
-      <div className="mt-auto flex items-center justify-center py-4">
-        <div className="h-2 w-2 rounded-full bg-[#43A047]" />
+      {/* Footer — status indicator */}
+      <div className="mt-auto flex items-center gap-2 px-4 py-4">
+        <div className="h-2 w-2 bg-[#43A047]" />
+        <span className="text-[10px] text-[#546E7A] uppercase tracking-wider">Online</span>
       </div>
     </aside>
   );

@@ -1,3 +1,18 @@
+ITERATION_DONE: F-34 Unblock — WebSocket backend fix + critical UX (row affordances, nav labels)
+
+## What was built (F-34)
+- **docker-compose.yml**: Fixed frontend build context (`../fraudgraph-frontend/frontend` -> `./frontend`)
+- **DEMO_QUICK.md**: Updated to 3-step startup: (1) make demo, (2) wait 10s, (3) open localhost:3000
+- **Sidebar nav labels**: Widened from 48px to 140px, added text labels (Rings, Cases, Analytics, Schema) + "FraudGraph" logo text + "Online" status label
+- **Row affordances**: Added persistent chevron-right icons on every ring queue row, enhanced hover state with left-border accent highlight + brighter bg, `group` class for coordinated hover transitions
+- **Layout sync**: Updated `ml-[48px]` -> `ml-[140px]` in layout.tsx, notification toast position updated
+
+## Verification
+- `npx tsc --noEmit` — 0 errors
+- `npm run build` — exits 0, all routes compile
+
+---
+
 RALPH_DONE: Entity 360 drawer — right-panel entity profile, URL-synced, works from graph + member list
 
 ## What was built

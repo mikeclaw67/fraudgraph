@@ -74,7 +74,7 @@ services:
 
   frontend:
     build:
-      context: ../fraudgraph-frontend/frontend
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: fraudgraph-frontend
     environment:
