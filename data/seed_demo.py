@@ -121,7 +121,7 @@ def _build_ring_001() -> tuple[dict, list[dict]]:
     ring = {
         "id": "ring_001",
         "name": "Identity Theft Network",
-        "type": "IDENTITY_THEFT",
+        "ring_type": "ADDRESS_FARM",
         "status": "ACTIVE",
         "riskScore": 94,
         "totalExposure": 2_100_000,
@@ -175,7 +175,7 @@ def _build_ring_002() -> tuple[dict, list[dict]]:
     ring = {
         "id": "ring_002",
         "name": "Shell Company Cluster",
-        "type": "SHELL_COMPANY",
+        "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
         "riskScore": 91,
         "totalExposure": 1_480_000,
@@ -240,7 +240,7 @@ def _build_ring_003() -> tuple[dict, list[dict]]:
     ring = {
         "id": "ring_003",
         "name": "Invoice Factoring Scheme",
-        "type": "INVOICE_FACTORING",
+        "ring_type": "ACCOUNT_CLUSTER",
         "status": "MONITORING",
         "riskScore": 78,
         "totalExposure": 890_000,
@@ -301,7 +301,7 @@ def _build_ring_004() -> tuple[dict, list[dict]]:
     ring = {
         "id": "ring_004",
         "name": "Benefits Double-Dipping",
-        "type": "BENEFITS_FRAUD",
+        "ring_type": "THRESHOLD_GAMING",
         "status": "MONITORING",
         "riskScore": 62,
         "totalExposure": 340_000,
@@ -350,7 +350,7 @@ def _build_ring_005() -> tuple[dict, list[dict]]:
     ring = {
         "id": "ring_005",
         "name": "Address Cycling Ring",
-        "type": "ADDRESS_CYCLING",
+        "ring_type": "ADDRESS_FARM",
         "status": "RESOLVED",
         "riskScore": 45,
         "totalExposure": 175_000,
@@ -519,7 +519,7 @@ def _build_procurement_ring_001() -> tuple[dict, list[dict]]:
     ring = {
         "id": "IT-RING-001",
         "name": "IT Kickback Cluster — GSA",
-        "type": "KICKBACK_SCHEME",
+        "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
         "riskScore": 97,
         "totalExposure": 9_000_000,
@@ -556,7 +556,7 @@ def _build_procurement_ring_002() -> tuple[dict, list[dict]]:
     ring = {
         "id": "IT-RING-002",
         "name": "Bid Rotation Ring",
-        "type": "BID_ROTATION",
+        "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
         "riskScore": 84,
         "totalExposure": 7_400_000,
@@ -596,7 +596,7 @@ def _build_procurement_ring_003() -> tuple[dict, list[dict]]:
     ring = {
         "id": "IT-RING-003",
         "name": "Invoice Inflation Ring",
-        "type": "INVOICE_INFLATION",
+        "ring_type": "ACCOUNT_CLUSTER",
         "status": "MONITORING",
         "riskScore": 72,
         "totalExposure": 8_000_000,
