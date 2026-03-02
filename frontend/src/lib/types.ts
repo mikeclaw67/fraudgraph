@@ -47,7 +47,7 @@ export interface FraudRing {
   assigned_to: string | null;
   detected_at: string;
   updated_at: string;
-  riskBreakdown?: RiskBreakdown;
+  risk_breakdown?: RiskBreakdown;
   case_id?: string | null;
 }
 

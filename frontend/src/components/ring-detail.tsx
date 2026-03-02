@@ -170,7 +170,7 @@ function generateMockRing(id: string): FraudRing {
     assigned_to: null,
     detected_at: "2025-11-14T09:23:17Z",
     updated_at: "2025-11-14T09:23:17Z",
-    riskBreakdown: {
+    risk_breakdown: {
       rules: 88,
       ml: 78,
       graph: 74,
