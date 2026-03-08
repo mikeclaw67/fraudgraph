@@ -33,3 +33,4 @@ All 9 acceptance criteria met:
 7. ✅ All 3 sections render (Identity / Attributes / Relationships)
 8. ✅ `npm run build` exits 0
 9. ✅ No regressions (only ring-detail.tsx modified)
+FORGE_DONE: Command Center — leadership dashboard with outcomes, fraud distribution, workload, case aging. All 5 pages complete.
