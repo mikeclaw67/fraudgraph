@@ -171,7 +171,9 @@ Click **Procurement**:
 > "Government procurement fraud. Vendor, Contract, Invoice, Person. The Person node captures the insider — the IT vendor who bribed a government officer to award sole-source contracts. That's the Madison pattern: $9 million in kickbacks, five shell vendors, one GSA insider. FraudGraph models that ring with the same detection logic as the PPP cluster we just investigated."
 
 Click back to **PPP**:
-> "One detection engine. Any fraud domain. Configurable schema means deployment in weeks, not months. That's the architecture that makes FraudGraph domain-agnostic — which is what government agencies actually need as fraud patterns evolve."
+>  "One detection engine. Any fraud domain. Configurable schema means deployment in weeks, not months.
+>
+> In February 2026, SBA OIG and USDA OIG signed a cross-agency data sharing agreement to coordinate fraud detection across both agencies — because sophisticated fraud schemes increasingly span multiple federal programs. FraudGraph's domain-agnostic architecture is built for exactly this reality: same detection engine, same investigation workflow, different entity ontology for each agency's programs. That's not a roadmap item. It's already live."
 
 ---
 
@@ -256,5 +258,5 @@ Navigate to **http://localhost:3000/analytics**
 
 ---
 
-*Last updated: 2026-03-08 — UI walkthrough replacing CLI-based demo.*
+*Last updated: 2026-03-08 — UI walkthrough with GAO anchor + SBA/USDA cross-agency reference*
 *GAO anchor: GAO-25-107267 (SBA Fraud Prevention, March 2025)*
