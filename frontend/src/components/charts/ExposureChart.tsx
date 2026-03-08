@@ -1,5 +1,5 @@
 /* FraudGraph — Exposure by ring type horizontal bar chart.
-   Update when adding new ring types or changing the color palette. */
+   Accepts data from analytics API; falls back to empty state. */
 "use client";
 
 import {
@@ -7,13 +7,21 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
 
-const EXPOSURE_BY_TYPE: { type: string; label: string; exposure: number; color: string }[] = [
-  { type: "ADDRESS_FARM",     label: "Address Farm",     exposure: 312_000_000, color: "#E53935" },
-  { type: "ACCOUNT_CLUSTER",  label: "Account Cluster",  exposure: 224_000_000, color: "#FFB300" },
-  { type: "EIN_RECYCLER",     label: "EIN Recycler",     exposure: 178_000_000, color: "#FFB300" },
-  { type: "STRAW_COMPANY",    label: "Straw Company",    exposure: 112_000_000, color: "#43A047" },
-  { type: "THRESHOLD_GAMING", label: "Threshold Gaming", exposure: 66_400_000,  color: "#2196F3" },
-];
+const TYPE_LABELS: Record<string, string> = {
+  ADDRESS_FARM: "Address Farm",
+  ACCOUNT_CLUSTER: "Account Cluster",
+  EIN_RECYCLER: "EIN Recycler",
+  STRAW_COMPANY: "Straw Company",
+  THRESHOLD_GAMING: "Threshold Gaming",
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  ADDRESS_FARM: "#E53935",
+  ACCOUNT_CLUSTER: "#FFB300",
+  EIN_RECYCLER: "#FFB300",
+  STRAW_COMPANY: "#43A047",
+  THRESHOLD_GAMING: "#2196F3",
+};
 
 const tooltipStyle = {
   contentStyle: {
@@ -26,11 +34,30 @@ const tooltipStyle = {
   labelStyle: { color: "#90A4AE" },
 };
 
-export default function ExposureChart() {
+interface ExposureChartProps {
+  data?: Record<string, number>;
+}
+
+export default function ExposureChart({ data }: ExposureChartProps) {
+  const chartData = data
+    ? Object.entries(data)
+        .map(([type, exposure]) => ({
+          type,
+          label: TYPE_LABELS[type] || type,
+          exposure,
+          color: TYPE_COLORS[type] || "#2196F3",
+        }))
+        .sort((a, b) => b.exposure - a.exposure)
+    : [];
+
+  if (chartData.length === 0) {
+    return <div className="w-full h-[280px] flex items-center justify-center text-data text-text-muted">Loading...</div>;
+  }
+
   return (
     <div className="w-full h-[280px]">
       <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={EXPOSURE_BY_TYPE} layout="vertical" margin={{ left: 4, right: 24 }}>
+        <BarChart data={chartData} layout="vertical" margin={{ left: 4, right: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#37474F" horizontal={false} />
           <XAxis
             type="number"
@@ -50,7 +77,7 @@ export default function ExposureChart() {
             formatter={(value: number | undefined) => [formatCurrency(value ?? 0), "Exposure"]}
           />
           <Bar dataKey="exposure" barSize={20}>
-            {EXPOSURE_BY_TYPE.map((entry) => (
+            {chartData.map((entry) => (
               <Cell key={entry.type} fill={entry.color} />
             ))}
           </Bar>

@@ -1,25 +1,10 @@
-/* FraudGraph — Weekly ring detections line chart (26-week rolling window).
-   Update when changing the time window or color palette. */
+/* FraudGraph — Weekly ring detections line chart.
+   Accepts data from analytics API; falls back to empty state. */
 "use client";
 
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-
-function buildWeeklyDetections() {
-  const weeks: { week: string; rings: number }[] = [];
-  const base = new Date(2025, 8, 1);
-  for (let i = 0; i < 26; i++) {
-    const d = new Date(base);
-    d.setDate(d.getDate() + i * 7);
-    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    const rings = Math.round(9 + 6 * Math.sin(i * 0.5) + 2 * Math.cos(i * 1.1));
-    weeks.push({ week: label, rings });
-  }
-  return weeks;
-}
-
-const WEEKLY_DETECTIONS = buildWeeklyDetections();
 
 const tooltipStyle = {
   contentStyle: {
@@ -32,17 +17,30 @@ const tooltipStyle = {
   labelStyle: { color: "#90A4AE" },
 };
 
-export default function WeeklyDetectionsChart() {
+interface WeeklyDetectionsChartProps {
+  data?: { week: string; count: number }[];
+}
+
+export default function WeeklyDetectionsChart({ data }: WeeklyDetectionsChartProps) {
+  const chartData = data?.map((d) => ({
+    week: new Date(d.week).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    rings: d.count,
+  })) ?? [];
+
+  if (chartData.length === 0) {
+    return <div className="w-full h-[280px] flex items-center justify-center text-data text-text-muted">Loading...</div>;
+  }
+
   return (
     <div className="w-full h-[280px]">
       <ResponsiveContainer width="100%" height={280}>
-        <LineChart data={WEEKLY_DETECTIONS} margin={{ left: 4, right: 24 }}>
+        <LineChart data={chartData} margin={{ left: 4, right: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#37474F" />
           <XAxis
             dataKey="week"
             stroke="#546E7A"
             tick={{ fontSize: 10, fill: "#90A4AE" }}
-            interval={3}
+            interval={Math.max(0, Math.floor(chartData.length / 4) - 1)}
           />
           <YAxis
             stroke="#546E7A"

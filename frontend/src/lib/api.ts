@@ -216,6 +216,28 @@ export function connectAlertWebSocket(onMessage: (alert: unknown) => void): WebS
   return ws;
 }
 
+/* --- Analytics --- */
+
+export async function getAnalyticsDashboard(): Promise<import("./types").DashboardResponse> {
+  return fetchJSON<import("./types").DashboardResponse>("/api/analytics/dashboard");
+}
+
+export async function getAnalyticsOutcomes(): Promise<import("./types").OutcomesResponse> {
+  return fetchJSON<import("./types").OutcomesResponse>("/api/analytics/outcomes");
+}
+
+export async function getAnalyticsFraudDistribution(): Promise<import("./types").FraudDistributionResponse> {
+  return fetchJSON<import("./types").FraudDistributionResponse>("/api/analytics/fraud-distribution");
+}
+
+export async function getAnalyticsWorkload(): Promise<import("./types").WorkloadResponse> {
+  return fetchJSON<import("./types").WorkloadResponse>("/api/analytics/investigator-workload");
+}
+
+export async function getAnalyticsCaseAging(): Promise<import("./types").CaseAgingResponse> {
+  return fetchJSON<import("./types").CaseAgingResponse>("/api/analytics/case-aging");
+}
+
 /* --- SWR fetcher --- */
 
 export const swrFetcher = <T>(path: string): Promise<T> => fetchJSON<T>(path);

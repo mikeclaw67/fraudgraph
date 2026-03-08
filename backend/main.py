@@ -17,6 +17,7 @@ from backend.api.graph import router as graph_router
 from backend.api.cases import router as cases_router
 from backend.api.investigate import router as investigate_router
 from backend.api.ring_actions import router as ring_actions_router
+from backend.api.analytics import router as analytics_router
 from backend.api.rings import router as rings_router, set_ring_store
 from backend.config.settings import get_settings
 
@@ -76,6 +77,7 @@ app.include_router(cases_router, prefix=settings.api_prefix)
 app.include_router(investigate_router, prefix=settings.api_prefix)
 app.include_router(ring_actions_router, prefix=settings.api_prefix)
 app.include_router(rings_router, prefix=settings.api_prefix)
+app.include_router(analytics_router, prefix=settings.api_prefix)
 
 
 @app.get("/")
