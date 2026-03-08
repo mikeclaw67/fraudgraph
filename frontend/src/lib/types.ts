@@ -218,3 +218,115 @@ export interface CaseUpdate {
   assigned_to?: string | null;
   notes?: string;
 }
+
+/* ── Analytics API response types ─────────────────────────────────── */
+
+export interface DashboardKpi {
+  totalRingsDetected: number;
+  totalExposure: number;
+  casesReferred: number;
+  avgDaysToTriage: number;
+}
+
+export interface PipelineFunnel {
+  detected: number;
+  reviewed: number;
+  caseOpened: number;
+  referred: number;
+}
+
+export interface WeeklyDetection {
+  week: string;
+  count: number;
+}
+
+export interface GeoEntry {
+  exposure: number;
+  rings: number;
+}
+
+export interface DashboardResponse {
+  kpi: DashboardKpi;
+  exposureByType: Record<string, number>;
+  weeklyDetections: WeeklyDetection[];
+  pipelineFunnel: PipelineFunnel;
+  geographicDistribution: Record<string, GeoEntry>;
+}
+
+export interface OutcomesAssumptions {
+  recoveryRate: number;
+  convictionRate: number;
+  annualPerInvestigatorCost: number;
+}
+
+export interface OutcomesResponse {
+  convictions: number;
+  convictionRate: number;
+  expectedRecoveries: number;
+  referralRate: number;
+  investigationCost: number;
+  roi: number;
+  costPerCase: number;
+  avgDaysToReferral: number;
+  period: string;
+  assumptions: OutcomesAssumptions;
+}
+
+export interface FraudDomainEntry {
+  exposure: number;
+  percentage: number;
+  rings: number;
+}
+
+export interface SeverityEntry {
+  rings: number;
+  exposure: number;
+}
+
+export interface FraudDistributionResponse {
+  byType: Record<string, FraudDomainEntry>;
+  bySeverity: Record<string, SeverityEntry>;
+}
+
+export interface InvestigatorData {
+  name: string;
+  role: string;
+  openCases: number;
+  totalExposure: number;
+  estimatedRoi: number;
+  caseReferrals: number;
+  avgDaysToReferral: number;
+}
+
+export interface TeamCapacity {
+  used: number;
+  max: number;
+  utilizationPercent: number;
+}
+
+export interface WorkloadResponse {
+  investigators: InvestigatorData[];
+  teamCapacity: TeamCapacity;
+}
+
+export interface AgingBucket {
+  count: number;
+  severity: string;
+  totalExposure?: number;
+}
+
+export interface CaseBlocker {
+  caseId: string;
+  title: string;
+  exposure: number;
+  daysAged: number;
+  reason: string;
+}
+
+export interface CaseAgingResponse {
+  byStatus: {
+    OPEN: Record<string, AgingBucket>;
+    UNDER_REVIEW: Record<string, AgingBucket>;
+  };
+  topBlockers: CaseBlocker[];
+}
