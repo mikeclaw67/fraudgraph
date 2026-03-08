@@ -1,266 +1,201 @@
-# FraudGraph Demo — 7-Step Walkthrough
+# FraudGraph Demo — UI Walkthrough
 
-**Audience**: PM interviews, investor demos, engineering reviews
-**Duration**: 8-12 minutes
-**What you're showing**: A Palantir-class fraud detection platform — from raw alerts to AI-powered investigation to case resolution, all streaming live.
+**Audience**: SBA/Palantir stakeholders, PM interviews, investor demos
+**Duration**: 8–12 minutes
+**Format**: Live UI walkthrough at http://localhost:3000
+**What you're showing**: A Palantir-class fraud investigation platform — from morning triage to AI-powered investigation to evidence export to generalization proof.
 
 ---
 
-## Prerequisites (Do This Before the Demo)
+## Opening Narrative (30 seconds — before touching the keyboard)
+
+> "In March 2025, the GAO published a report on SBA's fraud prevention system. The finding: SBA's automated detection generated high false-positive rates — roughly two-thirds of algorithmic referrals led nowhere. Investigators spent most of their time chasing dead ends instead of prosecuting real fraud.
+>
+> FraudGraph is the direct answer to that critique. It combines detection rules, ML anomaly scoring, and graph analytics with a human-in-the-loop investigation workflow. An investigator opens it Monday morning, sees exactly which rings are critical, runs an AI-powered investigation, exports the evidence package, and refers it to DOJ — all in the same tool.
+>
+> Let me show you the complete workflow."
+
+---
+
+## Prerequisites (Before the Demo)
 
 ```bash
-# 1. Clone and enter the repo
+# Option A: Full stack (recommended)
 cd /path/to/fraudgraph
+make demo
+# Starts: Postgres, Neo4j, Redis, Backend (8000), Frontend (3000)
 
-# 2. Install Python dependencies
-pip install -r requirements.txt
-
-# 3. Install wscat for WebSocket demo (the star moment)
-npm install -g wscat
-
-# 4. Start infrastructure (PostgreSQL, Neo4j, Redis)
-docker compose up -d postgres neo4j redis
-
-# 5. Start the backend
-uvicorn backend.main:app --reload --port 8000
-
-# 6. Verify it's running
-curl -s http://localhost:8000/health | python3 -m json.tool
+# Option B: Backend only (no Docker)
+source .venv/bin/activate
+python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
+cd frontend && npm run dev
 ```
 
-**Optional**: Set `ANTHROPIC_API_KEY` for live LLM agent. Without it, the agent uses a deterministic fallback that produces identical investigation output — perfect for demos where you don't want API latency or costs.
+**Optional**: Set `ANTHROPIC_API_KEY` in `.env` for live LLM agent. Without it, the agent uses a deterministic fallback — identical output every run, great for rehearsing.
 
 **Pre-flight checklist**:
-- [ ] Backend running on http://localhost:8000
-- [ ] `wscat` installed (`wscat --version`)
-- [ ] Terminal font large enough for audience to read
-- [ ] Two terminal tabs ready (one for HTTP, one for WebSocket)
+- [ ] App running at http://localhost:3000
+- [ ] ring_002 visible in Ring Queue (Shell Cluster, $7.54M exposure)
+- [ ] Browser window large enough for audience to see clearly
 
 ---
 
-## Step 1: The Platform (30 seconds)
+## Step 1: Ring Queue — Morning Triage (90 seconds)
 
-> **Talking point**: "FraudGraph is a Palantir AIP Tier 3 Agentic Application for SBA fraud detection. Tier 3 is Palantir's highest-value commercial tier: an investigation agent embedded in an operator application, reading and writing live Ontology state. This is exactly what comes out of a Palantir AIP Bootcamp — the product an SBA investigator would have after 3-5 days of Palantir onboarding. We built it open, so you can see every line of the agent logic."
+Navigate to **http://localhost:3000/rings**
 
-Open the Swagger docs in your browser:
+> "This is what an SBA investigator sees on Monday morning. The Ring Queue — sorted by exposure, highest risk first. FraudGraph's triage engine automatically classifies every ring into four tiers: CRITICAL, HIGH, MEDIUM, LOW."
 
-```
-http://localhost:8000/docs
-```
+**What to show**:
+- The **CRITICAL** banner at the top of the page — a ring with >$1.5M exposure is flagged for immediate action
+- Rings sorted by exposure amount — biggest dollar amounts surface automatically
+- Inline status chips (NEW → UNDER_REVIEW → REFERRED → DISMISSED) — investigators triage without leaving the queue
+- Risk score badges (composite of rules + ML + graph)
+
+> "The investigator doesn't have to decide what to look at. The system tells them: this ring is CRITICAL, it needs attention today. That's the triage automation — it doesn't replace the investigator, it focuses them."
+
+**Point to ring_002** (Shell Cluster, $7.54M exposure, CRITICAL tier):
+
+> "ring_002 is our CRITICAL ring for today. Shell company cluster, $7.54 million in exposure. Let's investigate it."
+
+---
+
+## Step 2: Ring Detail — The Evidence Picture (60 seconds)
+
+**Click ring_002** from the Ring Queue.
+
+The Ring Detail panel slides in from the right.
+
+> "This is the Ring Detail view. Split-pane: left side has the evidence, right side has the graph."
+
+**What to point out**:
+
+**Smoking Gun Panel** (top of the detail view):
+- Red-bordered callout box with the highest-severity findings pre-surfaced
+- "Five businesses at a single CMRA address. All reporting zero employees. Applications within a 28-day window."
+
+> "The smoking gun panel surfaces the top findings before the investigator even runs the investigation. They can see immediately why this ring is CRITICAL — they don't have to read through 20 data points to understand the problem."
+
+**Graph Visualization**:
+- Nodes representing businesses, addresses, bank accounts
+- Edges showing shared identifiers (same address, same account)
+
+> "This is the graph — the network visualization. Every node is an entity: a business, an address, a bank account. Every edge is a shared attribute. You can see the cluster forming visually."
+
+**Click a graph node** to open the Entity 360 Drawer:
+
+> "Click any node and you get the Entity 360 drawer — full profile of that entity: loan amount, employee count, registration status, risk score. Everything an investigator needs to understand who this borrower is."
+
+Press **ESC** to close the drawer.
+
+---
+
+## Step 3: Investigate — AI Agent Live (3 minutes)
+
+This is the centerpiece. Ensure the audience is watching.
+
+> "Now I'll run the AI investigation agent. This is a LangGraph agent that investigates the way a human would — checking the address, verifying registrations, analyzing loan patterns, building the network picture. Watch the tool calls stream in real time."
+
+Click **"Investigate"** (the button in the Ring Detail panel).
+
+**What streams live** (each step appears on screen as it's called):
+
+| Step | Tool Call | Narrate |
+|------|-----------|---------|
+| 1 | `query_ring_members` | "Pulling all members from the graph..." |
+| 2 | `check_address_classification` | "Checking the shared address — is this a real office?" |
+| 3 | Finding: CMRA | "Commercial mailbox service. Not a real business address. First red flag." |
+| 4 | `analyze_loan_anomalies` | "Analyzing loan amounts against employee counts..." |
+| 5 | Finding: Zero employees | "Every member reported zero employees but claimed $145K-$150K. PPP requires payroll justification." |
+| 6 | `check_ein_registrations` | "Verifying state business registrations..." |
+| 7 | Finding: No state filings | "Four of five aren't registered with any state. Shell entities." |
+| 8+ | Additional checks | Continue through remaining tool calls |
+
+**When the final report renders**:
+- **CRITICAL** risk tier badge
+- Exposure estimate: $735,600
+- Confidence: 94%
+- Recommended action: REFER TO DOJ
+
+> "Risk tier CRITICAL. Five machine-verified findings. $735K estimated fraud exposure. 94% confidence. And the system recommends referral to DOJ — not just flagging it, routing it to the right team.
+>
+> The agent checked address classification, loan anomalies, AND state registrations before concluding. It doesn't stop early. That's an enforced protocol — a minimum of 6 tool calls before the agent can render a final verdict. An investigation that stops too early is worse than no investigation."
+
+---
+
+## Step 4: Evidence Checklist (60 seconds)
+
+Scroll down in the Ring Detail to the **Evidence Checklist panel**.
+
+> "SBA OIG has a standard checklist for PPP fraud referrals — 7 required items that must be verified before a case can go to DOJ."
+
+**What to show**:
+- 7 checklist items with REQ badges
+- Toggle an item — watch it turn blue with a checkmark and an audit timestamp
+- Counter: "2/7 complete" updates dynamically
+
+> "Every toggle is timestamped and auditable. The senior investigator sees exactly who checked what and when. This isn't just workflow — it's evidentiary documentation."
+
+Show the **Review Required** gate:
+- Try to submit for review with incomplete checklist — the system blocks it
+
+> "The system won't let you submit for review until the checklist is complete. That's the SBA OIG standard — enforced in software."
+
+---
+
+## Step 5: Evidence Package (30 seconds)
+
+Click **"Evidence Package"** (in the Ring Detail panel).
+
+A ZIP downloads immediately.
+
+> "The evidence package. One click — the investigator gets a ZIP file containing:
+> - `graph.png` — the fraud network visualization as an image
+> - `findings.json` — machine-readable findings with severities and dollar amounts
+> - `evidence_report.html` — a standalone, printable report with embedded charts
+>
+> This goes straight to the prosecutor. No screenshots, no copy-paste, no manual report writing. Prosecution-ready in one click."
+
+---
+
+## Step 6: Schema Switcher — Generalization Proof (90 seconds)
+
+Navigate to **http://localhost:3000/schema**
+
+> "Here's the Palantir generalization story. FraudGraph isn't just a PPP fraud tool. The detection engine is configurable — swap the entity schema and you get a completely different fraud domain."
+
+Click **Medicaid**:
+> "Medicaid claims fraud. The entities change — Provider, Claim, BillingCode, NPI — but the detection rules are structurally identical. ADDR_REUSE catches provider mills using the same clinic address. ACCOUNT_SHARE catches billing rings routing payments to a single account. Same engine, different ontology."
+
+Click **Procurement**:
+> "Government procurement fraud. Vendor, Contract, Invoice, Person. The Person node captures the insider — the IT vendor who bribed a government officer to award sole-source contracts. That's the Madison pattern: $9 million in kickbacks, five shell vendors, one GSA insider. FraudGraph models that ring with the same detection logic as the PPP cluster we just investigated."
+
+Click back to **PPP**:
+> "One detection engine. Any fraud domain. Configurable schema means deployment in weeks, not months. That's the architecture that makes FraudGraph domain-agnostic — which is what government agencies actually need as fraud patterns evolve."
+
+---
+
+## Step 7: Command Center — Leadership Dashboard (60 seconds)
+
+Navigate to **http://localhost:3000/analytics**
+
+> "Finally — the leadership view. SBA OIG reports to Congress on outcomes, not detection counts. The metrics that matter for budget justification: convictions, recovery amounts, investigator ROI."
 
 **What to highlight**:
-- 12 REST endpoints covering the full investigation workflow
-- WebSocket endpoint for real-time agent streaming
-- Alert queue, entity profiles, graph visualization, case management
-- Everything async, typed, documented
+- **Outcomes & ROI panel** — expected recoveries, referral-to-conviction rate
+- **Fraud Type Distribution** — where is exposure concentrated? Which domains need more investigator capacity?
+- **Investigator Workload** — case load per investigator, capacity utilization
+- **Case Aging / Bottlenecks** — where are cases stalling? What's the average time-to-resolution?
 
-> **Talking point**: "This isn't a prototype — it's a production API. Health checks, pagination, filtering, audit trails. The kind of system that an OIG team would actually use."
-
----
-
-## Step 2: The Detection Engine (60 seconds)
-
-Show the active detection configuration:
-
-```bash
-curl -s http://localhost:8000/api/config | python3 -m json.tool
-```
-
-**Expected output** (highlight these fields):
-```json
-{
-  "active_schema": "ppp_loans",
-  "thresholds": {
-    "addr_reuse": 3,
-    "ein_reuse": 1,
-    "straw_co_max_employees": 0,
-    "threshold_game_band": [145000, 149999.99],
-    "account_share": 2,
-    "new_ein_days": 30
-  },
-  "risk_weights": {
-    "rules": 0.4,
-    "ml": 0.35,
-    "graph": 0.25
-  }
-}
-```
-
-> **Talking point**: "Three-layer detection. Rules catch the obvious fraud — address farms, EIN reuse, shell companies. ML catches statistical anomalies the rules miss. Graph analytics find network connections. The composite score weights all three: 40% rules, 35% ML, 25% graph. Every threshold is configurable per schema."
-
-> **If the audience is government / SBA**: "In 2021, federal prosecutors in Minnesota convicted Harold Kaeding for creating 4 shell companies at a PostNet box and applying for $2.18 million in PPP loans. The Kaeding ring would have scored CRITICAL on three FraudGraph rules simultaneously — ADDR_REUSE, STRAW_CO, and ACCOUNT_SHARE. An investigator using FraudGraph would have seen this cluster on day one. That PostNet box is exactly what you see in the Ring Detail view — we model it as the CMRA address pattern." *(US v. Kaeding, 0:21-cr-00169, D. Minnesota)*
-
-**Bonus** — show the schema generalization:
-
-> "And this is the Foundry pattern — same pipeline, different ontology. We have PPP loans active right now, but we also support Medicaid claims fraud and government procurement fraud. One config swap changes the entire detection surface."
-
-> **If asked about Medicare generalization**: "It's the same graph. In 2025, federal prosecutors in South Florida charged Jorge Almansa with running an $11.4 million Medicare DME kickback ring — multiple provider entities at the same address, all routing payments to accounts he controlled. ADDR_REUSE and ACCOUNT_SHARE fire identically. The only additions are Claim, Beneficiary, and Physician node types — the detection logic doesn't change." *(US v. Almansa & Cruz, 0:25-cr-60142, S.D. Fla.)*
+> "A Director of OIG walks in on budget day and opens this dashboard. They see: 42 referrals this quarter, $4.2M in expected recoveries, ROI of 6.2x on investigator time. That's the briefing they're giving to Congress — and FraudGraph generates it automatically from case data."
 
 ---
 
-## Step 3: The Test Suite (45 seconds)
+## Closing (30 seconds)
 
-Run the tests to show everything works:
-
-```bash
-python -m pytest tests/ -v --tb=short
-```
-
-**Expected**: 35+ tests, all green.
-
-> **Talking point**: "35 tests covering all 6 detection rules, the composite scorer, and 6 agent investigation scenarios. Every rule has positive and negative test cases. The scorer tests verify the weight formula and severity aggregation. TDD from day one."
-
-**What the audience sees**: A wall of green `PASSED` lines. This builds confidence that the system is real, not vapor.
-
----
-
-## Step 4: The Data (60 seconds)
-
-Generate synthetic fraud data to show the scale:
-
-```bash
-python data/generate.py --count 1000 --output /tmp/demo_data.json --stats
-```
-
-**Expected output**:
-```
-Generated 1000 records (50 fraudulent, 5.0% fraud rate)
-Fraud breakdown:
-  address_farm: 8
-  ein_recycler: 6
-  straw_company: 10
-  network_cluster: 7
-  threshold_gamer: 9
-```
-
-> **Talking point**: "50,000-record generator with five embedded fraud archetypes — address farms, EIN recyclers, shell companies, network clusters, and threshold gamers. Each archetype matches a real fraud pattern from OIG case files. The generator maintains realistic distributions so the ML models train on balanced data."
-
-**If short on time**: Skip this step. The investigation agent has its own built-in mock data.
-
----
-
-## Step 5: Run the Investigation (THE DEMO MOMENT — 3 minutes)
-
-This is the highlight. The audience watches an AI agent investigate a fraud ring in real time.
-
-**Setup**: Open a clean terminal, make the font large.
-
-> **Talking point**: "Now I'm going to show you the investigation agent. This is a LangGraph agent that thinks like a human fraud investigator — it starts broad, follows every lead, checks the network, and won't stop until it has enough evidence to escalate. Let's connect to RING-002, a shell company cluster with $1.48 million in exposure."
-
-Connect to the WebSocket:
-
-```bash
-wscat -c "ws://localhost:8000/api/investigate/ws/RING-002"
-```
-
-**What streams live** (each line arrives with ~1 second delay):
-
-```json
-{"step":1,"type":"tool_call","content":"Querying ring members from Neo4j...","tool_name":"query_ring_members"}
-{"step":2,"type":"tool_call","content":"Checking address classification...","tool_name":"check_address_classification"}
-{"step":3,"type":"finding","content":"Address classified as CMRA (mailbox service), not commercial office"}
-{"step":4,"type":"tool_call","content":"Analyzing loan anomalies...","tool_name":"analyze_loan_anomalies"}
-{"step":5,"type":"finding","content":"All 5 members reported zero employees -- PPP required payroll justification"}
-{"step":6,"type":"tool_call","content":"Verifying EIN registrations...","tool_name":"check_ein_registrations"}
-{"step":7,"type":"finding","content":"No state business filings found for 4 of 5 members"}
-```
-
-**Narrate each step as it streams**:
-
-| Step | What streams | What you say |
-|------|-------------|-------------|
-| 1 | `query_ring_members` | "First it pulls all ring members from Neo4j — who's in this cluster?" |
-| 2 | `check_address_classification` | "Now it checks the shared address — is this a real office or a mailbox?" |
-| 3 | Finding: CMRA | "Mailbox service. Not a real business address. That's our first red flag." |
-| 4 | `analyze_loan_anomalies` | "Now it analyzes the loan amounts against employee counts..." |
-| 5 | Finding: Zero employees | "Every single member reported zero employees but claimed $145K-$150K in PPP loans. PPP requires payroll justification." |
-| 6 | `check_ein_registrations` | "Checking state business registrations..." |
-| 7 | Finding: No state filings | "Four out of five aren't even registered with the state. Shell entities." |
-
-**Then the final event arrives** — the complete investigation report:
-
-```json
-{
-  "risk_tier": "CRITICAL",
-  "executive_summary": "This ring exhibits hallmarks of organized PPP fraud: five businesses sharing a CMRA address, all reporting zero employees while claiming maximum allowable loans, with applications submitted within a 28-day window.",
-  "key_findings": [
-    {"finding": "5 businesses at single CMRA address", "severity": "critical"},
-    {"finding": "100% reported zero employees", "severity": "critical"},
-    {"finding": "4 of 5 lack state registration", "severity": "high"},
-    {"finding": "Threshold gaming pattern ($145K-$150K)", "severity": "high"},
-    {"finding": "All applications within 28-day window", "severity": "medium"}
-  ],
-  "estimated_fraud_amount": 735600,
-  "recommended_action": "REFER_TO_DOJ",
-  "confidence": 94
-}
-```
-
-> **Talking point**: "Risk tier CRITICAL. Five findings, each citing its data source. $735K estimated fraud. 94% confidence. And it recommends referring to DOJ — not just flagging it, but routing it to the right team. This is the Palantir AIP pattern: an agent that investigates autonomously and produces prosecution-ready output."
-
-**Key design points to highlight**:
-- **Anti-early-stopping**: The agent doesn't quit after the first finding. It checked address, loans, AND registrations before concluding.
-- **Streaming**: Every tool call arrives live over WebSocket. A frontend would render these as they arrive — the investigator watches the AI think.
-- **Structured output**: Not a wall of text. Machine-parseable findings with severity levels and dollar amounts.
-
----
-
-## Step 6: The Full 8-Tool Agent (60 seconds)
-
-> **Talking point**: "What you just saw was the ring investigation agent with 4 specialized tools. The full investigation agent has 8 tools for deep-dive entity investigations."
-
-Show the 8 tools:
-
-```bash
-grep -n "^def " backend/agent/investigator.py | head -8
-```
-
-Walk through the tool list:
-
-| Tool | Purpose |
-|------|---------|
-| `get_entity_profile` | Full entity 360 — attributes, risk score, loan details |
-| `get_entity_claims` | Claims/transactions — flags deceased billing, impossible volumes |
-| `get_entity_network` | Network graph — finds connected entities via shared identifiers |
-| `get_anomaly_score` | ML anomaly score (0-100) vs peer group |
-| `get_referral_patterns` | Referral analysis — detects kickback rings |
-| `search_fraud_patterns` | Pattern matching against fraud taxonomy |
-| `get_ring_detail` | Full ring membership and exposure data |
-| `escalate_alert` | Routes finding to Senior Investigator Queue |
-
-> **Talking point**: "The investigation protocol requires minimum 6 tool calls before the agent can conclude. It must check the network. It must check the anomaly score. It must quantify the dollar amount. These aren't suggestions — they're enforced constraints. An investigation agent that stops too early is worse than no agent at all."
-
----
-
-## Step 7: Case Resolution (60 seconds)
-
-Close the loop by creating a case:
-
-```bash
-curl -s -X POST http://localhost:8000/api/cases \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "RING-002 Shell Cluster — REFER TO DOJ",
-    "description": "Organized PPP fraud ring: 5 shell companies at CMRA address, zero employees, $735K estimated fraud. Agent confidence 94%.",
-    "priority": "CRITICAL",
-    "assigned_to": "Senior Investigator",
-    "fraud_type": "SHELL_CLUSTER",
-    "alert_ids": ["RING-002"],
-    "total_exposure": 1485000
-  }' | python3 -m json.tool
-```
-
-**Expected**: Case created with UUID, audit trail, timestamps.
-
-> **Talking point**: "Case created. Full audit trail from the moment it was opened. The investigator sees the agent's findings, the evidence citations, the dollar amounts. They can escalate to DOJ, add notes, track status. This is the last mile — from detection to disposition."
-
-Verify the case exists:
-
-```bash
-curl -s http://localhost:8000/api/cases | python3 -m json.tool
-```
-
-> **Final talking point**: "That's the full loop. Data flows in, detection rules fire, the ML model scores anomalies, graph analytics find the network, the investigation agent builds the case, and the senior investigator closes it. From raw data to prosecution-ready in under a minute."
+> "That's the complete workflow. Ring Queue for morning triage → Ring Detail for evidence review → AI investigation for pattern verification → Evidence checklist for case documentation → One-click evidence export → Schema switching for generalization across any fraud domain → Leadership dashboard for congressional reporting.
+>
+> This is what Palantir delivers out of a Tier 3 AIP Bootcamp: not a prototype, but a production investigation platform that an SBA investigator would open Monday morning and actually use."
 
 ---
 
@@ -268,50 +203,58 @@ curl -s http://localhost:8000/api/cases | python3 -m json.tool
 
 | Problem | Fix |
 |---------|-----|
-| `wscat` not found | `npm install -g wscat` or use `python -c "import asyncio, websockets; ..."` |
-| Port 8000 in use | `lsof -i :8000` then kill the process, or use `--port 8001` |
-| Docker services won't start | `docker compose down -v && docker compose up -d` |
-| WebSocket connection refused | Verify backend is running: `curl http://localhost:8000/health` |
-| Tests fail | `pip install -r requirements.txt` — dependency might be missing |
-| Agent returns different output | Without `ANTHROPIC_API_KEY`, uses deterministic fallback (same every time — great for rehearsing) |
-| Audience asks about frontend | "The backend API is complete. The Next.js frontend with Sigma.js graph visualization is the next sprint — same architecture, just needs the rendering layer." |
+| App not loading at :3000 | Run `cd frontend && npm run dev` or `make demo` |
+| Backend not responding | `source .venv/bin/activate && python3 -m uvicorn backend.main:app --port 8000` |
+| Ring Queue empty | Backend seed data may not have loaded — restart backend |
+| Investigation agent timeout | Check ANTHROPIC_API_KEY; falls back to deterministic mock automatically |
+| WebSocket not streaming | Backend health check: `curl http://localhost:8000/health` |
+| Graph not rendering | Hard refresh (Cmd+Shift+R); Sigma.js requires WebGL |
+| Entity drawer not opening | Click a graph node (not the edge); drawer slides from the right |
 
 ---
 
-## Appendix: Architecture Diagram (for slides)
+## Architecture Reference (For Technical Audiences)
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    Investigator UI                        │
-│  Ring Queue │ Ring Detail │ Case Manager │ Analytics      │
-├──────────────────────────────────────────────────────────┤
-│                REST API + WebSocket (FastAPI)             │
-│  /api/alerts │ /api/entity │ /api/graph │ /api/cases     │
-│              │  /api/investigate/ws/:ring_id              │
-├──────────────────────────────────────────────────────────┤
-│               LangGraph Investigation Agent               │
-│  8 tools │ Anti-early-stopping │ Streaming │ Structured  │
-├──────────────────────────────────────────────────────────┤
-│                   Detection Engine                        │
-│  6 Rules │ Isolation Forest │ Louvain │ Composite Scorer │
-│  RiskScore = 0.4×rules + 0.35×ML + 0.25×graph           │
-├──────────────┬───────────────┬───────────────────────────┤
-│  PostgreSQL  │    Neo4j      │         Redis             │
-│  Records +   │  Ontology     │   Queue + Cache           │
-│  Alerts +    │  Graph        │   Pub/Sub                 │
-│  Cases       │  Traversal    │                           │
-└──────────────┴───────────────┴───────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                     Next.js Frontend                          │
+│  Ring Queue │ Ring Detail │ Cases │ Schema Switcher │ Analytics│
+│  Entity 360 Drawer │ WebSocket Investigation UI              │
+├──────────────────────────────────────────────────────────────┤
+│                REST API + WebSocket (FastAPI)                 │
+│  /api/rings │ /api/cases │ /api/analytics │ /api/schema      │
+│              /api/investigate/ws/:ring_id                    │
+├──────────────────────────────────────────────────────────────┤
+│                LangGraph Investigation Agent                  │
+│  8 tools │ Min 6-call protocol │ Streaming │ Structured output│
+├──────────────────────────────────────────────────────────────┤
+│                    Detection Engine                           │
+│  6 Rules │ Isolation Forest │ Louvain │ Composite Scorer     │
+│  RiskScore = 0.4×rules + 0.35×ML + 0.25×graph               │
+├──────────────┬───────────────┬──────────────────────────────-┤
+│  PostgreSQL  │    Neo4j      │         Redis                 │
+│  Rings +     │  Graph        │   Queue + Cache               │
+│  Cases +     │  Traversal    │   Pub/Sub                     │
+│  Checklist   │               │                               │
+└──────────────┴───────────────┴───────────────────────────────┘
 ```
 
-## Appendix: Key Numbers
+## Key Numbers
 
 | Metric | Value |
 |--------|-------|
 | Detection rules | 6 (ADDR_REUSE, EIN_REUSE, STRAW_CO, THRESHOLD_GAME, ACCOUNT_SHARE, NEW_EIN) |
 | Risk score formula | `0.4×rules + 0.35×ML + 0.25×graph` |
-| Agent tools | 8 (profile, claims, network, anomaly, referrals, patterns, ring detail, escalate) |
-| Test coverage | 35+ tests (rules, scoring, agent scenarios) |
-| Data generator | 50K records, 5 fraud archetypes, ~5% fraud rate |
+| Agent tools | 8 |
+| Min tool calls per investigation | 6 (enforced) |
+| Test coverage | 35+ tests |
 | Fraud schemas | 3 (PPP Loans, Medicaid, Procurement) |
-| API endpoints | 12 REST + 1 WebSocket |
-| Infrastructure | PostgreSQL 16, Neo4j 5, Redis 7, FastAPI |
+| Triage tiers | 4 (CRITICAL >$1.5M, HIGH $500K–$1.5M, MEDIUM $150K–$500K, LOW <$150K) |
+| Evidence checklist items | 7 (SBA OIG standard) |
+| Export package contents | graph.png + findings.json + evidence_report.html (ZIP) |
+| Demo ring | ring_002 (Shell Cluster, $7.54M exposure, CRITICAL) |
+
+---
+
+*Last updated: 2026-03-08 — UI walkthrough replacing CLI-based demo.*
+*GAO anchor: GAO-25-107267 (SBA Fraud Prevention, March 2025)*
