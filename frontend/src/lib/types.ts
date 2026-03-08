@@ -4,6 +4,7 @@ export type RingType = "ADDRESS_FARM" | "ACCOUNT_CLUSTER" | "EIN_RECYCLER" | "ST
 export type RingStatus = "NEW" | "DETECTED" | "UNDER_REVIEW" | "CASE_OPENED" | "REFERRED" | "CLOSED" | "DISMISSED";
 export type CaseStatus = "OPEN" | "UNDER_REVIEW" | "REFERRED_TO_DOJ" | "CLOSED";
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+export type TriageTier = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 export type Schema = "ppp_loans" | "medicaid" | "procurement";
 
 export interface RingMember {
@@ -49,6 +50,9 @@ export interface FraudRing {
   updated_at: string;
   risk_breakdown?: RiskBreakdown;
   case_id?: string | null;
+  triageTier?: TriageTier;
+  autoAssigned?: boolean;
+  autoCaseId?: string | null;
 }
 
 export interface CaseNote {

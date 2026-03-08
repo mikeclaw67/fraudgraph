@@ -17,7 +17,7 @@ from backend.api.graph import router as graph_router
 from backend.api.cases import router as cases_router
 from backend.api.investigate import router as investigate_router
 from backend.api.ring_actions import router as ring_actions_router
-from backend.api.rings import router as rings_router
+from backend.api.rings import router as rings_router, set_ring_store
 from backend.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,16 @@ async def lifespan(app: FastAPI):
         "Demo data seeded: %d rings, %d entities, %d alerts, %d graph nodes",
         summary["rings"], summary["entities"], summary["alerts"], summary["graph_nodes"],
     )
+
+    # S3: Apply automated ring triage after seeding
+    from backend.api.rings import get_ring_store
+    from backend.detection.triage_engine import apply_ring_triage
+    rings = get_ring_store()
+    rings = apply_ring_triage(rings)
+    set_ring_store(rings)
+    
+    critical_count = sum(1 for r in rings if r.get("triageTier") == "CRITICAL")
+    logger.info("Triage applied: %d CRITICAL rings auto-cased", critical_count)
 
     yield
     logger.info("FraudGraph shutting down")
@@ -110,3 +120,10 @@ async def get_config():
             "graph": settings.weight_graph,
         },
     }
+
+
+@app.get("/api/triage/config")
+async def get_triage_config():
+    """Return triage configuration for the UI settings panel."""
+    from backend.detection.triage_engine import get_triage_config
+    return get_triage_config()

@@ -15,7 +15,7 @@ from backend.api.alerts import set_alert_store
 from backend.api.entities import set_alert_index, set_entity_store
 from backend.api.graph import build_graph_from_records, set_graph_data
 from backend.api.rings import set_ring_store
-from backend.detection.alerts import generate_alerts_batch
+from backend.detection.alerts import generate_alerts_batch, deduplicate_alerts
 from backend.detection.rules import build_context, evaluate_batch
 from backend.detection.scoring import score_batch
 
@@ -192,7 +192,7 @@ def _build_ring_002() -> tuple[dict, list[dict]]:
         "ring_type": "STRAW_COMPANY",
         "status": "ACTIVE",
         "risk_score": 91,
-        "total_exposure": 1_480_000,
+        "total_exposure": 1_500_000,  # S3: Bumped to meet CRITICAL threshold
         "entity_count": 8,
         "created_at": "2024-12-03T14:15:00Z",
     }
@@ -427,6 +427,8 @@ def seed_demo_data() -> dict[str, Any]:
 
     # --- Populate all in-memory stores (idempotent — replaces existing) ---
     set_ring_store(rings)
+    # S3: Deduplicate alerts by entity_id before storing
+    alert_dicts = deduplicate_alerts(alert_dicts)
     set_alert_store(alert_dicts)
     set_entity_store(records)
     set_alert_index(alert_dicts)

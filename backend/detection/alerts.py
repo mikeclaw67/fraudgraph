@@ -118,3 +118,38 @@ def generate_alerts_batch(
     # Sort by risk score descending — highest priority first
     alerts.sort(key=lambda a: a.risk_score, reverse=True)
     return alerts
+
+
+def deduplicate_alerts(alerts: list) -> list:
+    """Deduplicate alerts by entity_id, keeping only the highest risk_score per entity.
+    
+    Args:
+        alerts: List of Alert objects or alert dicts
+        
+    Returns:
+        Deduplicated list sorted by risk_score descending
+    """
+    if not alerts:
+        return []
+    
+    seen: dict[str, object] = {}
+    for a in alerts:
+        # Handle both Alert objects and dicts
+        eid = getattr(a, "entity_id", None) or a.get("entity_id") if isinstance(a, dict) else getattr(a, "entity_id", None)
+        risk = getattr(a, "risk_score", 0) if hasattr(a, "risk_score") else (a.get("risk_score", 0) if isinstance(a, dict) else 0)
+        
+        if eid is None:
+            continue
+            
+        if eid not in seen:
+            seen[eid] = a
+        else:
+            existing = seen[eid]
+            existing_risk = getattr(existing, "risk_score", 0) if hasattr(existing, "risk_score") else (existing.get("risk_score", 0) if isinstance(existing, dict) else 0)
+            if risk > existing_risk:
+                seen[eid] = a
+    
+    # Sort by risk_score descending
+    result = list(seen.values())
+    result.sort(key=lambda x: getattr(x, "risk_score", 0) if hasattr(x, "risk_score") else (x.get("risk_score", 0) if isinstance(x, dict) else 0), reverse=True)
+    return result

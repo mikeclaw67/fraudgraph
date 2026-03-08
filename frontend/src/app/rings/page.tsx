@@ -1,15 +1,16 @@
 /* FraudGraph — Ring Queue with split-pane detail view.
    Left panel: ring queue table (35% when detail open, full-width when closed).
    Right panel: Ring Detail component slides in from right on row click.
-   Direct /rings/[id] URL renders full-page detail (handled by [id]/page.tsx). */
+   Direct /rings/[id] URL renders full-page detail (handled by [id]/page.tsx).
+   S3: Added triage tier badges, CRITICAL banner, AUTO chip. */
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { RingDetailContent } from "@/components/ring-detail";
-import { FRAUD_RINGS } from "@/lib/ring-data";
+import { FRAUD_RINGS_WITH_TRIAGE } from "@/lib/ring-data";
 import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
-import type { RingType, RingStatus } from "@/lib/types";
+import type { RingType, RingStatus, TriageTier } from "@/lib/types";
 
 type DismissReason = "DUPLICATE" | "INSUFFICIENT_EVIDENCE" | "FALSE_POSITIVE" | "OUT_OF_JURISDICTION";
 
@@ -38,6 +39,14 @@ const STATUS_CONFIG: Record<RingStatus, { label: string; bg: string }> = {
   DISMISSED: { label: "DISMISSED", bg: "bg-[#37474F] text-[#90A4AE]" },
 };
 
+/* S3: Triage tier badge styling */
+const TRIAGE_TIER_CONFIG: Record<TriageTier, { label: string; bg: string }> = {
+  CRITICAL: { label: "CRITICAL", bg: "bg-[#B71C1C] text-white" },
+  HIGH: { label: "HIGH", bg: "bg-[#E65100] text-[#FFE0B2]" },
+  MEDIUM: { label: "MEDIUM", bg: "bg-[#F57F17] text-[#FFF9C4]" },
+  LOW: { label: "LOW", bg: "bg-[#37474F] text-[#90A4AE]" },
+};
+
 const RING_TYPE_LABELS: Record<RingType, string> = {
   ADDRESS_FARM: "ADDRESS FARM",
   ACCOUNT_CLUSTER: "ACCOUNT CLUSTER",
@@ -57,16 +66,17 @@ export default function RingQueuePage() {
   const [statusFilter, setStatusFilter] = useState<RingStatus | "ALL">("ALL");
   const [isMobile, setIsMobile] = useState(false);
   const [detailKey, setDetailKey] = useState(0);
+  const [criticalBannerDismissed, setCriticalBannerDismissed] = useState(false);
 
   /* ── State machine: ring status + investigator overrides ──────────── */
   const [ringStatuses, setRingStatuses] = useState<Record<string, RingStatus>>(() => {
     const init: Record<string, RingStatus> = {};
-    FRAUD_RINGS.forEach(r => { init[r.ring_id] = r.status; });
+    FRAUD_RINGS_WITH_TRIAGE.forEach(r => { init[r.ring_id] = r.status; });
     return init;
   });
   const [ringInvestigators, setRingInvestigators] = useState<Record<string, string | null>>(() => {
     const init: Record<string, string | null> = {};
-    FRAUD_RINGS.forEach(r => { init[r.ring_id] = r.assigned_to; });
+    FRAUD_RINGS_WITH_TRIAGE.forEach(r => { init[r.ring_id] = r.assigned_to; });
     return init;
   });
   const [hoveredRingId, setHoveredRingId] = useState<string | null>(null);
@@ -154,7 +164,7 @@ export default function RingQueuePage() {
 
   /* ── Sort & filter (uses local state for status) ───────────────────── */
   const filtered = useMemo(() => {
-    let rings = FRAUD_RINGS.map(r => ({
+    let rings = FRAUD_RINGS_WITH_TRIAGE.map(r => ({
       ...r,
       status: ringStatuses[r.ring_id] ?? r.status,
       assigned_to: ringInvestigators[r.ring_id] ?? r.assigned_to,
@@ -173,10 +183,17 @@ export default function RingQueuePage() {
     return rings;
   }, [sortField, sortDir, statusFilter, ringStatuses, ringInvestigators]);
 
+  /* ── S3: CRITICAL rings for banner ─────────────────────────────────── */
+  const criticalRings = useMemo(() => {
+    return FRAUD_RINGS_WITH_TRIAGE.filter(r => r.triageTier === "CRITICAL");
+  }, []);
+  const criticalExposure = criticalRings.reduce((sum, r) => sum + r.total_exposure, 0);
+  const firstCriticalId = criticalRings[0]?.ring_id;
+
   const statuses = Object.values(ringStatuses);
-  const totalRings = FRAUD_RINGS.length;
+  const totalRings = FRAUD_RINGS_WITH_TRIAGE.length;
   const unreviewed = statuses.filter((s) => s === "NEW").length;
-  const totalExposure = FRAUD_RINGS.reduce((sum, r) => sum + r.total_exposure, 0);
+  const totalExposure = FRAUD_RINGS_WITH_TRIAGE.reduce((sum, r) => sum + r.total_exposure, 0);
   const referredToDoj = statuses.filter((s) => s === "REFERRED").length;
 
   function toggleSort(field: SortField) {
@@ -231,6 +248,35 @@ export default function RingQueuePage() {
             </div>
           </div>
 
+          {/* S3: CRITICAL Banner */}
+          {criticalRings.length > 0 && !criticalBannerDismissed && (
+            <div className="mb-4 flex items-center justify-between bg-[#B71C1C] px-4 py-2.5 text-white">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔴</span>
+                <span className="text-[13px] font-semibold">
+                  {criticalRings.length} CRITICAL ring{criticalRings.length !== 1 ? "s" : ""} require immediate attention
+                  <span className="ml-2 font-normal opacity-80">— {formatCurrency(criticalExposure)} exposure</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                {firstCriticalId && (
+                  <button
+                    onClick={() => openDetail(firstCriticalId)}
+                    className="text-[11px] font-semibold uppercase tracking-wider bg-white/20 px-2 py-1 hover:bg-white/30 transition-colors"
+                  >
+                    View Ring →
+                  </button>
+                )}
+                <button
+                  onClick={() => setCriticalBannerDismissed(true)}
+                  className="text-white/70 hover:text-white text-lg leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Stats bar — hidden when split-pane open */}
           {!isOpen && (
             <div className="mb-4 grid grid-cols-4 gap-px bg-border">
@@ -249,6 +295,7 @@ export default function RingQueuePage() {
                   {isOpen ? (
                     <>
                       <th className="text-label px-2 py-2 text-left font-medium w-8">TYPE</th>
+                      <th className="text-label px-2 py-2 text-left font-medium">TRIAGE</th>
                       <th
                         className="text-label px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("avg_risk_score")}
@@ -280,6 +327,7 @@ export default function RingQueuePage() {
                   ) : (
                     <>
                       <th className="text-label px-3 py-2.5 text-left font-medium">TYPE</th>
+                      <th className="text-label px-3 py-2.5 text-left font-medium">TRIAGE</th>
                       <th className="text-label px-3 py-2.5 text-left font-medium">SMOKING GUN</th>
                       <th
                         className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
@@ -317,6 +365,8 @@ export default function RingQueuePage() {
                 {filtered.map((ring) => {
                   const status = ring.status;
                   const statusCfg = STATUS_CONFIG[status];
+                  const triageTier = ring.triageTier || "LOW";
+                  const triageCfg = TRIAGE_TIER_CONFIG[triageTier];
                   const isSelected = ring.ring_id === selectedRingId;
                   const isHovered = ring.ring_id === hoveredRingId;
                   const isDismissed = status === "DISMISSED";
@@ -341,6 +391,11 @@ export default function RingQueuePage() {
                           <td className="px-2 py-2 text-center">
                             <span className="text-sm" title={RING_TYPE_LABELS[ring.ring_type]}>
                               {RING_TYPE_ICONS[ring.ring_type]}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2">
+                            <span className={cn("inline-flex px-1.5 py-0.5 text-[9px] font-semibold tracking-wider", triageCfg.bg)}>
+                              {triageCfg.label}
                             </span>
                           </td>
                           <td className="px-2 py-2 text-right">
@@ -392,6 +447,11 @@ export default function RingQueuePage() {
                               {RING_TYPE_LABELS[ring.ring_type]}
                             </span>
                           </td>
+                          <td className="px-3 py-2">
+                            <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", triageCfg.bg)}>
+                              {triageCfg.label}
+                            </span>
+                          </td>
                           <td className="px-3 py-2 max-w-[320px]">
                             <span
                               className={cn(
@@ -422,8 +482,21 @@ export default function RingQueuePage() {
                             </span>
                           </td>
                           <td className="px-3 py-2">
-                            <span className="text-data text-text-secondary">
+                            <span className="text-data text-text-secondary flex items-center gap-1.5">
                               {ring.assigned_to || <span className="text-text-muted">&mdash;</span>}
+                              {ring.autoAssigned && ring.assigned_to && (
+                                <span className="inline-flex px-1 py-0.5 text-[8px] font-semibold tracking-wider bg-[#1565C0]/30 text-[#90CAF9]">
+                                  AUTO
+                                </span>
+                              )}
+                              {ring.autoCaseId && (
+                                <span
+                                  className="text-[10px] text-accent hover:underline cursor-pointer"
+                                  onClick={(e) => { e.stopPropagation(); router.push("/cases"); }}
+                                >
+                                  → CASE
+                                </span>
+                              )}
                             </span>
                           </td>
                           <td className="px-3 py-2 text-right">

@@ -1,10 +1,12 @@
 /* FraudGraph — Schema Switcher: live domain switching across PPP, Medicaid, Procurement.
+   S3: Added read-only Triage Configuration panel.
    Update when adding new fraud domains or changing schema display logic. */
 "use client";
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SCHEMAS, type DomainSchema } from "@/lib/schemas";
+import { TRIAGE_THRESHOLDS, TRIAGE_ASSIGNEES } from "@/lib/ring-data";
 
 export default function SchemaPage() {
   const [active, setActive] = useState<DomainSchema>(SCHEMAS[0]);
@@ -109,6 +111,78 @@ export default function SchemaPage() {
               {active.smokingGun}
             </p>
           </div>
+        </div>
+
+        {/* S3: Triage Configuration Panel */}
+        <div className="lg:col-span-2">
+          <Panel title="Triage Configuration">
+            <p className="text-[11px] text-text-muted mb-4">
+              Configured thresholds for this deployment. Read-only — contact admin to modify.
+            </p>
+            <table className="w-full">
+              <thead>
+                <tr className="text-label">
+                  <th className="pb-2 text-left font-medium">TIER</th>
+                  <th className="pb-2 text-left font-medium">CRITERIA</th>
+                  <th className="pb-2 text-left font-medium">AUTO-ASSIGN</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-border/50">
+                  <td className="py-2.5">
+                    <span className="inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-[#B71C1C] text-white">
+                      CRITICAL
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-data text-text-primary">
+                    Risk ≥ {TRIAGE_THRESHOLDS.CRITICAL.risk_min} <span className="text-text-muted">AND</span> Exposure ≥ ${(TRIAGE_THRESHOLDS.CRITICAL.exposure_min / 1_000_000).toFixed(1)}M
+                  </td>
+                  <td className="py-2.5 text-data text-text-secondary">
+                    {TRIAGE_ASSIGNEES.CRITICAL}
+                  </td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="py-2.5">
+                    <span className="inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-[#E65100] text-[#FFE0B2]">
+                      HIGH
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-data text-text-primary">
+                    Risk ≥ {TRIAGE_THRESHOLDS.HIGH.risk_min} <span className="text-text-muted">OR</span> Exposure ≥ ${(TRIAGE_THRESHOLDS.HIGH.exposure_min / 1_000).toFixed(0)}K
+                  </td>
+                  <td className="py-2.5 text-data text-text-secondary">
+                    {TRIAGE_ASSIGNEES.HIGH}
+                  </td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="py-2.5">
+                    <span className="inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-[#F57F17] text-[#FFF9C4]">
+                      MEDIUM
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-data text-text-primary">
+                    Risk ≥ {TRIAGE_THRESHOLDS.MEDIUM.risk_min}
+                  </td>
+                  <td className="py-2.5 text-data text-text-secondary">
+                    {TRIAGE_ASSIGNEES.MEDIUM}
+                  </td>
+                </tr>
+                <tr className="border-t border-border/50">
+                  <td className="py-2.5">
+                    <span className="inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-[#37474F] text-[#90A4AE]">
+                      LOW
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-data text-text-primary">
+                    All others
+                  </td>
+                  <td className="py-2.5 text-data text-text-muted">
+                    Unassigned
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </Panel>
         </div>
       </div>
     </div>

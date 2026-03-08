@@ -1,6 +1,6 @@
 /* FraudGraph — Hardcoded mock data for 20 realistic PPP fraud rings */
 
-import type { FraudRing, RingMember, RingType, RiskBreakdown } from "./types";
+import type { FraudRing, RingMember, RingType, RiskBreakdown, TriageTier } from "./types";
 
 const FIRST_NAMES = [
   "Marcus", "Diana", "Robert", "Sarah", "James", "Patricia", "Michael", "Angela",
@@ -408,3 +408,49 @@ export const FRAUD_RINGS: FraudRing[] = RING_DEFINITIONS.map((def, idx) => ({
 }));
 
 export { INVESTIGATORS };
+
+/* ── S3: Triage Tier Computation ───────────────────────────────────────────
+   Matches backend/detection/triage_engine.py thresholds:
+   - CRITICAL: risk >= 85 AND exposure >= $1.5M
+   - HIGH: risk >= 65 OR exposure >= $500K
+   - MEDIUM: risk >= 40
+   - LOW: everything else
+*/
+
+
+const TRIAGE_THRESHOLDS = {
+  CRITICAL: { risk_min: 85, exposure_min: 1_500_000 },
+  HIGH: { risk_min: 65, exposure_min: 500_000 },
+  MEDIUM: { risk_min: 40, exposure_min: 0 },
+  LOW: { risk_min: 0, exposure_min: 0 },
+};
+
+const TRIAGE_ASSIGNEES: Record<TriageTier, string | null> = {
+  CRITICAL: "alice",
+  HIGH: "bob",
+  MEDIUM: "carol",
+  LOW: null,
+};
+
+function classifyTriageTier(riskScore: number, totalExposure: number): TriageTier {
+  if (riskScore >= 85 && totalExposure >= 1_500_000) return "CRITICAL";
+  if (riskScore >= 65 || totalExposure >= 500_000) return "HIGH";
+  if (riskScore >= 40) return "MEDIUM";
+  return "LOW";
+}
+
+/* Re-export FRAUD_RINGS with triage fields applied */
+export const FRAUD_RINGS_WITH_TRIAGE: FraudRing[] = FRAUD_RINGS.map((ring) => {
+  const tier = classifyTriageTier(ring.avg_risk_score, ring.total_exposure);
+  const hasExistingAssignee = !!ring.assigned_to;
+  
+  return {
+    ...ring,
+    triageTier: tier,
+    autoAssigned: !hasExistingAssignee,
+    assignedTo: hasExistingAssignee ? ring.assigned_to : TRIAGE_ASSIGNEES[tier],
+    autoCaseId: tier === "CRITICAL" ? `auto-case-${ring.ring_id}` : null,
+  };
+});
+
+export { TRIAGE_THRESHOLDS, TRIAGE_ASSIGNEES };
