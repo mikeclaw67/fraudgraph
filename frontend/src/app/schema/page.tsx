@@ -19,7 +19,7 @@ export default function SchemaPage() {
           Schema Switcher
         </h1>
         <p className="mt-1 text-data text-text-secondary">
-          One engine. Three fraud domains. Same detection — different config.
+          Same Engine. Any State. Any Fraud Type. One detection engine — unlimited schemas.
         </p>
       </div>
 

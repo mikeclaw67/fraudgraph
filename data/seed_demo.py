@@ -774,7 +774,7 @@ def seed_real_ppp_data() -> dict[str, Any]:
         # Fallback to synthetic demo
         return seed_demo_data()
     
-    rings = build_rings_from_records(records)
+    rings = build_rings_from_records_v2(records)
     
     if not rings:
         # No rings found — fallback
@@ -806,3 +806,110 @@ def seed_real_ppp_data() -> dict[str, Any]:
         "graph_edges": len(graph_data["edges"]),
         "source": "real_ppp_data",
     }
+
+
+def get_majority_state(records: list[dict], entity_ids: list[str]) -> str:
+    """Get the most common state from ring member addresses."""
+    from collections import Counter
+    
+    # Build entity lookup
+    entity_map = {r.get("borrower_id"): r for r in records}
+    
+    states = []
+    for eid in entity_ids:
+        entity = entity_map.get(eid)
+        if entity:
+            state = entity.get("business_state", "").strip().upper()
+            if state and len(state) == 2:
+                states.append(state)
+    
+    if not states:
+        return "UNK"
+    
+    counter = Counter(states)
+    return counter.most_common(1)[0][0]
+
+
+def build_rings_from_records_v2(records: list[dict]) -> list[dict]:
+    """Detect fraud rings from real PPP records with state field.
+    
+    Enhanced version that adds detected_state to each ring.
+    """
+    from collections import defaultdict
+    import hashlib
+    
+    # Group by normalized address
+    addr_groups: dict[str, list[dict]] = defaultdict(list)
+    for rec in records:
+        addr_key = "|".join([
+            rec.get("business_address", "").strip().lower(),
+            rec.get("business_city", "").strip().lower(),
+            rec.get("business_state", "").strip().upper(),
+            rec.get("business_zip", "")[:5],
+        ])
+        if addr_key.strip("|"):
+            addr_groups[addr_key].append(rec)
+    
+    # Build rings from shared addresses (2+ businesses)
+    rings: list[dict] = []
+    ring_idx = 1
+    
+    for addr_key, members in sorted(addr_groups.items(), key=lambda x: -len(x[1])):
+        if len(members) < 2:
+            continue
+        
+        parts = addr_key.split("|")
+        if len(parts) >= 4:
+            display_addr = f"{parts[0].title()}, {parts[1].title()} {parts[2]} {parts[3]}"
+            detected_state = parts[2] if len(parts[2]) == 2 else "UNK"
+        else:
+            display_addr = addr_key
+            detected_state = "UNK"
+        
+        exposure = sum(m.get("loan_amount", 0) for m in members)
+        avg_score = 50 + min(len(members) * 5, 45)
+        
+        if exposure >= 1_000_000 or len(members) >= 6:
+            risk_score = 92
+            status = "ACTIVE"
+        elif exposure >= 500_000 or len(members) >= 4:
+            risk_score = 78
+            status = "ACTIVE"
+        else:
+            risk_score = 55
+            status = "MONITORING"
+        
+        ring_id = f"ppp_ring_{ring_idx:03d}"
+        ring = {
+            "id": ring_id,
+            "name": f"Address Ring {ring_idx}",
+            "ring_type": "ADDRESS_FARM",
+            "common_element": display_addr,
+            "common_element_detail": f"{len(members)} businesses filed PPP loans from this address.",
+            "status": status,
+            "risk_score": risk_score,
+            "total_exposure": round(exposure, 2),
+            "entity_count": len(members),
+            "member_count": len(members),
+            "avg_risk_score": avg_score,
+            "assigned_to": None,
+            "detected_state": detected_state,
+            "detected_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "entities": [m.get("borrower_id") for m in members],
+            "risk_breakdown": {
+                "rules": risk_score - 5,
+                "ml": risk_score - 15,
+                "graph": risk_score - 20,
+                "firedRules": ["ADDR_REUSE"],
+                "mlLabel": "Real SBA data"
+            }
+        }
+        rings.append(ring)
+        ring_idx += 1
+        
+        if ring_idx > 50:
+            break
+    
+    return rings

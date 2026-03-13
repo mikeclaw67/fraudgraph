@@ -101,3 +101,48 @@ Real PPP fraud rings successfully detected from SBA public data.
 ---
 
 **ITERATION_DONE**
+
+---
+
+## S8 Day 2-3: CA Ring Framing + Multi-State Schema
+
+**Date:** 2026-03-13  
+**Status:** ✅ COMPLETE
+
+### Day 2: California Ring Focus
+
+- **State-aware Ring Queue:** ✅ 50 rings with `detected_state` field from API
+- **State badges:** ✅ CA/TX/FL badges displayed in Ring Queue table
+- **SBA Crackdown banner:** ✅ "111,620 borrowers suspended, $8.6B exposure" — dismissible
+- **API integration:** ✅ Ring Queue now fetches from /api/rings instead of hardcoded data
+
+### Day 3: Multi-State Schema
+
+- **Schema Switcher tabs:** ✅ Added PPP-California, PPP-Minnesota
+- **Tagline updated:** ✅ "Same Engine. Any State. Any Fraud Type."
+- **Entity 360 state context:** ✅ State field + full address in entity header
+- **CA rings highlighted:** ✅ CA ring examples in PPP-California schema
+
+### Files Modified
+
+**Backend:**
+- `data/seed_demo.py` — added `detected_state` to rings, v2 ring builder
+
+**Frontend:**
+- `src/app/rings/page.tsx` — API fetch, SBA banner, state badges
+- `src/lib/api.ts` — added `getRings()` function
+- `src/lib/schemas.ts` — added PPP-California, PPP-Minnesota schemas
+- `src/app/schema/page.tsx` — updated tagline
+- `src/app/entity/[id]/page.tsx` — added state field + address display
+
+### Demo Path Verified
+
+1. Ring Queue → 50 real rings with CA state badges
+2. SBA Crackdown banner visible and dismissible
+3. Click CA ring → Ring Detail shows real SBA data
+4. Entity 360 shows state + full address
+5. Schema Switcher → PPP-California tab shows CA rings
+
+---
+
+**ITERATION_DONE**

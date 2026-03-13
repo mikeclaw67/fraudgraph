@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { RingDetailContent } from "@/components/ring-detail";
 import { FRAUD_RINGS_WITH_TRIAGE } from "@/lib/ring-data";
 import { formatCurrency, formatDate, cn, getRiskColor } from "@/lib/utils";
+import { getRings } from "@/lib/api";
 import type { RingType, RingStatus, TriageTier } from "@/lib/types";
 
 type DismissReason = "DUPLICATE" | "INSUFFICIENT_EVIDENCE" | "FALSE_POSITIVE" | "OUT_OF_JURISDICTION";
@@ -67,6 +68,9 @@ export default function RingQueuePage() {
   const [isMobile, setIsMobile] = useState(false);
   const [detailKey, setDetailKey] = useState(0);
   const [criticalBannerDismissed, setCriticalBannerDismissed] = useState(false);
+  const [sbaCrackdownDismissed, setSbaCrackdownDismissed] = useState(false);
+  const [apiRings, setApiRings] = useState<typeof FRAUD_RINGS_WITH_TRIAGE>([]);
+  const [loading, setLoading] = useState(true);
 
   /* ── State machine: ring status + investigator overrides ──────────── */
   const [ringStatuses, setRingStatuses] = useState<Record<string, RingStatus>>(() => {
@@ -84,6 +88,52 @@ export default function RingQueuePage() {
   const dismissRef = useRef<HTMLDivElement>(null);
 
   /* ── Close dismiss dropdown on outside click ─────────────────────── */
+
+  /* ── S8: Fetch rings from API ──────────────────────────────────────── */
+  useEffect(() => {
+    getRings()
+      .then((data) => {
+        // Transform API rings to match frontend type
+        const transformed = data.rings.map((r: any) => ({
+          ring_id: r.id,
+          ring_type: r.ring_type || "ADDRESS_FARM",
+          common_element: r.common_element || "",
+          common_element_detail: r.common_element_detail || "",
+          member_count: r.member_count || r.entity_count || 0,
+          total_exposure: r.total_exposure || 0,
+          avg_risk_score: r.avg_risk_score || r.risk_score || 0,
+          status: r.status === "ACTIVE" ? "NEW" : r.status || "NEW",
+          assigned_to: r.assigned_to || r.assignedTo || null,
+          detected_at: r.detected_at || r.created_at || new Date().toISOString(),
+          triageTier: r.triageTier || "MEDIUM",
+          autoAssigned: r.autoAssigned || false,
+          autoCaseId: r.autoCaseId || null,
+          detected_state: r.detected_state || extractState(r.common_element) || "UNK",
+          members: r.members || [],
+          updated_at: r.updated_at || r.detected_at || new Date().toISOString(),
+          riskBreakdown: r.risk_breakdown || null,
+        }));
+        setApiRings(transformed);
+        // Initialize status/investigator maps from API data
+        const statusInit: Record<string, RingStatus> = {};
+        const invInit: Record<string, string | null> = {};
+        transformed.forEach((ring: any) => {
+          statusInit[ring.ring_id] = ring.status;
+          invInit[ring.ring_id] = ring.assigned_to;
+        });
+        setRingStatuses(statusInit);
+        setRingInvestigators(invInit);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  /* Helper to extract state from address string */
+  function extractState(addr: string): string {
+    const match = addr.match(/,\s*([A-Z]{2})\s*\d{5}/);
+    return match ? match[1] : "UNK";
+  }
+
   useEffect(() => {
     if (!dismissDropdownId) return;
     const handler = (e: MouseEvent) => {
@@ -164,7 +214,8 @@ export default function RingQueuePage() {
 
   /* ── Sort & filter (uses local state for status) ───────────────────── */
   const filtered = useMemo(() => {
-    let rings = FRAUD_RINGS_WITH_TRIAGE.map(r => ({
+    const ringsSource = apiRings.length > 0 ? apiRings : FRAUD_RINGS_WITH_TRIAGE;
+    let rings = ringsSource.map(r => ({
       ...r,
       status: ringStatuses[r.ring_id] ?? r.status,
       assigned_to: ringInvestigators[r.ring_id] ?? r.assigned_to,
@@ -185,15 +236,17 @@ export default function RingQueuePage() {
 
   /* ── S3: CRITICAL rings for banner ─────────────────────────────────── */
   const criticalRings = useMemo(() => {
-    return FRAUD_RINGS_WITH_TRIAGE.filter(r => r.triageTier === "CRITICAL");
+    const src = apiRings.length > 0 ? apiRings : FRAUD_RINGS_WITH_TRIAGE;
+    return src.filter(r => r.triageTier === "CRITICAL");
   }, []);
   const criticalExposure = criticalRings.reduce((sum, r) => sum + r.total_exposure, 0);
   const firstCriticalId = criticalRings[0]?.ring_id;
 
   const statuses = Object.values(ringStatuses);
-  const totalRings = FRAUD_RINGS_WITH_TRIAGE.length;
+  const ringSrc = apiRings.length > 0 ? apiRings : FRAUD_RINGS_WITH_TRIAGE;
+  const totalRings = ringSrc.length;
   const unreviewed = statuses.filter((s) => s === "NEW").length;
-  const totalExposure = FRAUD_RINGS_WITH_TRIAGE.reduce((sum, r) => sum + r.total_exposure, 0);
+  const totalExposure = ringSrc.reduce((sum, r) => sum + r.total_exposure, 0);
   const referredToDoj = statuses.filter((s) => s === "REFERRED").length;
 
   function toggleSort(field: SortField) {
@@ -296,6 +349,7 @@ export default function RingQueuePage() {
                     <>
                       <th className="text-label px-2 py-2 text-left font-medium w-8">TYPE</th>
                       <th className="text-label px-2 py-2 text-left font-medium">TRIAGE</th>
+                      <th className="text-label px-2 py-2 text-left font-medium w-10">ST</th>
                       <th
                         className="text-label px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
                         onClick={() => toggleSort("avg_risk_score")}
@@ -328,6 +382,7 @@ export default function RingQueuePage() {
                     <>
                       <th className="text-label px-3 py-2.5 text-left font-medium">TYPE</th>
                       <th className="text-label px-3 py-2.5 text-left font-medium">TRIAGE</th>
+                      <th className="text-label px-3 py-2.5 text-left font-medium w-12">STATE</th>
                       <th className="text-label px-3 py-2.5 text-left font-medium">SMOKING GUN</th>
                       <th
                         className="text-label px-3 py-2.5 text-right font-medium cursor-pointer select-none hover:text-text-secondary"
@@ -396,6 +451,10 @@ export default function RingQueuePage() {
                           <td className="px-2 py-2">
                             <span className={cn("inline-flex px-1.5 py-0.5 text-[9px] font-semibold tracking-wider", triageCfg.bg)}>
                               {triageCfg.label}
+                            </span>                          </td>
+                          <td className="px-2 py-2 text-center">
+                            <span className="text-[10px] font-semibold text-accent">
+                              {(ring as any).detected_state || "—"}
                             </span>
                           </td>
                           <td className="px-2 py-2 text-right">
@@ -450,6 +509,10 @@ export default function RingQueuePage() {
                           <td className="px-3 py-2">
                             <span className={cn("inline-flex px-2 py-0.5 text-[10px] font-semibold tracking-wider", triageCfg.bg)}>
                               {triageCfg.label}
+                            </span>                          </td>
+                          <td className="px-3 py-2">
+                            <span className="inline-flex px-1.5 py-0.5 text-[10px] font-semibold tracking-wider bg-accent/20 text-accent">
+                              📍 {(ring as any).detected_state || "—"}
                             </span>
                           </td>
                           <td className="px-3 py-2 max-w-[320px]">

@@ -1,8 +1,9 @@
 /* FraudGraph — Domain schema definitions for the Schema Switcher.
+   S8: Added state-specific PPP schemas (California, Minnesota).
    Update when adding new fraud domains or changing entity models. */
 
 export type DomainSchema = {
-  id: "ppp" | "medicaid" | "procurement";
+  id: string;
   name: string;
   subtitle: string;
   color: string;
@@ -10,6 +11,7 @@ export type DomainSchema = {
   relationshipTypes: string[];
   ringExamples: { id: string; name: string; exposure: string; members: number }[];
   smokingGun: string;
+  stateFilter?: string; // Optional state filter for PPP schemas
 };
 
 export const SCHEMAS: DomainSchema[] = [
@@ -41,6 +43,64 @@ export const SCHEMAS: DomainSchema[] = [
     ],
     smokingGun:
       "23 businesses registered at the same residential address filed $14.2M in PPP loans within 72 hours — all depositing to 3 bank accounts controlled by one individual.",
+  },
+  {
+    id: "ppp-california",
+    name: "PPP-California",
+    subtitle: "SBA Crackdown — 111,620 borrowers suspended, $8.6B exposure",
+    color: "#E53935",
+    stateFilter: "CA",
+    entityTypes: [
+      { name: "Borrower", icon: "👤", count: 28_450 },
+      { name: "Business", icon: "🏢", count: 26_120 },
+      { name: "Address", icon: "📍", count: 18_340 },
+      { name: "Bank Account", icon: "🏦", count: 22_890 },
+    ],
+    relationshipTypes: [
+      "APPLIED_FOR",
+      "OWNED_BY",
+      "REGISTERED_AT",
+      "DEPOSITED_TO",
+      "SHARED_ADDRESS",
+      "SHARED_BANK_ACCOUNT",
+    ],
+    ringExamples: [
+      { id: "CA-001", name: "Irvine Address Farm", exposure: "$22.4M", members: 11 },
+      { id: "CA-002", name: "Inglewood Shell Network", exposure: "$16.4M", members: 9 },
+      { id: "CA-003", name: "Fullerton Straw Company Ring", exposure: "$14.8M", members: 8 },
+      { id: "CA-004", name: "Pleasanton Multi-Entity Cluster", exposure: "$27.7M", members: 7 },
+      { id: "CA-005", name: "Fremont Account Farm", exposure: "$26.0M", members: 7 },
+    ],
+    smokingGun:
+      "11 businesses at 2532 Dupont Dr, Irvine CA filed $22.4M in PPP loans — all within 48 hours, using 3 EINs registered in the previous 90 days. Real SBA data.",
+  },
+  {
+    id: "ppp-minnesota",
+    name: "PPP-Minnesota",
+    subtitle: "Feeding Our Future — $250M+ USDA fraud scheme",
+    color: "#7B1FA2",
+    stateFilter: "MN",
+    entityTypes: [
+      { name: "Borrower", icon: "👤", count: 4_120 },
+      { name: "Business", icon: "🏢", count: 3_890 },
+      { name: "Address", icon: "📍", count: 2_450 },
+      { name: "Bank Account", icon: "🏦", count: 3_210 },
+    ],
+    relationshipTypes: [
+      "APPLIED_FOR",
+      "OWNED_BY",
+      "REGISTERED_AT",
+      "DEPOSITED_TO",
+      "SHARED_ADDRESS",
+      "SHARED_BANK_ACCOUNT",
+    ],
+    ringExamples: [
+      { id: "MN-001", name: "Minneapolis Address Cluster", exposure: "$4.2M", members: 6 },
+      { id: "MN-002", name: "St. Paul Shell Network", exposure: "$3.1M", members: 4 },
+      { id: "MN-003", name: "Hennepin County Ring", exposure: "$2.8M", members: 5 },
+    ],
+    smokingGun:
+      "6 food distribution nonprofits at the same Minneapolis address claimed $4.2M in COVID relief — matching pattern from the $250M Feeding Our Future fraud case.",
   },
   {
     id: "medicaid",

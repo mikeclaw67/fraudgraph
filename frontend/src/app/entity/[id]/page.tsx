@@ -68,6 +68,7 @@ export default function EntityPage() {
           <div>
             <h1 className="text-2xl font-bold text-[#ECEFF1]">{attr.borrower_name}</h1>
             <p className="text-sm text-[#90A4AE]">{attr.business_name} &middot; {attr.ein}</p>
+            <p className="text-sm text-[#78909C]">{attr.business_address}, {attr.business_city} {attr.business_state} {attr.business_zip}</p>
             <p className="mt-1 text-xs text-[#546E7A]">{entity.entity_id}</p>
           </div>
         </div>
@@ -101,6 +102,7 @@ export default function EntityPage() {
               <Field label="NAICS" value={attr.naics_code} />
               <Field label="Employees" value={String(attr.employee_count)} highlight={attr.employee_count === 0} />
               <Field label="Business Age" value={`${attr.business_age_months} months`} highlight={attr.business_age_months < 6} />
+              <Field label="State" value={attr.business_state || "N/A"} highlight={["CA", "FL", "TX"].includes(attr.business_state)} />
             </div>
           </Card>
 

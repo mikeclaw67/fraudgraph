@@ -241,3 +241,13 @@ export async function getAnalyticsCaseAging(): Promise<import("./types").CaseAgi
 /* --- SWR fetcher --- */
 
 export const swrFetcher = <T>(path: string): Promise<T> => fetchJSON<T>(path);
+
+/* --- Rings List --- */
+
+export interface RingsResponse {
+  rings: FraudRing[];
+}
+
+export async function getRings(): Promise<RingsResponse> {
+  return fetchJSON<RingsResponse>("/api/rings");
+}
