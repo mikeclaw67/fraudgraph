@@ -31,8 +31,8 @@ async def lifespan(app: FastAPI):
     logger.info("FraudGraph starting up — schema: %s", settings.active_schema)
 
     # Seed demo data into in-memory stores on startup
-    from data.seed_demo import seed_demo_data
-    summary = seed_demo_data()
+    from data.seed_demo import seed_demo_data, seed_real_ppp_data
+    summary = seed_real_ppp_data()
     logger.info(
         "Demo data seeded: %d rings, %d entities, %d alerts, %d graph nodes",
         summary["rings"], summary["entities"], summary["alerts"], summary["graph_nodes"],

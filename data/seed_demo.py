@@ -658,3 +658,151 @@ if __name__ == "__main__":
     if schema in ("all", "procurement"):
         seed_procurement_rings()
     print(f"Seeded {schema} rings.")
+
+
+# ---------------------------------------------------------------------------
+# S8: Real PPP data seeding
+# ---------------------------------------------------------------------------
+
+def load_ppp_demo_records(json_path: str = "data/ppp_demo.json") -> list[dict]:
+    """Load real PPP records from ppp_demo.json if it exists."""
+    import json
+    from pathlib import Path
+    
+    path = Path(json_path)
+    if not path.exists():
+        return []
+    
+    with open(path) as f:
+        records = json.load(f)
+    
+    return records
+
+
+def build_rings_from_records(records: list[dict]) -> list[dict]:
+    """Detect fraud rings from real PPP records via shared addresses.
+    
+    Groups records by normalized address and creates ring metadata
+    for addresses shared by 2+ businesses.
+    """
+    from collections import defaultdict
+    import hashlib
+    
+    # Group by normalized address
+    addr_groups: dict[str, list[dict]] = defaultdict(list)
+    for rec in records:
+        addr_key = "|".join([
+            rec.get("business_address", "").strip().lower(),
+            rec.get("business_city", "").strip().lower(),
+            rec.get("business_state", "").strip().upper(),
+            rec.get("business_zip", "")[:5],
+        ])
+        if addr_key.strip("|"):
+            addr_groups[addr_key].append(rec)
+    
+    # Build rings from shared addresses (2+ businesses)
+    rings: list[dict] = []
+    ring_idx = 1
+    
+    for addr_key, members in sorted(addr_groups.items(), key=lambda x: -len(x[1])):
+        if len(members) < 2:
+            continue
+        
+        parts = addr_key.split("|")
+        if len(parts) >= 4:
+            display_addr = f"{parts[0].title()}, {parts[1].title()} {parts[2]} {parts[3]}"
+        else:
+            display_addr = addr_key
+        
+        exposure = sum(m.get("loan_amount", 0) for m in members)
+        avg_score = 50 + min(len(members) * 5, 45)  # Score scales with ring size
+        
+        # Risk tier based on exposure and member count
+        if exposure >= 1_000_000 or len(members) >= 6:
+            risk_score = 92
+            status = "ACTIVE"
+        elif exposure >= 500_000 or len(members) >= 4:
+            risk_score = 78
+            status = "ACTIVE"
+        else:
+            risk_score = 55
+            status = "MONITORING"
+        
+        ring_id = f"ppp_ring_{ring_idx:03d}"
+        ring = {
+            "id": ring_id,
+            "name": f"Address Ring {ring_idx}",
+            "ring_type": "ADDRESS_FARM",
+            "common_element": display_addr,
+            "common_element_detail": f"{len(members)} businesses filed PPP loans from this address.",
+            "status": status,
+            "risk_score": risk_score,
+            "total_exposure": round(exposure, 2),
+            "entity_count": len(members),
+            "member_count": len(members),
+            "avg_risk_score": avg_score,
+            "assigned_to": None,
+            "detected_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "entities": [m.get("borrower_id") for m in members],
+            "risk_breakdown": {
+                "rules": risk_score - 5,
+                "ml": risk_score - 15,
+                "graph": risk_score - 20,
+                "firedRules": ["ADDR_REUSE"],
+                "mlLabel": "Real SBA data"
+            }
+        }
+        rings.append(ring)
+        ring_idx += 1
+        
+        if ring_idx > 50:  # Cap at 50 rings for demo
+            break
+    
+    return rings
+
+
+def seed_real_ppp_data() -> dict[str, Any]:
+    """Seed in-memory stores with real PPP data from ppp_demo.json.
+    
+    Falls back to synthetic demo data if ppp_demo.json doesn't exist.
+    """
+    records = load_ppp_demo_records()
+    
+    if not records:
+        # Fallback to synthetic demo
+        return seed_demo_data()
+    
+    rings = build_rings_from_records(records)
+    
+    if not rings:
+        # No rings found — fallback
+        return seed_demo_data()
+    
+    # --- Run detection pipeline on real records ---
+    rule_results = evaluate_batch(records)
+    context = build_context(records)
+    risk_scores = score_batch(records, rule_results)
+    alerts = generate_alerts_batch(risk_scores, score_threshold=10.0)
+    alert_dicts = [a.to_dict() for a in alerts]
+
+    # --- Build graph ---
+    graph_data = build_graph_from_records(records)
+
+    # --- Populate all in-memory stores ---
+    set_ring_store(rings)
+    alert_dicts = deduplicate_alerts(alert_dicts)
+    set_alert_store(alert_dicts)
+    set_entity_store(records)
+    set_alert_index(alert_dicts)
+    set_graph_data(graph_data)
+
+    return {
+        "rings": len(rings),
+        "entities": len(records),
+        "alerts": len(alert_dicts),
+        "graph_nodes": len(graph_data["nodes"]),
+        "graph_edges": len(graph_data["edges"]),
+        "source": "real_ppp_data",
+    }

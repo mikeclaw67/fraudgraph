@@ -9,3 +9,4 @@ dist/
 *.egg-info/
 .pytest_cache/
 .claude/
+data/public_150k_plus_240930.csv

@@ -184,7 +184,7 @@ def main():
         sys.exit(1)
 
     logger.info("Reading %s ...", input_path)
-    df = pd.read_csv(input_path, low_memory=False)
+    df = pd.read_csv(input_path, low_memory=False, encoding='latin-1')
     logger.info("Loaded %d rows, %d columns", len(df), len(df.columns))
 
     if args.demo_slice:
